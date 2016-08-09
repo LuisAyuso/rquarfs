@@ -1,0 +1,8 @@
+[package]
+name = "rquarfs"
+version = "0.1.0"
+authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
+
+[dependencies]
+    glium = "*"
+    
