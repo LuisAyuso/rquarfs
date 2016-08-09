@@ -2,6 +2,9 @@
 #[macro_use]
 extern crate glium;
 
+use std::io;
+use std::io::prelude::*;
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -22,10 +25,10 @@ implement_vertex!(Vertex, position);
 
 fn main() {
 
-	use std::fs;
+	use std::fs::{self, File};
 
-	let can = fs::canonicalize(".").unwrap();
-	print! ("hello, we are in: {:?}\n", can);
+	let path = fs::canonicalize(".").unwrap();
+	print! ("hello, we are in: {:?}\n", path);
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -44,53 +47,56 @@ fn main() {
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	let vertex_shader_src = r#"
-		#version 140
 
-		in vec2 position;
-	    uniform float t;
+//	let (vertex_shader_src, fragment_shader_src) = {
 
-		void main() {
-			vec2 pos = position;
-			pos.x += t;
-			gl_Position = vec4(pos, 0.0, 1.0);
-		}
-	"#;
+		let mut vs_path = fs::canonicalize(".").unwrap();
+		vs_path.push("shaders");
+		vs_path.push("geom.vs.glsl");
 
-	let fragment_shader_src = r#"
-		#version 140
+		let mut fs_path = fs::canonicalize(".").unwrap();
+		fs_path.push("shaders");
+		fs_path.push("geom.vs.glsl");
 
-		out vec4 color;
+		print! ("vertex: {:?}\n", vs_path);
+		print! ("fragment: {:?}\n", fs_path);
 
-		void main() {
-			color = vec4(1.0, 0.0, 0.0, 1.0);
-		}
-	"#;
+//		let mut f1 = try!(File::open(vs_path));
+//		let mut vertex_shader_buff = String::new();
+//		let len1 = f1.read_to_string(&mut vertex_shader_buff);
+//
+//		let mut f2 = try!(File::open(fs_path));
+//		let mut fragment_shader_buff = String::new();
+//		let len2 = f2.read_to_string(&mut fragment_shader_buff);
+//
+//		(vertex_shader_buff, fragment_shader_buff)
+//	};
 
-	let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
 
-    let mut t: f32 = -0.5;
-
-	loop {
-
-        t += 0.0002;
-        if t > 0.5 {
-            t = -0.5;
-        }
-
-        let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
-		// target.draw(&vertex_buffer, &indices, &program, &glium::uniforms::EmptyUniforms, &Default::default()).unwrap();
-		target.draw(&vertex_buffer, &indices, &program, &uniform! { t: t }, &Default::default()).unwrap();
-        target.finish().unwrap();
-
-		// listing the events produced by the window and waiting to be received
-		for ev in display.poll_events() {
-			match ev {
-				glium::glutin::Event::Closed => return,   // the window has been closed by the user
-				_ => ()
-			}
-		}
-	}
+//	let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
+//
+//    let mut t: f32 = -0.5;
+//
+//	loop {
+//
+//        t += 0.0002;
+//        if t > 0.5 {
+//            t = -0.5;
+//        }
+//
+//        let mut target = display.draw();
+//        target.clear_color(0.0, 0.0, 1.0, 1.0);
+//		// target.draw(&vertex_buffer, &indices, &program, &glium::uniforms::EmptyUniforms, &Default::default()).unwrap();
+//		target.draw(&vertex_buffer, &indices, &program, &uniform! { t: t }, &Default::default()).unwrap();
+//        target.finish().unwrap();
+//
+//		// listing the events produced by the window and waiting to be received
+//		for ev in display.poll_events() {
+//			match ev {
+//				glium::glutin::Event::Closed => return,   // the window has been closed by the user
+//				_ => ()
+//			}
+//		}
+//	}
 
 }
