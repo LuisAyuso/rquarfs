@@ -5,4 +5,8 @@ authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
 
 [dependencies]
     glium = "*"
-    
+    time = "0.1"
+    glm = "*"
+    rand = "*"
+
+

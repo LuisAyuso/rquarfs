@@ -1,10 +1,14 @@
 #version 330
 
-in vec2 position;
-uniform float t;
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2  world_position; // (f32, f32),
+layout (location = 2) in vec3 in_color;
+
+out vec4 fColor;
+
 
 void main() {
-	vec2 pos = position;
-	pos.x += t;
-	gl_Position = vec4(pos, 0.0, 1.0);
+    float offset = gl_InstanceID *0.1;
+    gl_Position = vec4(position + offset, 0.0f, 1.0f);
+    fColor = vec4(in_color, 1);
 }
