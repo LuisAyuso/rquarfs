@@ -6,8 +6,8 @@ extern crate glm;
 extern crate rand;
 extern crate cgmath;
 
+pub mod model;
 
-//mod model;
 
 use std::io;
 use std::io::Read;
@@ -81,8 +81,11 @@ fn loop_with_report<F : FnMut(f64)>(mut body : F )
 
 fn main() {
 
-	let window_width = 800;
-	let window_height = 600;
+    model::hello_world();
+
+
+	let window_width = 1920;
+	let window_height = 1080;
 	let window_ratio : f32 = window_width as f32 / window_height as f32;
 
 	let path = fs::canonicalize(".").unwrap();
@@ -150,8 +153,8 @@ fn main() {
 
     // translations for the instances
     let mut translations : Vec<(f32,f32)> = Vec::new();
-	for x in 0..2 {
-        for y in 0..2 {
+	for x in 0..100 {
+        for y in 0..100 {
             translations.push((x as f32,y as f32));
         }
 	}
@@ -161,15 +164,13 @@ fn main() {
         #[derive(Copy, Clone)]
         struct Attr {
             world_position: (f32, f32),
-            in_color: (f32, f32, f32),
         }
 
-        implement_vertex!(Attr, world_position, in_color);
+        implement_vertex!(Attr, world_position);
 
         let data = translations.iter().map( |pos| {
             Attr {
                 world_position: (pos.0, pos.1),
-                in_color:       (rand::random(), rand::random(), rand::random()),
             }
         }).collect::<Vec<_>>();
 
@@ -184,19 +185,18 @@ fn main() {
             write: true,
 			.. Default::default()
 		},
-       // polygon_mode: glium::PolygonMode::Line,
+        polygon_mode: glium::PolygonMode::Line,
 		.. Default::default()
 	};
 
 	// generate camera...
-    let view_eye: Point3<f32> = Point3::new(1.0, 1.0, 5.0);
+    let view_eye:    Point3<f32> = Point3::new(100.0, 100.0, 50.0);
     let view_center: Point3<f32> = Point3::new(1.0, 1.0, 0.0);
-
-    let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
+    let view_up:     Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
 
  	let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
-    let mut view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
-    let mut model_matrix: Matrix4<f32> = Matrix4::from_translation(Vector3::new(0.0,0.0,0.0));
+    let mut view_matrix:    Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
+    let mut model_matrix:   Matrix4<f32> = Matrix4::from_translation(Vector3::new(0.0,0.0,0.0));
 
     // per increment rotation 
     let rotation = Matrix4::from(Quaternion::from(Euler {
@@ -206,6 +206,8 @@ fn main() {
     }));
 
     print!("{} instances\n", translations.len());
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	loop_with_report ( |_| {
 
@@ -232,8 +234,12 @@ fn main() {
 
         // listing the events produced by the window and waiting to be received
         for ev in display.poll_events() {
+
+            use glium::glutin::Event;
+
             match ev {
-                glium::glutin::Event::Closed => std::process::exit(0),   // the window has been closed 
+               Event::Closed => std::process::exit(0),   // the window has been closed 
+               Event::KeyboardInput(_, 9, _) => std::process::exit(0),  
                 _ => ()
             }
         }
