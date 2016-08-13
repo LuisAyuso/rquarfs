@@ -58,7 +58,7 @@ fn loop_with_report<F : FnMut(f64)>(mut body : F )
         let mut delta : f64 = 0.0;
 
         let start = PreciseTime::now();
-        while start.to(PreciseTime::now()) < Duration::seconds(2) 
+        while start.to(PreciseTime::now()) < Duration::seconds(3) 
 		{
             let start_t = time::precise_time_s();
 
@@ -66,11 +66,11 @@ fn loop_with_report<F : FnMut(f64)>(mut body : F )
 
             let end_t = time::precise_time_s();
             delta = end_t-start_t;
-            fps_accum = delta;
+            fps_accum += delta;
             samples += 1;
         }
 
-        print!("fps: {}\n", (samples as f64)/fps_accum );
+        print!("fps: {} \n", (samples as f64)/fps_accum);
     }
 }
 
