@@ -4,6 +4,7 @@ extern crate glium;
 extern crate time;
 extern crate glm;
 extern crate rand;
+extern crate cgmath;
 
 use std::io;
 use std::io::Read;
@@ -11,10 +12,7 @@ use std::io::Read;
 use std::fs::{self, File};
 use time::{PreciseTime, Duration};
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-type Mat4 = [[f32; 4]; 4];
+use cgmath::{Point3, Vector3, Matrix4, SquareMatrix, Euler, deg, Quaternion, perspective};
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,54 +72,11 @@ fn loop_with_report<F : FnMut()>(mut body : F )
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-fn look_at( camera : glm::Vec3, center: glm::Vec3, up: glm::Vec3) -> Mat4 
-{
-	let mut matrix : Mat4 = [[0.0, 0.0, 0.0, 0.0],
-							 [0.0, 0.0, 0.0, 0.0],
-							 [0.0, 0.0, 0.0, 0.0],
-							 [0.0, 0.0, 0.0, 0.0]];
-//Create a new coordinate system:
-
-	let z = camera - center;
-//    Z.Normalize();
-	let x = up * z;
-	let y = z * x;
-
-//Cross-product gives area of parallelogram, which is < 1.0 for non-perpendicular unit-length vectors; 
-// so normalize X, Y here:
-
-//    X.Normalize();
-//    Y.Normalize();
-
-//Put everything into the resulting 4x4 matrix:
-
-    matrix[0][0] = x.x;
-    matrix[1][0] = x.y;
-    matrix[2][0] = x.z;
-    //matrix[3][0] = -X.Dot( Eye );
-    matrix[0][1] = y.x;
-    matrix[1][1] = y.y;
-    matrix[2][1] = y.z;
-    //matrix[3][1] = -Y.Dot( Eye );
-    matrix[0][2] = z.x;
-    matrix[1][2] = z.y;
-    matrix[2][2] = z.z;
-    //matrix[3][2] = -Z.Dot( Eye );
-    matrix[0][3] = 0.0;
-    matrix[1][3] = 0.0;
-    matrix[2][3] = 0.0;
-    matrix[3][3] = 1.0;
-
-print!("{:?}\n", matrix);
-
-	matrix
-}
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 fn main() {
+
+	let window_width = 1920;
+	let window_height = 1080;
+	let window_ratio : f32 = window_width as f32 / window_height as f32;
 
 	let path = fs::canonicalize(".").unwrap();
 	print! ("hello, we are in: {:?}\n", path);
@@ -130,7 +85,7 @@ fn main() {
 
     use glium::{DisplayBuild, Surface};
     let display = glium::glutin::WindowBuilder::new()
-        .with_dimensions(1920, 1080)
+        .with_dimensions(window_width, window_height)
         .build_glium().unwrap();
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,7 +104,6 @@ fn main() {
 	let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
     let vertex_shader = load_shader("geom.vs");
     let fragment_shader = load_shader("geom.fs");
@@ -204,14 +158,27 @@ fn main() {
 //	};
 
 	// generate camera...
-	let model_view = look_at(glm::vec3(0.0, 100.0, 0.0), 
-							 glm::vec3(0.0, 0.0, 0.0),
-							 glm::vec3(1.0, 0.0, 0.0));
+    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 1.0);
+    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
+    let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
+ 	let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
+    let view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
+    let mut model_matrix: Matrix4<f32> = Matrix4::identity();
 
 	loop_with_report ( || {
 
+        let rotation = Matrix4::from(Quaternion::from(Euler {
+            x: deg(90.0),
+            y: deg(45.0),
+            z: deg(15.0),
+        }));
+
+        model_matrix = model_matrix * rotation;
+
 		let uniforms = uniform! {
-            model_view: model_view,
+			view: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
+			view: Into::<[[f32; 4]; 4]>::into(view_matrix),
+			view: Into::<[[f32; 4]; 4]>::into(model_matrix),
         };
 
         let mut target = display.draw();
@@ -222,6 +189,7 @@ fn main() {
 				&program, 
 				&uniforms,
 				//&glium::uniforms::EmptyUniforms, 
+                //&params,
 				&Default::default()
 			).unwrap();
         target.finish().unwrap();
@@ -229,7 +197,7 @@ fn main() {
         // listing the events produced by the window and waiting to be received
         for ev in display.poll_events() {
             match ev {
-                glium::glutin::Event::Closed => std::process::exit(0),   // the window has been closed by the user
+                glium::glutin::Event::Closed => std::process::exit(0),   // the window has been closed 
                 _ => ()
             }
         }

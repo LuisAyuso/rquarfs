@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
 
 [dependencies]
-    glium = "*"
+	glium = "*"
     time = "0.1"
+    cgmath = "0.10"
     glm = "*"
     rand = "*"
 
