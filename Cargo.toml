@@ -9,5 +9,7 @@ authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
     cgmath = "0.10"
     glm = "*"
     rand = "*"
+    genmesh = "*"
+    obj = "*"
 
 

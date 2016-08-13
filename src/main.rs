@@ -6,6 +6,9 @@ extern crate glm;
 extern crate rand;
 extern crate cgmath;
 
+
+//mod model;
+
 use std::io;
 use std::io::Read;
 //use std::io::prelude::*;
@@ -20,7 +23,7 @@ use cgmath::{Point3, Vector3, Matrix4, SquareMatrix, Euler, deg, Quaternion, per
 #[derive(Copy, Clone)]
 struct Vertex 
 {
-    position: [f32; 2],
+    position: (f32, f32, f32),
 }
 
 implement_vertex!(Vertex, position);
@@ -34,7 +37,7 @@ fn load_shader( path : &str) -> Result<String, io::Error>
 		let mut vs_path = fs::canonicalize(".").unwrap();
 		vs_path.push("shaders");
 		vs_path.push(format! ("{}{}", path, ".glsl"));
-        print!("open: {:?}\n", vs_path);
+        print!("load: {:?}\n", vs_path);
 
 		let mut f = try!(File::open(vs_path));
 
@@ -46,22 +49,24 @@ fn load_shader( path : &str) -> Result<String, io::Error>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-fn loop_with_report<F : FnMut()>(mut body : F )  
+fn loop_with_report<F : FnMut(f64)>(mut body : F )  
 {
     loop 
 	{
         let mut fps_accum :f64 = 0.0;
         let mut samples :u32 = 0;
+        let mut delta : f64 = 0.0;
 
         let start = PreciseTime::now();
         while start.to(PreciseTime::now()) < Duration::seconds(2) 
 		{
             let start_t = time::precise_time_s();
 
-            body();
+            body(delta);
 
             let end_t = time::precise_time_s();
-            fps_accum += end_t-start_t;
+            delta = end_t-start_t;
+            fps_accum = delta;
             samples += 1;
         }
 
@@ -90,17 +95,45 @@ fn main() {
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	let vertex1 = Vertex { position: [-0.5,  0.5] };
-	let vertex2 = Vertex { position: [ 0.5, -0.5] };
-	let vertex3 = Vertex { position: [-0.5, -0.5] };
+    let vertex_buffer = glium::VertexBuffer::new(&display, &[
+		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
+		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
+		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
+		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
+		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
+		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
+		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5,-0.5, 0.5 ), }, 
+		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
+		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
+		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
+		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
+		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
+		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
+		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
+		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
+		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
+		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
+		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
+		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
+		Vertex { position: (  0.5,-0.5, 0.5 ), },
+    ]).unwrap();
 
-	let vertex4 = Vertex { position: [-0.5,  0.5] };
-	let vertex5 = Vertex { position: [ 0.5, -0.5] };
-	let vertex6 = Vertex { position: [ 0.5,  0.5] };
-
-	let shape = vec![vertex1, vertex2, vertex3, vertex4, vertex5, vertex6];
-
-	let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
 	let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,28 +190,32 @@ fn main() {
 //		.. Default::default()
 //	};
 
+
 	// generate camera...
-    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 1.0);
+    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 15.0);
     let view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
  	let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
     let view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
     let mut model_matrix: Matrix4<f32> = Matrix4::identity();
 
-	loop_with_report ( || {
+    // per increment rotation 
+    let rotation = Matrix4::from(Quaternion::from(Euler {
+        x: deg(1.0),
+        y: deg(1.0),
+        z: deg(0.0),
+    }));
 
-        let rotation = Matrix4::from(Quaternion::from(Euler {
-            x: deg(90.0),
-            y: deg(45.0),
-            z: deg(15.0),
-        }));
+    let mut timestep = 0.0;
+	loop_with_report ( |delta| {
 
         model_matrix = model_matrix * rotation;
 
 		let uniforms = uniform! {
-			view: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
-			view: Into::<[[f32; 4]; 4]>::into(view_matrix),
-			view: Into::<[[f32; 4]; 4]>::into(model_matrix),
+			perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
+			view_matrix: Into::<[[f32; 4]; 4]>::into(view_matrix),
+			model_matrix: Into::<[[f32; 4]; 4]>::into(model_matrix),
+
         };
 
         let mut target = display.draw();
