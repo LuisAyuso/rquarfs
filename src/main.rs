@@ -23,10 +23,12 @@ use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
 #[derive(Copy, Clone)]
 struct Vertex 
 {
-    position: (f32, f32, f32),
+    position:  (f32, f32, f32),
+    normal:    (f32, f32, f32),
+    tex_coord: (f32, f32),
 }
 
-implement_vertex!(Vertex, position);
+implement_vertex!(Vertex, position, normal, tex_coord);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,7 +60,7 @@ fn loop_with_report<F : FnMut(f64)>(mut body : F )
         let mut delta : f64 = 0.0;
 
         let start = PreciseTime::now();
-        while start.to(PreciseTime::now()) < Duration::seconds(3) 
+        while start.to(PreciseTime::now()) < Duration::seconds(5) 
 		{
             let start_t = time::precise_time_s();
 
@@ -91,20 +93,21 @@ fn main() {
     use glium::{DisplayBuild, Surface};
     let display = glium::glutin::WindowBuilder::new()
         .with_dimensions(window_width, window_height)
+        .with_depth_buffer(24)
         .build_glium().unwrap();
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let vertex_buffer = glium::VertexBuffer::new(&display, &[
-		Vertex { position: (  0.0, 0.0, 1.0 ), }, 
-		Vertex { position: (  1.0, 0.0, 1.0 ), }, 
-		Vertex { position: (  1.0, 1.0, 1.0 ), }, 
-		Vertex { position: (  0.0, 1.0, 1.0 ), }, 
+		Vertex { position: ( 0.0, 0.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,0.0) }, 
+		Vertex { position: ( 1.0, 0.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,0.0) }, 
+		Vertex { position: ( 1.0, 1.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,1.0) }, 
+		Vertex { position: ( 0.0, 1.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,1.0) }, 
 
-		Vertex { position: (  0.0, 0.0, 0.0 ), }, 
-		Vertex { position: (  1.0, 0.0, 0.0 ), }, 
-		Vertex { position: (  1.0, 1.0, 0.0 ), }, 
-		Vertex { position: (  0.0, 1.0, 0.0 ), }, 
+		Vertex { position: ( 0.0, 0.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,0.0) }, 
+		Vertex { position: ( 1.0, 0.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,0.0) }, 
+		Vertex { position: ( 1.0, 1.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,1.0) }, 
+		Vertex { position: ( 0.0, 1.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,1.0) }, 
     ]).unwrap();
 
 
@@ -147,8 +150,8 @@ fn main() {
 
     // translations for the instances
     let mut translations : Vec<(f32,f32)> = Vec::new();
-	for x in 0..100 {
-        for y in 0..100 {
+	for x in 0..2 {
+        for y in 0..2 {
             translations.push((x as f32,y as f32));
         }
 	}
@@ -175,28 +178,30 @@ fn main() {
 
 	// parameters for rendering (culling)
 	let params = glium::DrawParameters {
-        backface_culling: glium::BackfaceCullingMode::CullCounterClockwise,
-		//depth: glium::Depth {
-		//	test: glium::DepthTest::IfLess,
-		//	write: true,
-		//	.. Default::default()
-		//},
+        backface_culling: glium::BackfaceCullingMode::CullClockwise,
+		depth: glium::Depth {
+			test: glium::DepthTest::IfLess,
+            write: true,
+			.. Default::default()
+		},
+       // polygon_mode: glium::PolygonMode::Line,
 		.. Default::default()
 	};
 
-
 	// generate camera...
-    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 1.0);
-    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 3.0);
+    let view_eye: Point3<f32> = Point3::new(1.0, 1.0, 5.0);
+    let view_center: Point3<f32> = Point3::new(1.0, 1.0, 0.0);
+
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
+
  	let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
     let mut view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
-    let mut model_matrix: Matrix4<f32> = Matrix4::from_translation(Vector3::new(0.0,0.0,-50.0));
+    let mut model_matrix: Matrix4<f32> = Matrix4::from_translation(Vector3::new(0.0,0.0,0.0));
 
     // per increment rotation 
     let rotation = Matrix4::from(Quaternion::from(Euler {
-        x: deg(1.0),
-        y: deg(1.0),
+        x: deg(0.05),
+        y: deg(0.05),
         z: deg(0.0),
     }));
 
@@ -204,9 +209,8 @@ fn main() {
 
 	loop_with_report ( |_| {
 
-        view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0,0.0,-0.1));
+        view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0,0.0, 0.0));
         model_matrix = model_matrix * rotation;
-
 
 		let uniforms = uniform! {
 			perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
@@ -215,7 +219,8 @@ fn main() {
         };
 
         let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
+        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+
         target.draw( 
 				(&vertex_buffer, instance_attr.per_instance().unwrap()), 
 				&indices, 
