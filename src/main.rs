@@ -15,7 +15,7 @@ use std::io::Read;
 use std::fs::{self, File};
 use time::{PreciseTime, Duration};
 
-use cgmath::{Point3, Vector3, Matrix4, SquareMatrix, Euler, deg, Quaternion, perspective};
+use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,8 +79,8 @@ fn loop_with_report<F : FnMut(f64)>(mut body : F )
 
 fn main() {
 
-	let window_width = 1920;
-	let window_height = 1080;
+	let window_width = 800;
+	let window_height = 600;
 	let window_ratio : f32 = window_width as f32 / window_height as f32;
 
 	let path = fs::canonicalize(".").unwrap();
@@ -96,45 +96,39 @@ fn main() {
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let vertex_buffer = glium::VertexBuffer::new(&display, &[
-		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
-		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
-		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
-		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
-		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
-		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
-		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5,-0.5, 0.5 ), }, 
-		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
-		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
-		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
-		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
-		Vertex { position: (  0.5,-0.5,-0.5 ), }, 
-		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
-		Vertex { position: (  0.5,-0.5, 0.5 ), }, 
-		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
-		Vertex { position: (  0.5, 0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
-		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5,-0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
-		Vertex { position: (  0.5, 0.5, 0.5 ), }, 
-		Vertex { position: ( -0.5, 0.5, 0.5 ), }, 
-		Vertex { position: (  0.5,-0.5, 0.5 ), },
+		Vertex { position: (  0.0, 0.0, 1.0 ), }, 
+		Vertex { position: (  1.0, 0.0, 1.0 ), }, 
+		Vertex { position: (  1.0, 1.0, 1.0 ), }, 
+		Vertex { position: (  0.0, 1.0, 1.0 ), }, 
+
+		Vertex { position: (  0.0, 0.0, 0.0 ), }, 
+		Vertex { position: (  1.0, 0.0, 0.0 ), }, 
+		Vertex { position: (  1.0, 1.0, 0.0 ), }, 
+		Vertex { position: (  0.0, 1.0, 0.0 ), }, 
     ]).unwrap();
 
-	let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+
+//	let indices = glium::index::IndexBuffer::new(&display,
+//                                glium::index::PrimitiveType::TrianglesList,
+//                                &[0,1,2]
+//                                ).unwrap();
+
+    let indices = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TrianglesList,
+											&[
+											// front
+											0, 1, 2,  2, 3, 0,
+											// top
+											1, 5, 6,  6, 2, 1,
+											// back
+											7, 6, 5,  5, 4, 7,
+											// bottom
+											4, 0, 3,  3, 7, 4,
+											// left
+											4, 5, 1,  1, 0, 4,
+											// right
+											3, 2, 6,  6, 7, 3u16
+                                           ]).unwrap();
+	//let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -153,10 +147,9 @@ fn main() {
 
     // translations for the instances
     let mut translations : Vec<(f32,f32)> = Vec::new();
-    let offset = 0.1;
-	for x in 0..10 {
-        for y in 0..10 {
-            translations.push((x as f32 / 10.0 + offset, y as f32 / 10.0 + offset));
+	for x in 0..100 {
+        for y in 0..100 {
+            translations.push((x as f32,y as f32));
         }
 	}
 
@@ -180,24 +173,25 @@ fn main() {
         glium::vertex::VertexBuffer::dynamic(&display, &data).unwrap()
     };
 
-//	// parameters for rendering (culling)
-//	let params = glium::DrawParameters {
-//		depth: glium::Depth {
-//			test: glium::DepthTest::IfLess,
-//			write: true,
-//			.. Default::default()
-//		},
-//		.. Default::default()
-//	};
+	// parameters for rendering (culling)
+	let params = glium::DrawParameters {
+        backface_culling: glium::BackfaceCullingMode::CullCounterClockwise,
+		//depth: glium::Depth {
+		//	test: glium::DepthTest::IfLess,
+		//	write: true,
+		//	.. Default::default()
+		//},
+		.. Default::default()
+	};
 
 
 	// generate camera...
-    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 15.0);
-    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
+    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 1.0);
+    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 3.0);
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
  	let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
-    let view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
-    let mut model_matrix: Matrix4<f32> = Matrix4::identity();
+    let mut view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
+    let mut model_matrix: Matrix4<f32> = Matrix4::from_translation(Vector3::new(0.0,0.0,-50.0));
 
     // per increment rotation 
     let rotation = Matrix4::from(Quaternion::from(Euler {
@@ -206,16 +200,18 @@ fn main() {
         z: deg(0.0),
     }));
 
-    let mut timestep = 0.0;
-	loop_with_report ( |delta| {
+    print!("{} instances\n", translations.len());
 
+	loop_with_report ( |_| {
+
+        view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0,0.0,-0.1));
         model_matrix = model_matrix * rotation;
+
 
 		let uniforms = uniform! {
 			perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
-			view_matrix: Into::<[[f32; 4]; 4]>::into(view_matrix),
-			model_matrix: Into::<[[f32; 4]; 4]>::into(model_matrix),
-
+			view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
+			model_matrix:       Into::<[[f32; 4]; 4]>::into(model_matrix),
         };
 
         let mut target = display.draw();
@@ -225,9 +221,7 @@ fn main() {
 				&indices, 
 				&program, 
 				&uniforms,
-				//&glium::uniforms::EmptyUniforms, 
-                //&params,
-				&Default::default()
+                &params,
 			).unwrap();
         target.finish().unwrap();
 
