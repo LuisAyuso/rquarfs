@@ -10,5 +10,7 @@ resources = ["assets", "shaders"]
     cgmath = "0.10"
     rand = "*"
     image = "*"
+    threadpool = "*"
+
 
 
