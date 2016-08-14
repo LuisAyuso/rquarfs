@@ -3,12 +3,15 @@ extern crate glium;
 extern crate image;
 extern crate threadpool;
 extern crate regex;
+extern crate glob;
 
 use std::fs;
 use std::io;
 use std::path::PathBuf;
 use std::io::{Error, ErrorKind};
+
 use self::regex::Regex;
+use self::glob::glob;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,8 +46,12 @@ pub fn load_images_rgba(path : &PathBuf) -> Vec<image::RgbaImage>
     images
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pub fn load_textures<F: glium::backend::Facade> (display: &F,  set_name : &str) -> Vec<glium::texture::Texture2d>
+#[allow(dead_code)]
+pub fn load_textures<F: glium::backend::Facade> (display: &F,  set_name : &str) 
+    -> Vec<glium::texture::Texture2d>
 {
 	let mut path = fs::canonicalize(".").unwrap();
 	path.push("assets");
@@ -67,18 +74,21 @@ pub fn load_textures<F: glium::backend::Facade> (display: &F,  set_name : &str) 
 }
 
 
-pub struct Atlas{
-    count: usize,
-    tex_w: usize,
-    tex_h: usize,
-    side: usize,
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    image: image::RgbaImage
+pub struct Atlas{
+   pub count: usize,
+   pub tex_w: usize,
+   pub tex_h: usize,
+   pub side: usize,
+
+   pub image: image::RgbaImage
 }
 
 impl Atlas{
 
-    fn new( count: usize, tex_w: usize, tex_h: usize, side: usize, image: image::RgbaImage) 
+    pub fn new( count: usize, tex_w: usize, tex_h: usize, side: usize, image: image::RgbaImage) 
         -> Atlas
     {
          Atlas{
@@ -90,7 +100,12 @@ impl Atlas{
         }
     }
 
-    fn from_file(path: &str) 
+//    pub fn get_image(self) -> image::RgbaImage
+//    {
+//        self.image
+//    }
+//
+    pub fn from_file(path: &str) 
         -> Result<Atlas, io::Error>
     {
 
@@ -122,7 +137,7 @@ impl Atlas{
         }
     }
 
-    fn save(&self, path: &PathBuf, name: &str) 
+    pub fn save(&self, path: &PathBuf, name: &str) 
         -> Result<(), io::Error>
     {
         assert!(self.image.dimensions().0 as usize == self.tex_w * self.side);
@@ -141,13 +156,17 @@ impl Atlas{
         print!("save->{:?}\n", file_path);
         self.image.save(&file_path)
     }
-}
 
+} // Atlas
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // this function will create an atlas with the pictures found in folder
 // the folder will be fetch from the assets folder 
 // ideally will be cached in assets/cache
-pub fn generate_atlas(set_name : &str) -> Atlas
+pub fn generate_atlas(set_name : &str) 
+        -> Result<Atlas, io::Error>
 {
 	let mut path = fs::canonicalize(".").unwrap();
 	path.push("assets");
@@ -194,7 +213,27 @@ pub fn generate_atlas(set_name : &str) -> Atlas
     // save to cache. cache is the same as the set_name name
     let atlas = Atlas::new(tex_count, texture_w as usize, texture_h as usize, side as usize, atlas_image);
     assert!(atlas.save(&cache_path, &set_name).is_ok());
-    atlas
+    Ok(atlas)
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+pub fn load_atlas(set_name : &str) 
+        -> Result<Atlas, io::Error>
+{
+    match glob(format!("./assets/cache/{}*", set_name).as_str())
+    {
+        Ok(mut m) => {
+                    let atlas = match m.next()
+                    {
+                        Some(path) => Atlas::from_file(path.unwrap().to_str().unwrap_or("")),
+                        None => generate_atlas(set_name),
+                    };
+                    atlas
+                 },
+        Err(_) => Err(Error::new(ErrorKind::Other, "oh no!"))
+    }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -206,24 +245,30 @@ mod tests
 {
 
     use super::generate_atlas;
+    use super::load_atlas;
     use super::Atlas;
 
     #[test]
-    fn create_atlas() 
+    fn test1() 
     {
-        generate_atlas("test/atlas1");
-        generate_atlas("test/atlas2");
-        generate_atlas("test/atlas3");
+       assert!(generate_atlas("test/atlas1").is_ok());
+       assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
+       assert!(load_atlas("test/atlas1").is_ok());
     }
 
     #[test]
-    fn load_atlas() 
+    fn test2() 
     {
-       assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
+       assert!(generate_atlas("test/atlas2").is_ok());
+       assert!(load_atlas("test/atlas2").is_ok());
        assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
-       assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
     }
 
-
-
+    #[test]
+    fn test3() 
+    {
+       assert!(generate_atlas("test/atlas3").is_ok());
+       assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
+       assert!(load_atlas("test/atlas3").is_ok());
+    }
 }

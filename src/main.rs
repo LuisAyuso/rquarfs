@@ -103,13 +103,23 @@ fn main() {
         };
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
 
-	let textures = model::textures::load_textures(&display, "tex_pack");
+    let atlas = model::textures::load_atlas("tex_pack").unwrap();
+    let atlas_count = atlas.count;
+    let atlas_side  = atlas.side;
+    let image_dimensions = atlas.image.dimensions();
+    let image = glium::texture::RawImage2d::from_raw_rgba_reversed( atlas.image.into_raw(), image_dimensions);
+    let atlas_texture = glium::texture::Texture2d::new(&display, image).unwrap();
+
+	//let ref atlas_texture = model::textures::load_textures(&display, "tex_pack")[0];
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // translations for the instances
     let mut translations : Vec<(f32,f32)> = Vec::new();
-	for x in 0..10 {
-        for y in 0..10 {
+	for x in 0..500 {
+        for y in 0..1000 {
             translations.push((x as f32,y as f32));
         }
 	}
@@ -122,21 +132,28 @@ fn main() {
         #[derive(Copy, Clone, Debug)]
         struct Attr {
             world_position: (f32, f32),
-            in_color: (f32, f32, f32),
-            texture:  u32,
+            in_color:       (f32, f32, f32),
+            tex_offset:     (f32, f32)
         }
-        implement_vertex!(Attr, world_position, in_color, texture);
+        implement_vertex!(Attr, world_position, in_color, tex_offset);
 
         use rand::{Rng};
         let mut rng = rand::thread_rng();
 
         let data = translations.iter().map( |pos| {
+
+            let tex_id = rng.gen_range(0, atlas_count);
+            let i_off = ((tex_id % atlas_side) as f32) / atlas_side as f32;
+            let j_off = ((tex_id / atlas_side) as f32) / atlas_side as f32;
+            print!("{}  {},{} @ {},{}\n", tex_id, (tex_id / atlas_side), (tex_id % atlas_side), i_off, j_off);
+
             Attr {
                 world_position: (pos.0, pos.1),
                 in_color:       (rand::random(), rand::random(), rand::random()),
-                texture:        rng.gen_range(0, 6),
+                tex_offset:     (i_off as f32, j_off as f32), 
             }
         }).collect::<Vec<_>>();
+
 
         glium::vertex::VertexBuffer::dynamic(&display, &data).unwrap()
     };
@@ -188,12 +205,8 @@ fn main() {
 			view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
 			model_matrix:       Into::<[[f32; 4]; 4]>::into(model_matrix),
 
-            tex1 :  &textures[0],
-            tex2 :  &textures[1],
-            tex3 :  &textures[2],
-            tex4 :  &textures[3],
-            tex5 :  &textures[4],
-            tex5 :  &textures[5],
+            atlas_texture: &atlas_texture,
+            atlas_side:    atlas_side as u32,
         };
 
         let mut target = display.draw();
