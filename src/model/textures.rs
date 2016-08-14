@@ -2,11 +2,13 @@
 extern crate glium;
 extern crate image;
 extern crate threadpool;
+extern crate regex;
 
 use std::fs;
-use std::result;
 use std::io;
 use std::path::PathBuf;
+use std::io::{Error, ErrorKind};
+use self::regex::Regex;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -88,7 +90,36 @@ impl Atlas{
         }
     }
 
-    fn from_file(path: &PathBuf){
+    fn from_file(path: &str) 
+        -> Result<Atlas, io::Error>
+    {
+
+	    let file_path = fs::canonicalize(path).unwrap();
+        let filename = file_path.file_name().unwrap().to_str().unwrap_or("");
+
+        let re = Regex::new(r"\w+\.(\d+)_(\d+)x(\d+)_(\d+)x(\d+)\.atlas.\w+").unwrap();
+        match  re.captures(filename)
+        {
+            Some(cap) => {
+                    println!("load: {} textures of size {}x{} in grid: {}x{}",
+                    cap.at(1).unwrap_or(""), 
+                    cap.at(2).unwrap_or(""),
+                    cap.at(3).unwrap_or(""),
+                    cap.at(4).unwrap_or(""),
+                    cap.at(5).unwrap_or(""));
+
+                    let count = cap.at(1).unwrap().parse::<usize>().unwrap();
+                    let w =     cap.at(2).unwrap().parse::<usize>().unwrap();
+                    let h =     cap.at(3).unwrap().parse::<usize>().unwrap();
+                    let side =  cap.at(4).unwrap().parse::<usize>().unwrap();
+
+                    let image = image::open(file_path.to_str().unwrap());
+                    assert!(image.is_ok());
+                    Ok(Atlas::new(count, w, h, side, image.unwrap().to_rgba()))
+
+                }
+            _ => Err(Error::new(ErrorKind::Other, "oh no!"))
+        }
     }
 
     fn save(&self, path: &PathBuf, name: &str) 
@@ -105,7 +136,7 @@ impl Atlas{
         file_path.push(file_name);
 
         let folder = file_path.parent();
-        fs::create_dir(&folder.unwrap());
+        let _ = fs::create_dir(&folder.unwrap());
 
         print!("save->{:?}\n", file_path);
         self.image.save(&file_path)
@@ -175,14 +206,24 @@ mod tests
 {
 
     use super::generate_atlas;
+    use super::Atlas;
 
     #[test]
-    fn atlas() 
+    fn create_atlas() 
     {
         generate_atlas("test/atlas1");
         generate_atlas("test/atlas2");
-//        generate_atlas("test/atlas3");
+        generate_atlas("test/atlas3");
     }
+
+    #[test]
+    fn load_atlas() 
+    {
+       assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
+       assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
+       assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
+    }
+
 
 
 }
