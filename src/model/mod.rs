@@ -1,10 +1,6 @@
 
 
 
+pub mod textures;
 
-
-pub fn hello_world() 
-{
-    print!("hola!\n");
-}
 

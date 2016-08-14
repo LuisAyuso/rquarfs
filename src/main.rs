@@ -1,15 +1,15 @@
 
 #[macro_use]
 extern crate glium;
-extern crate time;
 extern crate rand;
 extern crate cgmath;
 extern crate image;
 
+mod model;
+mod utils;
 
 use std::io;
 use std::io::Read;
-use time::{PreciseTime, Duration};
 use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,61 +42,6 @@ fn load_shader( name : &str) -> Result<String, io::Error>
 	let mut shader_buff = String::new();
 	let _ = f.read_to_string(&mut shader_buff);
 	return Ok(shader_buff);
-}
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-fn load_textures<F: glium::backend::Facade> (display: &F,  set : &str) -> Vec<glium::texture::Texture2d>
-{
-	let mut path = fs::canonicalize(".").unwrap();
-	path.push("assets");
-	path.push(set);
-	print!("load textures: {:?}\n", path);
-
-    let mut textures = Vec::new();
-
-    // iterate over textures:
-	use std::fs;
-	for entry in fs::read_dir(path).unwrap() {
-		let dir = entry.unwrap();
-		let image = image::open(dir.path()).unwrap().to_rgba();
-		let image_dimensions = image.dimensions();
-        let image = glium::texture::RawImage2d::from_raw_rgba_reversed(image.into_raw(), image_dimensions);
-        let texture = glium::texture::Texture2d::new(display, image).unwrap();
-
-		print!(" {:?} -> {}x{}\n", dir.file_name(), image_dimensions.0, image_dimensions.1);
-        textures.push(texture)
-	}
-
-    textures
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-fn loop_with_report<F : FnMut(f64)>(mut body : F )  
-{
-    loop 
-	{
-        let mut fps_accum :f64 = 0.0;
-        let mut samples :u32 = 0;
-        let mut delta : f64 = 0.0;
-
-        let start = PreciseTime::now();
-        while start.to(PreciseTime::now()) < Duration::seconds(5) 
-		{
-            let start_t = time::precise_time_s();
-
-            body(delta);
-
-            let end_t = time::precise_time_s();
-            delta = end_t-start_t;
-            fps_accum += delta;
-            samples += 1;
-        }
-
-        print!("fps: {} \n", (samples as f64)/fps_accum);
-    }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +104,7 @@ fn main() {
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	let textures = load_textures(&display, "tex_pack");
+	let textures = model::textures::load_textures(&display, "tex_pack");
 
     // translations for the instances
     let mut translations : Vec<(f32,f32)> = Vec::new();
@@ -192,8 +137,6 @@ fn main() {
                 texture:        rng.gen_range(0, 6),
             }
         }).collect::<Vec<_>>();
-
-        print!("{:?}\n", data);
 
         glium::vertex::VertexBuffer::dynamic(&display, &data).unwrap()
     };
@@ -235,7 +178,7 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	loop_with_report ( |_| {
+	utils::loop_with_report ( |_| {
 
         view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0,0.0, 0.0));
         model_matrix = model_matrix * rotation;
