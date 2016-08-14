@@ -2,14 +2,13 @@
 name = "rquarfs"
 version = "0.1.0"
 authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
+resources = ["assets", "shaders"]
 
 [dependencies]
 	glium = "*"
     time = "0.1"
     cgmath = "0.10"
-    glm = "*"
     rand = "*"
-    genmesh = "*"
-    obj = "*"
+    image = "*"
 
 
