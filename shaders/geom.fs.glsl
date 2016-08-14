@@ -11,5 +11,5 @@ uniform uint atlas_side;
 void main() {
 
 	float cell_side = 1.0 / float(atlas_side);
-    color = texture(tex_atlas, texture_out);
+    color = texture(tex_atlas, texture_out) * fColor;
 }

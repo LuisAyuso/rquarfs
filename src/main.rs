@@ -64,31 +64,27 @@ fn main() {
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let vertex_buffer = glium::VertexBuffer::new(&display, &[
-		Vertex { position: ( 0.0, 0.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,0.0) }, 
-		Vertex { position: ( 1.0, 0.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,0.0) }, 
-		Vertex { position: ( 1.0, 1.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,1.0) }, 
-		Vertex { position: ( 0.0, 1.0, 1.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,1.0) }, 
+		Vertex { position: ( 0.0, 0.0, 0.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (0.0,0.0) }, // 0
+		Vertex { position: ( 0.0, 1.0, 0.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (0.0,1.0) }, // 1
+		Vertex { position: ( 1.0, 0.0, 0.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (1.0,0.0) }, // 2
+		Vertex { position: ( 1.0, 1.0, 0.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (1.0,1.0) }, // 3
 
-		Vertex { position: ( 0.0, 0.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,0.0) }, 
-		Vertex { position: ( 1.0, 0.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,0.0) }, 
-		Vertex { position: ( 1.0, 1.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (1.0,1.0) }, 
-		Vertex { position: ( 0.0, 1.0, 0.0 ), normal: ( 0.0, 0.0, 0.0), tex_coord: (0.0,1.0) }, 
+		Vertex { position: ( 0.0, 0.0, 1.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (1.0,1.0) }, // 4
+		Vertex { position: ( 0.0, 1.0, 1.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (1.0,0.0) }, // 5
+		Vertex { position: ( 1.0, 0.0, 1.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (0.0,1.0) }, // 6
+		Vertex { position: ( 1.0, 1.0, 1.0 ), normal: ( 1.0, 1.0, 1.0), tex_coord: (0.0,0.0) }, // 7
     ]).unwrap();
 
     let indices = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TrianglesList,
 											&[
-											// front
-											0, 1, 2,  2, 3, 0,
-											// top
-											1, 5, 6,  6, 2, 1,
-											// back
-											7, 6, 5,  5, 4, 7,
-											// bottom
-											4, 0, 3,  3, 7, 4,
-											// left
-											4, 5, 1,  1, 0, 4,
-											// right
-											3, 2, 6,  6, 7, 3u16
+                                                2, 0, 1, 2, 1, 3u16,
+                                                6, 2, 3, 6, 3, 7u16,
+
+                                                5, 1, 0, 5, 0, 4u16,
+                                                3, 1, 5, 3, 5, 7u16,
+                                                
+                                                0, 2, 6, 0, 6, 4u16,
+                                                7, 5, 4, 7, 4, 6u16,
                                            ]).unwrap();
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,8 +114,8 @@ fn main() {
 
     // translations for the instances
     let mut translations : Vec<(f32,f32)> = Vec::new();
-	for x in 0..500 {
-        for y in 0..1000 {
+	for x in 0..10 {
+        for y in 0..10 {
             translations.push((x as f32,y as f32));
         }
 	}
@@ -173,8 +169,8 @@ fn main() {
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	// generate camera...
-    let view_eye: Point3<f32> = Point3::new(5.0, 5.0, 15.0);
-    let view_center: Point3<f32> = Point3::new(5.0, 5.0, 0.0);
+    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 10.0);
+    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
 
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
 
@@ -184,8 +180,8 @@ fn main() {
 
     // per increment rotation 
     let rotation = Matrix4::from(Quaternion::from(Euler {
-        x: deg(0.05),
-        y: deg(0.05),
+        x: deg(0.5),
+        y: deg(0.5),
         z: deg(0.0),
     }));
 

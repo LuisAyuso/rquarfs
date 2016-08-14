@@ -29,7 +29,7 @@ void main() {
 	gl_Position = perspective_matrix * view_matrix * model_matrix * tmp;
 
 	texture_out = tex_coord / float(atlas_side);
-    texture_out = tex_offset + tex_coord;
+    texture_out = tex_offset + texture_out;
 
-    fColor = normalize(vec4(world_position, 0.5, 1.0));
+    fColor = vec4(normal, 1.0);
 }
