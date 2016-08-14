@@ -11,6 +11,6 @@ resources = ["assets", "shaders"]
     rand = "*"
     image = "*"
     threadpool = "*"
-
+	regex = "*"
 
 
