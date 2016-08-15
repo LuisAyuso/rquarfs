@@ -18,7 +18,6 @@ pub struct Context
 
 impl Context
 {
-
     pub fn new(width : u32, height : u32) -> Context
     {
         use glium::DisplayBuild;
@@ -51,6 +50,9 @@ impl Context
 
 } // context
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// draw temporary object
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pub struct DrawSurface<'a>{
     ctx   : &'a Context,
@@ -80,34 +82,38 @@ impl<'a> DrawSurface<'a>{
     }
 
     #[inline]
-    pub fn draw_with_indices<O,U>(mut self, obj : &O, uniforms: &U) -> DrawSurface<'a>
-    where O : DrawIndexed + Program, U: glium::uniforms::Uniforms
+    pub fn draw<O,U>(mut self, obj : &O, uniforms: &U)
+        -> DrawSurface<'a>
+    where O : DrawItem + Program, U: glium::uniforms::Uniforms
     {
         use glium::Surface;
-        let vert = obj.get_vertices();
-        self.target.draw(&vert,
-                         obj.get_indices(), 
-                         obj.get_program(),
+        use glium::vertex::IntoVerticesSource;
+//FIXME:        
+// O is non copy, here is moved... 
+        let vert = & obj.get_vertices(); 
+
+        self.target.draw(vert,
+                         glium::index::NoIndices(obj.get_primitive()),
+// here is used again... 
+                         &obj.get_program(),
                          uniforms, 
                          &self.render_params).unwrap();
         self
     }
 
     #[inline]
-    pub fn draw<O,U>(mut self, obj : &O, uniforms: &U, )
-        -> DrawSurface<'a>
-    where O : DrawItem + Program, U: glium::uniforms::Uniforms
+    pub fn draw_with_indices<O,U>(mut self, obj : &O, uniforms: &U) -> DrawSurface<'a>
+    where O : DrawIndexed + Program, U: glium::uniforms::Uniforms
     {
-        use glium::Surface;
-        let &'a vert = &obj.get_vertices(); 
-        self.target.draw(vert,
-                         glium::index::NoIndices(obj.get_primitive()),
-                         obj.get_program(),
-                         uniforms, 
-                         &self.render_params).unwrap();
+ //       use glium::Surface;
+ //       let vert = obj.get_vertices();
+ //       self.target.draw(&vert,
+ //                        &obj.get_indices(), 
+ //                        &obj.get_program(),
+ //                        uniforms, 
+ //                        &self.render_params).unwrap();
         self
     }
-
 
     #[inline]
     pub fn draw_with_program<O,P,U>(mut self, obj : &O, prg : &P) -> DrawSurface<'a>
@@ -124,31 +130,30 @@ impl<'a> DrawSurface<'a>{
     }
 } // impl ctx
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Traits:
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pub trait Program{
-    fn get_program(&self) -> &glium::program::Program;
+    fn get_program(self) -> glium::program::Program;
 }
 
 impl Program for glium::program::Program{
-    fn get_program(&self) -> &glium::program::Program{
-        &self
+    fn get_program(self) -> glium::program::Program{
+        self
     }
-}
-
-/// a geometry has vertices and indicesgg
-pub trait Geometry{
 }
 
 /// is drawable if we can plot it right away.
 /// we have a geometry and a program that should understan it
 pub trait DrawItem {
-    fn get_vertices(self)-> VerticesT;
+    fn get_vertices(&self)-> VerticesT;
     fn get_primitive(&self) -> PrimitiveT;
 }
 
 pub trait DrawIndexed {
     fn get_vertices(self)-> VerticesT;
-    fn get_indices(&self) -> & IndicesT;
+    fn get_indices(self) -> IndicesT;
 }
 
 

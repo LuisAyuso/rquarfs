@@ -168,8 +168,9 @@ use renderer::context::{DrawItem, Program};
 
 impl DrawItem for Axis{
 
-    fn get_vertices (self)-> glium::vertex::VertexBufferAny{
-        self.axis_buffer.into_vertex_buffer_any()
+    fn get_vertices<'a> (&self)-> glium::vertex::VertexBufferAny{
+        let buff = &'a self.axis_buffer;
+        buff.into_vertex_buffer_any()
     }
     fn get_primitive(&self) -> glium::index::PrimitiveType{
         glium::index::PrimitiveType::LinesList
@@ -178,8 +179,8 @@ impl DrawItem for Axis{
 
 impl Program for Axis{
 
-    fn get_program(&self) -> &glium::Program{
-        &self.axis_program
+    fn get_program(self) -> glium::Program{
+        self.axis_program
     }
 }
 

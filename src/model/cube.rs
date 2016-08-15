@@ -108,11 +108,11 @@ use renderer::context::DrawIndexed;
 
 impl DrawIndexed for Cube{
 
-    fn get_vertices(self)-> glium::vertex::VertexBufferAny{
+    fn get_vertices (self)-> glium::vertex::VertexBufferAny{
         self.vertices.into_vertex_buffer_any()
     }
-    fn get_indices (&self) -> &glium::IndexBuffer<u16>{
-        &self.indices
+    fn get_indices (self) -> glium::IndexBuffer<u16>{
+        self.indices
     }
 }
 
