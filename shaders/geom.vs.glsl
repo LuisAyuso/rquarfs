@@ -18,7 +18,7 @@ layout (location = 5) in vec2 tex_offset;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-flat out vec4 fColor;
+flat out vec4 face_normal;
 out vec2 texture_out;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,5 +31,5 @@ void main() {
 	texture_out = tex_coord / float(atlas_side);
     texture_out = clamp(tex_offset + texture_out, 0.01, 0.99);
 
-    fColor = vec4(normal, 1.0);
+    face_normal = vec4(normal, 1.0);
 }
