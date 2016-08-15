@@ -12,7 +12,7 @@ uniform uint atlas_side;
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 tex_coord;
-layout (location = 3) in vec2 world_position;
+layout (location = 3) in vec3 world_position;
 layout (location = 4) in vec3 in_color;      
 layout (location = 5) in vec2 tex_offset;      
 
@@ -25,11 +25,11 @@ out vec2 texture_out;
 
 void main() {
 
-	vec4 tmp = vec4(position + vec3(world_position.x, 0.0, world_position.y), 1.0);
+	vec4 tmp = vec4(position + world_position, 1.0);
 	gl_Position = perspective_matrix * view_matrix * model_matrix * tmp;
 
 	texture_out = tex_coord / float(atlas_side);
-    texture_out = tex_offset + texture_out;
+    texture_out = clamp(tex_offset + texture_out, 0.01, 0.99);
 
     fColor = vec4(normal, 1.0);
 }
