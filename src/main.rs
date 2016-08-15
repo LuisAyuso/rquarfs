@@ -7,46 +7,19 @@ extern crate image;
 
 mod model;
 mod utils;
+mod renderer;
 
-use std::io;
-use std::io::Read;
 use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
+use utils::load_shader;
+use model::cube;
+use renderer::context;
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#[derive(Copy, Clone)]
-struct Vertex {
-    position: (f32, f32, f32),
-    normal: (f32, f32, f32),
-    tex_coord: (f32, f32),
-}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-implement_vertex!(Vertex, position, normal, tex_coord);
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-fn load_shader(name: &str) -> Result<String, io::Error> {
-    use std::fs::{self, File};
-
-    let mut path = fs::canonicalize(".").unwrap();
-    path.push("shaders");
-    path.push(format!("{}{}", name, ".glsl"));
-    print!("load shader: {:?}\n", path);
-
-    let mut f = try!(File::open(path));
-
-    let mut shader_buff = String::new();
-    let _ = f.read_to_string(&mut shader_buff);
-    return Ok(shader_buff);
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-const WINDOW_WIDTH : u32 = 1920;
-const WINDOW_HEIGHT : u32 = 1080;
+const WINDOW_WIDTH: u32 = 1920;
+const WINDOW_HEIGHT: u32 = 1080;
 
 fn main() {
 
@@ -54,100 +27,25 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    use glium::{DisplayBuild, Surface};
-    let display = glium::glutin::WindowBuilder::new()
-        .with_dimensions(WINDOW_WIDTH, WINDOW_HEIGHT)
-        .with_depth_buffer(24)
-        .build_glium()
-        .unwrap();
+    let mut ctx = context::Context::new(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    let vertex_buffer = glium::VertexBuffer::new(&display,
-                                                 &[Vertex {
-                                                       position: (-0.5, -0.5, -0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (0.0, 0.0),
-                                                   }, // 0
-                                                   Vertex {
-                                                       position: (-0.5, 0.5, -0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (1.0, 0.0),
-                                                   }, // 1
-                                                   Vertex {
-                                                       position: (0.5, -0.5, -0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (0.0, 1.0),
-                                                   }, // 2
-                                                   Vertex {
-                                                       position: (0.5, 0.5, -0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (1.0, 1.0),
-                                                   }, // 3
-
-                                                   Vertex {
-                                                       position: (-0.5, -0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (0.0, 1.0),
-                                                   }, // 4
-                                                   Vertex {
-                                                       position: (-0.5, 0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (1.0, 1.0),
-                                                   }, // 5
-                                                   Vertex {
-                                                       position: (0.5, -0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (0.0, 0.0),
-                                                   }, // 6
-                                                   Vertex {
-                                                       position: (0.5, 0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (1.0, 0.0),
-                                                   }, // 7
-
-                                                   Vertex {
-                                                       position: (-0.5, -0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (1.0, 0.0),
-                                                   }, // 4' 8
-                                                   Vertex {
-                                                       position: (-0.5, 0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (0.0, 0.0),
-                                                   }, // 5' 9
-                                                   Vertex {
-                                                       position: (0.5, -0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (1.0, 1.0),
-                                                   }, // 6'10
-                                                   Vertex {
-                                                       position: (0.5, 0.5, 0.5),
-                                                       normal: (0.0, 0.0, 0.0),
-                                                       tex_coord: (0.0, 1.0),
-                                                   } /* 7'11 */])
-        .unwrap();
-
-    let indices = glium::IndexBuffer::new(&display,
-                                          glium::index::PrimitiveType::TrianglesList,
-                                          &[1, 4, 5, 1, 0, 4u16, 2, 0, 1, 2, 1, 3u16, 6, 2, 3, 6,
-                                            3, 7u16, 4, 6, 7, 4, 7, 5u16, 10, 8, 0, 10, 0, 2u16,
-                                            3, 1, 9, 3, 9, 11u16])
-        .unwrap();
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~0~
 
     let vertex_shader = load_shader("geom.vs");
     let fragment_shader = load_shader("geom.fs");
 
     let program = match (vertex_shader, fragment_shader) {
-        (Ok(a), Ok(b)) => glium::Program::from_source(&display, &a, &b, None).unwrap(),
+        (Ok(a), Ok(b)) => glium::Program::from_source(ctx.display(), &a, &b, None).unwrap(),
         _ => panic!("could not find shaders"),
     };
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let axis_plot = utils::Axis::new(&display);
+    let cube = cube::Cube::new(ctx.display()).unwrap();
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    let axis_plot = utils::Axis::new(ctx.display());
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -157,8 +55,8 @@ fn main() {
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
     let image = glium::texture::RawImage2d::from_raw_rgba(atlas.image.into_raw(), image_dimensions);
-    // let atlas_texture = glium::texture::Texture2d::new(&display, image).unwrap();
-    let atlas_texture = glium::texture::Texture2d::with_mipmaps(&display, image,
+    // let atlas_texture = glium::texture::Texture2d::new(ctx.display(), image).unwrap();
+    let atlas_texture = glium::texture::Texture2d::with_mipmaps(ctx.display(), image,
                  glium::texture::MipmapsOption::AutoGeneratedMipmaps).unwrap();
     print!("loaded {} mipmaps:\n", atlas_texture.get_mipmap_levels());
 
@@ -211,21 +109,8 @@ fn main() {
             })
             .collect::<Vec<_>>();
 
-        glium::vertex::VertexBuffer::dynamic(&display, &data).unwrap()
+        glium::vertex::VertexBuffer::dynamic(ctx.display(), &data).unwrap()
     };
-
-    // parameters for rendering (culling, depth test...)
-    let params = glium::DrawParameters {
-        backface_culling: glium::BackfaceCullingMode::CullClockwise,
-        depth: glium::Depth {
-            test: glium::DepthTest::IfLess,
-            write: true,
-            ..Default::default()
-        },
-        //polygon_mode: glium::PolygonMode::Line,
-        ..Default::default()
-    };
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
@@ -236,8 +121,8 @@ fn main() {
 
     let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
     let mut view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
-    let mut model_matrix: Matrix4<f32> = Matrix4::from_translation(
-                                            Vector3::new(-size_x as f32 /2.0, 0.0, -size_z as f32 /2.0));
+    let mut model_matrix: Matrix4<f32> =
+        Matrix4::from_translation(Vector3::new(-size_x as f32 / 2.0, 0.0, -size_z as f32 / 2.0));
 
     // per increment rotation
     let rotation = Matrix4::from(Quaternion::from(Euler {
@@ -253,6 +138,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     let mut run = true;
     utils::loop_with_report(|_| {
 
@@ -275,44 +161,66 @@ fn main() {
         //    draw cubes
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        let mut target = display.draw();
-        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+        use glium::Surface;
+      //  let mut target = ctx.display().draw();
+      //  target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-        target.draw((&vertex_buffer, instance_attr.per_instance().unwrap()),
-                  &indices,
-                  &program,
-                  &uniforms,
-                  &params)
-            .unwrap();
-
+   //     target.draw((&cube.vertices, instance_attr.per_instance().unwrap()),
+   //               &cube.indices,
+   //               &program,
+   //               &uniforms,
+   //               &params)
+   //         .unwrap();
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         //    draw axis
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        axis_plot.draw(&mut target, &uniforms);
-        
+   //     axis_plot.draw(&mut target, &uniforms);
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        //    new context 
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        use renderer::context::DrawSurface;
+        let frame = DrawSurface::frame_begin(&ctx)
+                        .draw(&axis_plot, &uniforms)
+                        //.draw_with_program(&cube, &program)
+                    .frame_end();
+
+   //     ctx.draw(&axis_plot);
+   //     ctx.draw_with_program(&cube, &program);
+
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         //    finish frame
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        target.finish().unwrap();
+     //   target.finish().unwrap();
 
         // listing the events produced by the window and waiting to be received
-        for ev in display.poll_events() {
+        let mut resizes = Vec::new();
+        {
+            let events = ctx.display().poll_events();
+            for ev in events {
 
-            use glium::glutin::Event;
-            use glium::glutin::ElementState;
+                use glium::glutin::Event;
+                use glium::glutin::ElementState;
 
-            match ev {
-                Event::Closed => std::process::exit(0),   // the window has been closed 
-                Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
-                Event::KeyboardInput(ElementState::Released,65, _) => run = !run,
-                Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
-                _ => (),
+                match ev {
+                    Event::Closed => std::process::exit(0),  // the window has been closed 
+                    Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
+                    Event::KeyboardInput(ElementState::Released, 65, _) => run = !run,
+                    Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
+                    Event::Resized(w, h) => resizes.push((w,h)),
+                    _ => (),
+                }
             }
         }
-    },
-                            5); // refresh every 5 secs
+        
+        // can not change window while context is borrowed
+        for (w, h) in resizes{
+            ctx.resize(w,h);
+        }
+
+    }, 5); // refresh every 5 secs
 
 }
