@@ -25,7 +25,7 @@ out vec2 texture_out;
 
 void main() {
 
-	vec4 tmp = vec4(position + vec3(world_position, 0.0), 1.0);
+	vec4 tmp = vec4(position + vec3(world_position.x, 0.0, world_position.y), 1.0);
 	gl_Position = perspective_matrix * view_matrix * model_matrix * tmp;
 
 	texture_out = tex_coord / float(atlas_side);

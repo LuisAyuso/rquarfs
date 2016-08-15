@@ -169,19 +169,20 @@ fn main() {
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	// generate camera...
-    let view_eye: Point3<f32> = Point3::new(0.0, 0.0, 10.0);
-    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
+    let view_eye: Point3<f32> = Point3::new(0.0, 5.0, 10.0);
+    let view_center: Point3<f32> = Point3::new(5.0, 0.0, 5.0);
 
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
 
  	let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
     let mut view_matrix:    Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
-    let mut model_matrix:   Matrix4<f32> = Matrix4::from_translation(Vector3::new(0.0,0.0,0.0));
+    let mut model_matrix:   Matrix4<f32> = Matrix4::ideantity();
+                                    //from_translation(Vector3::new(0.0,0.0,0.0));
 
     // per increment rotation 
     let rotation = Matrix4::from(Quaternion::from(Euler {
-        x: deg(0.5),
-        y: deg(0.5),
+        x: deg(0.0),
+        y: deg(0.0),
         z: deg(0.0),
     }));
 
