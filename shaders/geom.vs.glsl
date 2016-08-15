@@ -18,8 +18,8 @@ layout (location = 5) in vec2 tex_offset;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-flat out vec4 face_normal;
-out vec2 texture_out;
+flat   out vec4 face_normal;
+smooth out vec2 texture_out;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

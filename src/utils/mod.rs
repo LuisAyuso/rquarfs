@@ -62,7 +62,7 @@ impl Axis
                                                          color: (1.0, 0.0, 0.0),
                                                      },
                                                      AxisVert {
-                                                         position: (2.0, 0.0, 0.0),
+                                                         position: (10.0, 0.0, 0.0),
                                                          color: (1.0, 0.0, 0.0),
                                                      },
                                                      AxisVert {
@@ -70,7 +70,7 @@ impl Axis
                                                          color: (0.0, 1.0, 0.0),
                                                      },
                                                      AxisVert {
-                                                         position: (0.0, 2.0, 0.0),
+                                                         position: (0.0, 10.0, 0.0),
                                                          color: (0.0, 1.0, 0.0),
                                                      },
                                                      AxisVert {
@@ -78,7 +78,7 @@ impl Axis
                                                          color: (0.0, 0.0, 1.0),
                                                      },
                                                      AxisVert {
-                                                         position: (0.0, 0.0, 2.0),
+                                                         position: (0.0, 0.0, 10.0),
                                                          color: (0.0, 0.0, 1.0),
                                                      }])
             .unwrap();
