@@ -90,9 +90,8 @@ impl<'a> DrawSurface<'a>{
         use glium::vertex::IntoVerticesSource;
 //FIXME:        
 // O is non copy, here is moved... 
-        let vert = & obj.get_vertices(); 
 
-        self.target.draw(vert,
+        self.target.draw(obj.get_vertices();,
                          glium::index::NoIndices(obj.get_primitive()),
 // here is used again... 
                          &obj.get_program(),
@@ -135,19 +134,19 @@ impl<'a> DrawSurface<'a>{
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pub trait Program{
-    fn get_program(self) -> glium::program::Program;
+    fn get_program<'a>(&'a self) -> &'a glium::program::Program;
 }
 
 impl Program for glium::program::Program{
-    fn get_program(self) -> glium::program::Program{
-        self
+    fn get_program<'a>(&'a self) -> &'a glium::program::Program{
+        &self
     }
 }
 
 /// is drawable if we can plot it right away.
 /// we have a geometry and a program that should understan it
 pub trait DrawItem {
-    fn get_vertices(&self)-> VerticesT;
+    fn get_vertices<'a> (&'a self)-> &'a VerticesT;
     fn get_primitive(&self) -> PrimitiveT;
 }
 
