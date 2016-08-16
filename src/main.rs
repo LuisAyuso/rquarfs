@@ -63,8 +63,8 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // translations for the instances
-    let size_x = 100;
-    let size_z = 100;
+    let size_x = 1000;
+    let size_z = 1000;
     let mut translations: Vec<(f32, f32)> = Vec::new();
     for x in 0..size_x {
         for y in 0..size_z {
@@ -142,8 +142,9 @@ fn main() {
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
     let mut run = true;
+    let mut render_kind = RenderType::Textured;
 
-    utils::loop_with_report(|_| {
+    utils::loop_with_report(&mut|_| {
 
         view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
@@ -151,6 +152,7 @@ fn main() {
             model_matrix = rotation * model_matrix;
         }
 
+        // TODO: split this in ctx(perspective), view(camera) and model(in the model)
         let uniforms = uniform! {
 			perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
 			view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
@@ -164,7 +166,7 @@ fn main() {
         //    render using the new context 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
-        DrawSurface::gl_begin(&ctx, RenderType::Texture)
+        DrawSurface::gl_begin(&ctx, render_kind)
                         .draw(&axis_plot, &uniforms)
                         .draw_instanciated_with_indices_and_program(&cube, 
                                                                     &instance_attr, 
@@ -189,6 +191,10 @@ fn main() {
                     Event::Closed => std::process::exit(0),  // the window has been closed 
                     Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
                     Event::KeyboardInput(ElementState::Released, 33, _) => run = !run,
+                    Event::KeyboardInput(ElementState::Released, 32, _)
+                        => render_kind = RenderType::Textured,
+                    Event::KeyboardInput(ElementState::Released, 31, _) 
+                        => render_kind = RenderType::WireFrame,
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
                     _ => (),

@@ -6,9 +6,9 @@ pub type VerticesT = glium::vertex::VertexBufferAny;
 pub type IndicesT =  glium::index::IndexBufferAny;
 pub type PrimitiveT = glium::index::PrimitiveType;
 
- 
+#[derive(Copy, Clone)]
 pub enum RenderType{
-    Texture,
+    Textured,
     WireFrame,
 }
 
@@ -86,7 +86,6 @@ impl<'a> DrawSurface<'a>{
                     RenderType::WireFrame =>  glium::PolygonMode::Line,
                     _ =>   glium::PolygonMode::Fill,
                 },
-                // polygon_mode: glium::PolygonMode::Line,
                 ..Default::default()
             },
         }
@@ -133,19 +132,19 @@ impl<'a> DrawSurface<'a>{
  //       self
  //   }
     
-    #[inline]
-    pub fn draw_with_indices_and_program<O,P,U>(mut self, obj : &O, prg : &P, uniforms: &U)
-        -> DrawSurface<'a>
-    where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
-    {
-        use glium::Surface;
-        self.target.draw(obj.get_vertices(),
-                         obj.get_indices(),
-                         prg.get_program(),
-                         uniforms, 
-                         &self.render_params).unwrap();
-        self
-    }
+ //   #[inline]
+ //   pub fn draw_with_indices_and_program<O,P,U>(mut self, obj : &O, prg : &P, uniforms: &U)
+ //       -> DrawSurface<'a>
+ //   where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
+ //   {
+ //       use glium::Surface;
+ //       self.target.draw(obj.get_vertices(),
+ //                        obj.get_indices(),
+ //                        prg.get_program(),
+ //                        uniforms, 
+ //                        &self.render_params).unwrap();
+ //       self
+ //   }
  
     #[inline]
     pub fn draw_instanciated_with_indices_and_program<O,P,U>(mut self, obj : &O, instances: &VerticesT, prg : &P, uniforms: &U)
