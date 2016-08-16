@@ -66,7 +66,7 @@ struct AxisVert {
 }
 
 pub struct Axis {
-    axis_buffer: glium::VertexBuffer<AxisVert>,
+    axis_buffer:glium::vertex::VertexBufferAny,
     axis_program: glium::Program,
 }
 
@@ -102,7 +102,7 @@ impl Axis {
                                                          position: (0.0, 0.0, 10.0),
                                                          color: (0.0, 0.0, 1.0),
                                                      }])
-            .unwrap();
+            .unwrap().into();
 
         let axis_program =
             glium::Program::from_source(display,
@@ -178,8 +178,8 @@ impl DrawItem for Axis{
 
 impl Program for Axis{
 
-    fn get_program(self) -> glium::Program{
-        self.axis_program
+    fn get_program<'a>(&'a self) -> &'a glium::Program{
+        &self.axis_program
     }
 }
 

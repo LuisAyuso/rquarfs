@@ -14,10 +14,12 @@ implement_vertex!(Vertex, position, normal, tex_coord);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//use glium::vertex::VertexBufferAny;
+//use glium::index::IndexBufferAny;
 
 pub struct Cube{
-    pub vertices: glium::VertexBuffer<Vertex>,
-    pub indices: glium::IndexBuffer<u16>,
+    vertices: glium::vertex::VertexBufferAny,
+    indices: glium::index::IndexBufferAny,
 }
 
 impl Cube{
@@ -97,8 +99,8 @@ impl Cube{
                                   3, 1, 9, 3, 9, 11u16]);
 
         Some(Cube  { 
-            vertices : vertices.unwrap(),
-            indices : indices.unwrap(),
+            vertices : vertices.unwrap().into(),
+            indices : indices.unwrap().into(),
         })
     } // new
 
@@ -108,11 +110,11 @@ use renderer::context::DrawIndexed;
 
 impl DrawIndexed for Cube{
 
-    fn get_vertices (self)-> glium::vertex::VertexBufferAny{
-        self.vertices.into_vertex_buffer_any()
+    fn get_vertices<'a> (&'a self)-> &'a glium::vertex::VertexBufferAny{
+        &self.vertices
     }
-    fn get_indices (self) -> glium::IndexBuffer<u16>{
-        self.indices
+    fn get_indices<'a> (&'a self) -> &'a glium::index::IndexBufferAny{
+        &self.indices
     }
 }
 

@@ -50,7 +50,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print!("load atlas:\n");
-    let atlas = model::textures::load_atlas("test/atlas1").unwrap();
+    let atlas = model::textures::load_atlas("tex_pack").unwrap();
     let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
@@ -75,7 +75,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // building the vertex buffer with the attributes per instance
-    let instance_attr = {
+    let instance_attr : context::VerticesT = {
 
         #[derive(Copy, Clone, Debug)]
         struct Attr {
@@ -109,7 +109,7 @@ fn main() {
             })
             .collect::<Vec<_>>();
 
-        glium::vertex::VertexBuffer::dynamic(ctx.display(), &data).unwrap()
+        glium::vertex::VertexBuffer::dynamic(ctx.display(), &data).unwrap().into()
     };
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -119,7 +119,7 @@ fn main() {
 
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
 
-    let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 0.0001, 1000.0);
+    let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 5.0, 100.0);
     let mut view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
     let mut model_matrix: Matrix4<f32> =
         Matrix4::from_translation(Vector3::new(-size_x as f32 / 2.0, 0.0, -size_z as f32 / 2.0));
@@ -139,7 +139,10 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    use renderer::context::DrawSurface;
+    use renderer::context::RenderType;
     let mut run = true;
+
     utils::loop_with_report(|_| {
 
         view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
@@ -158,43 +161,20 @@ fn main() {
         };
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        //    draw cubes
+        //    render using the new context 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        use glium::Surface;
-      //  let mut target = ctx.display().draw();
-      //  target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-
-   //     target.draw((&cube.vertices, instance_attr.per_instance().unwrap()),
-   //               &cube.indices,
-   //               &program,
-   //               &uniforms,
-   //               &params)
-   //         .unwrap();
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        //    draw axis
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   //     axis_plot.draw(&mut target, &uniforms);
-
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        //    new context 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        use renderer::context::DrawSurface;
-        let frame = DrawSurface::frame_begin(&ctx)
+        
+        DrawSurface::gl_begin(&ctx, RenderType::Texture)
                         .draw(&axis_plot, &uniforms)
-                        //.draw_with_program(&cube, &program)
-                    .frame_end();
-
-   //     ctx.draw(&axis_plot);
-   //     ctx.draw_with_program(&cube, &program);
+                        .draw_instanciated_with_indices_and_program(&cube, 
+                                                                    &instance_attr, 
+                                                                    &program, 
+                                                                    &uniforms)
+                    .gl_end();
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        //    finish frame
+        //    event handling
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-     //   target.finish().unwrap();
 
         // listing the events produced by the window and waiting to be received
         let mut resizes = Vec::new();
@@ -208,7 +188,7 @@ fn main() {
                 match ev {
                     Event::Closed => std::process::exit(0),  // the window has been closed 
                     Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
-                    Event::KeyboardInput(ElementState::Released, 65, _) => run = !run,
+                    Event::KeyboardInput(ElementState::Released, 33, _) => run = !run,
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
                     _ => (),

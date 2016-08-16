@@ -1,11 +1,16 @@
 extern crate glium;
 
 
-type Backend = glium::backend::glutin_backend::GlutinFacade;
+pub type Backend = glium::backend::glutin_backend::GlutinFacade;
 pub type VerticesT = glium::vertex::VertexBufferAny;
-pub type IndicesT =  glium::IndexBuffer<u16>;
+pub type IndicesT =  glium::index::IndexBufferAny;
 pub type PrimitiveT = glium::index::PrimitiveType;
 
+ 
+pub enum RenderType{
+    Texture,
+    WireFrame,
+}
 
 /// this class wraps up all render stuff,
 /// glium should not be visible ouside of this... except for buffers?
@@ -63,17 +68,23 @@ pub struct DrawSurface<'a>{
 impl<'a> DrawSurface<'a>{
 
     #[inline]
-    pub fn frame_begin(ctx : &'a Context) -> DrawSurface<'a>{
+    pub fn gl_begin(ctx : &'a Context, render_type: RenderType) -> DrawSurface<'a>{
         use glium::Surface;
+        let mut target = ctx.display().draw();
+        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
         DrawSurface {
             ctx: ctx, 
-            target: ctx.display().draw() ,
+            target: target,
             render_params : glium::DrawParameters {
                 backface_culling: glium::BackfaceCullingMode::CullClockwise,
                 depth: glium::Depth {
                     test: glium::DepthTest::IfLess,
                     write: true,
                     ..Default::default()
+                },
+                polygon_mode: match render_type{
+                    RenderType::WireFrame =>  glium::PolygonMode::Line,
+                    _ =>   glium::PolygonMode::Fill,
                 },
                 // polygon_mode: glium::PolygonMode::Line,
                 ..Default::default()
@@ -87,44 +98,71 @@ impl<'a> DrawSurface<'a>{
     where O : DrawItem + Program, U: glium::uniforms::Uniforms
     {
         use glium::Surface;
-        use glium::vertex::IntoVerticesSource;
-//FIXME:        
-// O is non copy, here is moved... 
-
-        self.target.draw(obj.get_vertices();,
+        self.target.draw(obj.get_vertices(),
                          glium::index::NoIndices(obj.get_primitive()),
-// here is used again... 
                          &obj.get_program(),
                          uniforms, 
                          &self.render_params).unwrap();
         self
     }
 
+ //   #[inline]
+ //   pub fn draw_with_indices<O,U>(mut self, obj : &O, uniforms: &U) -> DrawSurface<'a>
+ //   where O : DrawIndexed + Program, U: glium::uniforms::Uniforms
+ //   {
+ //       //use glium::Surface;
+ //       //use glium::vertex::IntoVerticesSource;
+ ////       use glium::Surface;
+ ////       let vert = obj.get_vertices();
+ ////       self.target.draw(&vert,
+ ////                        &obj.get_indices(), 
+ ////                        &obj.get_program(),
+ ////                        uniforms, 
+ ////                        &self.render_params).unwrap();
+ //       self
+ //   }
+
+ //   #[inline]
+ //   pub fn draw_with_program<O,P,U>(mut self, obj : &O, prg : &P, uniforms: &U)  -> DrawSurface<'a>
+ //   where O: DrawItem, P: Program, U: glium::uniforms::Uniforms
+ //   {
+ //       //use glium::Surface;
+ //       //use glium::vertex::IntoVerticesSource;
+ //       //print!("draw {} {} with REAL program  \n",
+ //       //    obj.get_vertices(), obj.get_indices());
+ //       self
+ //   }
+    
     #[inline]
-    pub fn draw_with_indices<O,U>(mut self, obj : &O, uniforms: &U) -> DrawSurface<'a>
-    where O : DrawIndexed + Program, U: glium::uniforms::Uniforms
+    pub fn draw_with_indices_and_program<O,P,U>(mut self, obj : &O, prg : &P, uniforms: &U)
+        -> DrawSurface<'a>
+    where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
     {
- //       use glium::Surface;
- //       let vert = obj.get_vertices();
- //       self.target.draw(&vert,
- //                        &obj.get_indices(), 
- //                        &obj.get_program(),
- //                        uniforms, 
- //                        &self.render_params).unwrap();
+        use glium::Surface;
+        self.target.draw(obj.get_vertices(),
+                         obj.get_indices(),
+                         prg.get_program(),
+                         uniforms, 
+                         &self.render_params).unwrap();
+        self
+    }
+ 
+    #[inline]
+    pub fn draw_instanciated_with_indices_and_program<O,P,U>(mut self, obj : &O, instances: &VerticesT, prg : &P, uniforms: &U)
+        -> DrawSurface<'a>
+    where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
+    {
+        use glium::Surface;
+        self.target.draw((obj.get_vertices(), instances.per_instance().unwrap()),
+                         obj.get_indices(),
+                         prg.get_program(),
+                         uniforms, 
+                         &self.render_params).unwrap();
         self
     }
 
     #[inline]
-    pub fn draw_with_program<O,P,U>(mut self, obj : &O, prg : &P) -> DrawSurface<'a>
-    where O: DrawItem, P: Program
-    {
-        //print!("draw {} {} with REAL program  \n",
-        //    obj.get_vertices(), obj.get_indices());
-        self
-    }
-
-    #[inline]
-    pub fn frame_end(mut self){
+    pub fn gl_end(self){
         self.target.finish().unwrap();
     }
 } // impl ctx
@@ -151,9 +189,7 @@ pub trait DrawItem {
 }
 
 pub trait DrawIndexed {
-    fn get_vertices(self)-> VerticesT;
-    fn get_indices(self) -> IndicesT;
+    fn get_vertices<'a> (&'a self)-> &'a VerticesT;
+    fn get_indices<'a> (&'a self) -> &'a IndicesT;
 }
-
-
 
