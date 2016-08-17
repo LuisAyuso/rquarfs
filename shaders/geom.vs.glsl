@@ -28,8 +28,8 @@ void main() {
 	vec4 tmp = vec4(position + world_position, 1.0);
 	gl_Position = perspective_matrix * view_matrix * model_matrix * tmp;
 
-	texture_out = tex_coord / float(atlas_side);
-    texture_out = clamp(tex_offset + texture_out, 0.01, 0.99);
+	texture_out = clamp(tex_coord, 0.05, 0.95) / float(atlas_side);
+    texture_out = tex_offset + texture_out;
 
     face_normal = vec4(normal, 1.0);
 }
