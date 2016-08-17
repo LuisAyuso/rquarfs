@@ -4,6 +4,7 @@ extern crate glium;
 extern crate rand;
 extern crate cgmath;
 extern crate image;
+extern crate glutin;
 
 mod model;
 mod utils;
@@ -13,7 +14,7 @@ use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
 use utils::load_shader;
 use model::cube;
 use renderer::context;
-
+use rand::Rng;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -61,16 +62,27 @@ fn main() {
     print!("loaded {} mipmaps:\n", atlas_texture.get_mipmap_levels());
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    print!("load height map \n");
+    // read height map 
+    let height = model::textures::load_rgb("assets/height.jpg");
+    let dimensions = height.dimensions();
 
     // translations for the instances
-    let size_x = 1000;
-    let size_z = 1000;
-    let mut translations: Vec<(f32, f32)> = Vec::new();
+    let size_x = dimensions.0;
+    let size_z = dimensions.1;
+    let mut translations: Vec<(f32, f32, f32)> = Vec::new();
     for x in 0..size_x {
         for y in 0..size_z {
-            translations.push((x as f32, y as f32));
+            use image::Pixel;
+
+        // get height in coordinates x,y
+            let pixel = height.get_pixel(x,y);
+            let components = pixel.channels();
+            translations.push((x as f32, y as f32, components[0] as f32/5.0));
         }
     }
+
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -85,14 +97,12 @@ fn main() {
         }
         implement_vertex!(Attr, world_position, in_color, tex_offset);
 
-        use rand::Rng;
         let mut rng = rand::thread_rng();
-
         let mut count = 0;
         let data = translations.iter()
             .map(|pos| {
 
-                let tex_id = rng.gen_range(0, atlas_count);
+                let tex_id = 2;// rng.gen_range(0, atlas_count);
                 count += 1;
                 let i_off = ((tex_id / atlas_side) as f32) / atlas_side as f32;
                 let j_off = ((tex_id % atlas_side) as f32) / atlas_side as f32;
@@ -102,7 +112,7 @@ fn main() {
                 //                                 i_off, j_off);
 
                 Attr {
-                    world_position: (pos.0, 0.0, pos.1),
+                    world_position: (pos.0, pos.2, pos.1),
                     in_color: (rand::random(), rand::random(), rand::random()),
                     tex_offset: (i_off as f32, j_off as f32),
                 }
@@ -114,15 +124,17 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-    let view_eye: Point3<f32> = Point3::new(0.0, 20.0, -50.0);
-    let view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
+    let mut view_eye: Point3<f32> = Point3::new(0.0, 75.0, -110.0);
+    let mut view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
 
     let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
+    
+    const NEAR : f32 = 5.0;
+    const FAR : f32 = 1500.0;
 
-    let perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, 5.0, 100.0);
-    let mut view_matrix: Matrix4<f32> = Matrix4::look_at(view_eye, view_center, view_up);
+    let mut perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, NEAR, FAR);
     let mut model_matrix: Matrix4<f32> =
-        Matrix4::from_translation(Vector3::new(-size_x as f32 / 2.0, 0.0, -size_z as f32 / 2.0));
+        Matrix4::from_translation(Vector3::new(-(size_x as f32 / 2.0), 0.0, -(size_z as f32 / 2.0)));
 
     // per increment rotation
     let rotation = Matrix4::from(Quaternion::from(Euler {
@@ -143,10 +155,19 @@ fn main() {
     use renderer::context::RenderType;
     let mut run = true;
     let mut render_kind = RenderType::Textured;
+    let mut target_height : f32 = 100.0;
 
     utils::loop_with_report(&mut|_| {
 
-        view_matrix = view_matrix * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
+        if view_eye.y > target_height{
+            view_eye.y -= 1.0;
+        }
+        if view_eye.y < target_height{
+            view_eye.y += 1.0;
+        }
+
+        let view_matrix = Matrix4::look_at(view_eye, view_center, view_up)
+                           * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
         if run {
             model_matrix = rotation * model_matrix;
@@ -186,7 +207,6 @@ fn main() {
 
                 use glium::glutin::Event;
                 use glium::glutin::ElementState;
-
                 match ev {
                     Event::Closed => std::process::exit(0),  // the window has been closed 
                     Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
@@ -197,6 +217,13 @@ fn main() {
                         => render_kind = RenderType::WireFrame,
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
+                    Event::MouseWheel(x,_) => match x{
+                            glutin::MouseScrollDelta::LineDelta(_, y) =>
+                                            target_height += y as f32 * 10.0,
+                            _ => (),
+                    },
+                        
+                        
                     _ => (),
                 }
             }
@@ -205,6 +232,8 @@ fn main() {
         // can not change window while context is borrowed
         for (w, h) in resizes{
             ctx.resize(w,h);
+            // FIXME, this is a fix
+            perspective_matrix = perspective(deg(45.0), w as f32 / h as f32, NEAR, FAR);
         }
 
     }, 5); // refresh every 5 secs

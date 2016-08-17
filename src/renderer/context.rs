@@ -32,6 +32,7 @@ impl Context
                     .with_title("Quarfs!")
                     .with_dimensions(width, height)
                     .with_depth_buffer(24)
+                    .with_srgb(Some(false))
                     .build_glium()
                     .unwrap()
         }

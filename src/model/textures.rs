@@ -22,6 +22,15 @@ use self::glob::glob;
 // return ONE texture to be used by the program and the paramenters needed
 // to use a shader on it
 
+pub fn load_rgb(filename: &str) -> image::RgbImage {
+    let path = fs::canonicalize(&filename).unwrap();
+    print!("load image: {:?}\n", path);
+
+    // iterate over images:
+    use std::fs;
+    let image = image::open(path).unwrap();
+    image.to_rgb()
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

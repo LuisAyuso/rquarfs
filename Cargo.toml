@@ -13,5 +13,6 @@ resources = ["assets", "shaders"]
     threadpool = "*"
 	regex = "*"
 	glob = "*"
+	glutin = "*"
 
 
