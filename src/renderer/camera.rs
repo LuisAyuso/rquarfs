@@ -66,7 +66,7 @@ impl Camera{
         let vector = self.target_eye.to_vec() - self.view_eye.to_vec();
 
    //     print!("v {:?} \n", vector);
-        if vector.magnitude() < 1.0{
+        if vector.magnitude() < step{
             self.view_eye = self.target_eye;
             return;
         }
@@ -104,17 +104,17 @@ mod tests {
 	     let mut cam = Camera::new();
          cam.move_to(Point3::new(0.0, 75.0, -105.0));
         
-           // print!("{:?}\n", cam);
+            print!("{:?}\n", cam);
             cam.update(1.1);
-          //  print!("{:?}\n", cam);
+            print!("{:?}\n", cam);
             cam.update(1.1);
-            //print!("{:?}\n", cam);
+            print!("{:?}\n", cam);
             cam.update(1.1);
-           // print!("{:?}\n", cam);
+            print!("{:?}\n", cam);
             cam.update(1.1);
-          //  print!("{:?}\n", cam);
+            print!("{:?}\n", cam);
             cam.update(1.1);
-          //  print!("{:?}\n", cam);
+            print!("{:?}\n", cam);
 
         assert!(cam.is_still());
     }
@@ -122,17 +122,17 @@ mod tests {
     fn target2() {
 	     let mut cam = Camera::new();
          cam.change_elevation(5.0);
-            print!("{:?}\n", cam);
+          //  print!("{:?}\n", cam);
             cam.update(1.1);
-            print!("{:?}\n", cam);
+          //  print!("{:?}\n", cam);
             cam.update(1.1);
-            print!("{:?}\n", cam);
+          //  print!("{:?}\n", cam);
             cam.update(1.1);
-            print!("{:?}\n", cam);
+          //  print!("{:?}\n", cam);
             cam.update(1.1);
-            print!("{:?}\n", cam);
+          //  print!("{:?}\n", cam);
             cam.update(1.1);
-            print!("{:?}\n", cam);
+          //  print!("{:?}\n", cam);
         assert!(cam.is_still());
     }
 }
