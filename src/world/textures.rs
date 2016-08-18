@@ -224,7 +224,10 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
         }
     }
 
-    // resize?
+    // resize? i readed somewhere about power of 2 mipmaps, this might help.
+
+    
+    
     let cache_path = fs::canonicalize("./assets/cache/").unwrap();
     // save to cache. cache is the same as the set_name name
     let atlas = Atlas::new(tex_count,

@@ -61,7 +61,7 @@ impl Context
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pub struct DrawSurface<'a>{
-    ctx   : &'a Context,
+ //   ctx   : &'a Context,
     target : glium::Frame,
     render_params: glium::DrawParameters<'a>
 }
@@ -74,7 +74,7 @@ impl<'a> DrawSurface<'a>{
         let mut target = ctx.display().draw();
         target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
         DrawSurface {
-            ctx: ctx, 
+     //       ctx: ctx, 
             target: target,
             render_params : glium::DrawParameters {
                 backface_culling: glium::BackfaceCullingMode::CullClockwise,

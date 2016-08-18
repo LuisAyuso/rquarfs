@@ -9,12 +9,14 @@ extern crate glutin;
 mod world;
 mod utils;
 mod renderer;
-
+ 
+ #[warn(unused_imports)] 
 use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
 use utils::load_shader;
 use world::cube;
 use renderer::context;
-use rand::Rng;
+use renderer::camera;
+//use rand::Rng;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +54,7 @@ fn main() {
 
     print!("load atlas:\n");
     let atlas = world::textures::load_atlas("tex_pack").unwrap();
-    let atlas_count = atlas.count;
+    //let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
     let image = glium::texture::RawImage2d::from_raw_rgba(atlas.image.into_raw(), image_dimensions);
@@ -97,7 +99,7 @@ fn main() {
         }
         implement_vertex!(Attr, world_position, in_color, tex_offset);
 
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
         let mut count = 0;
         let data = translations.iter()
             .map(|pos| {
@@ -124,10 +126,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-    let mut view_eye: Point3<f32> = Point3::new(0.0, 75.0, -110.0);
-    let mut view_center: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
-
-    let view_up: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
+	let mut cam =  camera::Camera::new();
     
     const NEAR : f32 = 5.0;
     const FAR : f32 = 1500.0;
@@ -155,19 +154,13 @@ fn main() {
     use renderer::context::RenderType;
     let mut run = true;
     let mut render_kind = RenderType::Textured;
-    let mut target_height : f32 = 100.0;
 
-    utils::loop_with_report(&mut|_| {
+    utils::loop_with_report(&mut|delta:f64| {
 
-        if view_eye.y > target_height{
-            view_eye.y -= 1.0;
-        }
-        if view_eye.y < target_height{
-            view_eye.y += 1.0;
-        }
+        cam.update(delta as f32);
 
-        let view_matrix = Matrix4::look_at(view_eye, view_center, view_up)
-                           * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
+		let cam_mat : Matrix4<f32> = cam.into();
+        let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
         if run {
             model_matrix = rotation * model_matrix;
@@ -215,15 +208,15 @@ fn main() {
                         => render_kind = RenderType::Textured,
                     Event::KeyboardInput(ElementState::Released, 31, _) 
                         => render_kind = RenderType::WireFrame,
+                    Event::KeyboardInput(ElementState::Released, 30, _)  =>
+                                    cam.move_to(Point3::new(0.0, 65.0,-110.0)),
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
                     Event::MouseWheel(x,_) => match x{
                             glutin::MouseScrollDelta::LineDelta(_, y) =>
-                                            target_height += y as f32 * 10.0,
+                                    cam.change_elevation(y*5.0),
                             _ => (),
                     },
-                        
-                        
                     _ => (),
                 }
             }

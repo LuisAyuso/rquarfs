@@ -11,10 +11,13 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
 [ ] check in bounds chunks to be drawn
 [ ] cache world, avoid image reading on load
 [ ] fix atlas neigboohoding problem
+[ ] phong shading
+[ ] projected shadows
 
 
-
+# future research... 
+I have to read some of this:
 
 freetype: 
-    http://learnopengl.com/#!In-Practice/Text-Rendering
-    https://github.com/PistonDevelopers/freetype-rs
+* http://learnopengl.com/#!In-Practice/Text-Rendering
+* https://github.com/PistonDevelopers/freetype-rs
