@@ -6,13 +6,13 @@ extern crate cgmath;
 extern crate image;
 extern crate glutin;
 
-mod model;
+mod world;
 mod utils;
 mod renderer;
 
 use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
 use utils::load_shader;
-use model::cube;
+use world::cube;
 use renderer::context;
 use rand::Rng;
 
@@ -51,7 +51,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print!("load atlas:\n");
-    let atlas = model::textures::load_atlas("tex_pack").unwrap();
+    let atlas = world::textures::load_atlas("tex_pack").unwrap();
     let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
@@ -65,7 +65,7 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    let height = model::textures::load_rgb("assets/height.jpg");
+    let height = world::textures::load_rgb("assets/height.jpg");
     let dimensions = height.dimensions();
 
     // translations for the instances
@@ -79,7 +79,7 @@ fn main() {
         // get height in coordinates x,y
             let pixel = height.get_pixel(x,y);
             let components = pixel.channels();
-            translations.push((x as f32, y as f32, components[0] as f32/5.0));
+            translations.push((x as f32, y as f32, ((components[0] as f32/5.0) as i32) as f32));
         }
     }
 
@@ -173,7 +173,7 @@ fn main() {
             model_matrix = rotation * model_matrix;
         }
 
-        // TODO: split this in ctx(perspective), view(camera) and model(in the model)
+        // TODO: split this in ctx(perspective), view(camera) and world(in the world)
         let uniforms = uniform! {
 			perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
 			view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),

@@ -1,3 +1,0 @@
-freetype: 
-    http://learnopengl.com/#!In-Practice/Text-Rendering
-    https://github.com/PistonDevelopers/freetype-rs
