@@ -14,20 +14,19 @@ pub struct Camera{
 }
 
 impl Camera{
-    pub fn new() -> Camera {
-        let eye = Point3::new(0.0, 75.0, -110.0); // Point3::new(0.0, 0.0, -10.0);
+    pub fn new(eye_pos: Point3<f32>, view_center: Point3<f32>) -> Camera {
         Camera{
-            view_eye: eye,
-            view_center:  Point3::new(0.0, 0.0, 0.0),
+            view_eye: eye_pos,
+            view_center:  view_center,
             view_up:  Vector3::new(0.0, 1.0, 0.0),
-            target_eye: eye,
+            target_eye: eye_pos,
         }
     }
 
-    #[inline]
-    pub fn get_eye(self) -> Point3<f32>{
-        self.view_eye
-    }
+//    #[inline]
+//    pub fn get_eye(self) -> Point3<f32>{
+//        self.view_eye
+//    }
 
     #[inline]
     pub fn change_elevation(&mut self, target:f32)

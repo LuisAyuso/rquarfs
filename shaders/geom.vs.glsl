@@ -33,5 +33,5 @@ void main() {
 	texture_out = clamp(tex_coord, 0.05, 0.95) / float(atlas_side);
     texture_out = tex_offset + texture_out;
 
-    face_normal = normalize(perspective_matrix * view_matrix * model_matrix * vec4(normal, 1.0));
+    face_normal = normalize(vec4(normal, 1.0));
 }

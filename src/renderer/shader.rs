@@ -25,7 +25,7 @@ fn compile_program<F: glium::backend::Facade>(display: &F, vs: &String, fs: &Str
 
 /// load shader from path into a string. this is a file into buffer read
 fn read_shader(name: &str) -> Result<String, io::Error> {
-    use std::fs::{self, File};
+    use std::fs::File;
 
     let path = try!(get_path_to_shader(name));
 
@@ -51,13 +51,13 @@ fn load_program<F: glium::backend::Facade>(display: &F, vs_name: &str, fs_name: 
 {
     // load vs
     let vs = read_shader(vs_name);
-    if (vs.is_err()){
+    if vs.is_err(){
         println!("{:?}", vs);
         return None;
     }
     // load fs
     let fs = read_shader(fs_name);
-    if (fs.is_err()){
+    if fs.is_err(){
         println!("{:?}", fs);
         return None;
     }

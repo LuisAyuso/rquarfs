@@ -26,7 +26,7 @@ impl Context
     pub fn new(width : u32, height : u32) -> Context
     {
         use glium::DisplayBuild;
-        use glium::debug::DebugCallbackBehavior;
+        //use glium::debug::DebugCallbackBehavior;
 
         Context {
             display_ptr : glium::glutin::WindowBuilder::new()

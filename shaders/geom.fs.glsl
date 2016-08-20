@@ -30,13 +30,10 @@ void main()
 	vec3 normalDirection = normalize(face_normal.xyz);
 	vec3 lightDirection = normalize(sun_pos);
 
-	vec3 scene_ambient = vec3(0.2, 0.2, 0.2);
+	vec3 scene_ambient = vec3(0.1, 0.1, 0.1);
 	vec3 ambientLighting = vec3(scene_ambient) * rgba.xyz;
 
-	vec3 diffuseReflection = rgba.xyz * max(0.0, dot(normalDirection, lightDirection));
+	vec3 diffuseReflection = vec3(0.9, 0.9, 0.9) * rgba.xyz * max(0.0, dot(normalDirection, lightDirection));
 
-	//frag_color = clamp(vec4(ambientLighting + diffuseReflection, 1.0), 0.0, 1.0);
-	//frag_color = clamp(vec4( diffuseReflection, 1.0), 0.0, 1.0);
-
-    frag_color = face_normal;
+    frag_color = vec4(diffuseReflection + ambientLighting, 1.0);
 }

@@ -35,27 +35,11 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
     let prg_tmp = shader::ProgramReloader::new(ctx.display(), "geom.vs", "geom.fs");
     if prg_tmp.is_err(){
          std::process::exit(-1);
     }
     let mut program = prg_tmp.unwrap();
-
-//    let vertex_shader = load_shader("geom.vs");
-//    let fragment_shader = load_shader("geom.fs");
-//
-//
-//
-//    let program = match (vertex_shader, fragment_shader) {
-//        (Ok(a), Ok(b)) => glium::Program::from_source(ctx.display(), &a, &b, None).unwrap(),
-//        _ => panic!("could not find shaders"),
-//    };
-
-   // println!("Program Uniforms:");
-   // for (name, uniform) in program.uniforms() {
-   //     println!(" {} - Type: {:?}", name, uniform);
-   // }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -101,16 +85,6 @@ fn main() {
         }
     }
 
-//    let mut translations: Vec<(f32, f32, f32)> = Vec::new();
-//    let size_x = 1;
-//    let size_z = 1;
-//    for x in 0..size_x {
-//        for y in 0..size_z {
-//            translations.push((x as f32, y as f32, 0.0));
-//        }
-//    }
-
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // building the vertex buffer with the attributes per instance
@@ -151,7 +125,9 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-	let mut cam =  camera::Camera::new();
+    let eye = Point3::new(10.0, 60.0, -110.0); 
+    let looking = Point3::new(0.0, 0.0, 0.0); // Point3::new(0.0, 0.0, -10.0);
+	let mut cam =  camera::Camera::new(eye, looking);
     
     const NEAR : f32 = 5.0;
     const FAR : f32 = 1500.0;
@@ -187,7 +163,7 @@ fn main() {
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(5.0, 5.0, 5.0);
+    let mut sun_pos = Point3::new(100.0, 100.0, 100.0);
 
     utils::loop_with_report(&mut|delta:f64| {
 
