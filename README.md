@@ -7,12 +7,13 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
 # TODO:
 
 - [x] refactor camera into module
-- [ ] world model into quadtree
+- [ ] world model into quadtree, octree? 2.5 quadtree.... *virtualQuadTree*
 - [ ] check in bounds chunks to be drawn
 - [ ] cache world, avoid image reading on load
 - [ ] fix atlas neigboohoding problem
-- [ ] phong shading
+- [x] phong shading
 - [ ] projected shadows
+- [ ] add a check for unused uniforms binding.... this is the second time I get lost here.
 
 
 # future research... 
