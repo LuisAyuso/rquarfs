@@ -5,7 +5,7 @@ authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
 resources = ["assets", "shaders"]
 
 [dependencies]
-	glium = "*"
+    glium  = "*"
     time = "0.1"
     cgmath = "0.10"
     rand = "*"
@@ -14,5 +14,3 @@ resources = ["assets", "shaders"]
 	regex = "*"
 	glob = "*"
 	glutin = "*"
-
-

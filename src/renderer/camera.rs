@@ -1,5 +1,6 @@
-use cgmath::{Point3, Vector3, Matrix4};
+extern crate glium;
 
+use cgmath::{Point3, Vector3, Matrix4};
 
 // 60fps, more or less 60 units per second
 const CAMERA_SPEED: f32 = 60.0;
@@ -14,13 +15,20 @@ pub struct Camera{
 
 impl Camera{
     pub fn new() -> Camera {
+        let eye = Point3::new(0.0, 75.0, -110.0); // Point3::new(0.0, 0.0, -10.0);
         Camera{
-            view_eye: Point3::new(0.0, 75.0, -110.0),
+            view_eye: eye,
             view_center:  Point3::new(0.0, 0.0, 0.0),
             view_up:  Vector3::new(0.0, 1.0, 0.0),
-            target_eye: Point3::new(0.0, 75.0, -110.0),
+            target_eye: eye,
         }
     }
+
+    #[inline]
+    pub fn get_eye(self) -> Point3<f32>{
+        self.view_eye
+    }
+
     #[inline]
     pub fn change_elevation(&mut self, target:f32)
     {

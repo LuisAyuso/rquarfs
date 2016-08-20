@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 uniform mat4 perspective_matrix;
 uniform mat4 view_matrix;
@@ -6,6 +6,7 @@ uniform mat4 model_matrix;
 
 uniform sampler2D tex_atlas;
 uniform uint atlas_side;
+uniform vec3 sun_pos; 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -20,16 +21,17 @@ layout (location = 5) in vec2 tex_offset;
 
 flat   out vec4 face_normal;
 smooth out vec2 texture_out;
+smooth out vec4 vertex_coord;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void main() {
 
 	vec4 tmp = vec4(position + world_position, 1.0);
-	gl_Position = perspective_matrix * view_matrix * model_matrix * tmp;
+	gl_Position = vertex_coord =  perspective_matrix * view_matrix * model_matrix * tmp;
 
 	texture_out = clamp(tex_coord, 0.05, 0.95) / float(atlas_side);
     texture_out = tex_offset + texture_out;
 
-    face_normal = vec4(normal, 1.0);
+    face_normal = normalize(perspective_matrix * view_matrix * model_matrix * vec4(normal, 1.0));
 }

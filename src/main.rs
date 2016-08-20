@@ -6,16 +6,17 @@ extern crate cgmath;
 extern crate image;
 extern crate glutin;
 
+
 mod world;
 mod utils;
 mod renderer;
  
  #[warn(unused_imports)] 
 use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
-use utils::load_shader;
 use world::cube;
 use renderer::context;
 use renderer::camera;
+use renderer::shader;
 //use rand::Rng;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,13 +35,27 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let vertex_shader = load_shader("geom.vs");
-    let fragment_shader = load_shader("geom.fs");
 
-    let program = match (vertex_shader, fragment_shader) {
-        (Ok(a), Ok(b)) => glium::Program::from_source(ctx.display(), &a, &b, None).unwrap(),
-        _ => panic!("could not find shaders"),
-    };
+    let prg_tmp = shader::ProgramReloader::new(ctx.display(), "geom.vs", "geom.fs");
+    if prg_tmp.is_err(){
+         std::process::exit(-1);
+    }
+    let mut program = prg_tmp.unwrap();
+
+//    let vertex_shader = load_shader("geom.vs");
+//    let fragment_shader = load_shader("geom.fs");
+//
+//
+//
+//    let program = match (vertex_shader, fragment_shader) {
+//        (Ok(a), Ok(b)) => glium::Program::from_source(ctx.display(), &a, &b, None).unwrap(),
+//        _ => panic!("could not find shaders"),
+//    };
+
+   // println!("Program Uniforms:");
+   // for (name, uniform) in program.uniforms() {
+   //     println!(" {} - Type: {:?}", name, uniform);
+   // }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -53,7 +68,8 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print!("load atlas:\n");
-    let atlas = world::textures::load_atlas("tex_pack").unwrap();
+    //let atlas = world::textures::load_atlas("tex_pack").unwrap();
+    let atlas = world::textures::load_atlas("test/atlas1").unwrap();
     //let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
@@ -81,9 +97,18 @@ fn main() {
         // get height in coordinates x,y
             let pixel = height.get_pixel(x,y);
             let components = pixel.channels();
-            translations.push((x as f32, y as f32, ((components[0] as f32/5.0) as i32) as f32));
+            translations.push((x as f32, y as f32, (components[0] as f32/5.0).trunc()));
         }
     }
+
+//    let mut translations: Vec<(f32, f32, f32)> = Vec::new();
+//    let size_x = 1;
+//    let size_z = 1;
+//    for x in 0..size_x {
+//        for y in 0..size_z {
+//            translations.push((x as f32, y as f32, 0.0));
+//        }
+//    }
 
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,13 +159,17 @@ fn main() {
     let mut perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, NEAR, FAR);
     let mut model_matrix: Matrix4<f32> =
         Matrix4::from_translation(Vector3::new(-(size_x as f32 / 2.0), 0.0, -(size_z as f32 / 2.0)));
+        //Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
     // per increment rotation
-    let rotation = Matrix4::from(Quaternion::from(Euler {
+    //let rotation = Matrix4::from(Quaternion::from(Euler {
+    let rotation = Quaternion::from(Euler {
         x: deg(0.0),
-        y: deg(0.01),
+        y: deg(0.1),
         z: deg(0.0),
-    }));
+    });
+
+    let rot_mat = Matrix4::from(rotation);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -152,19 +181,28 @@ fn main() {
 
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
+    use cgmath::Rotation;
+    use cgmath::Quaternion;
     let mut run = true;
     let mut render_kind = RenderType::Textured;
+
+    // sun pos
+    let mut sun_pos = Point3::new(5.0, 5.0, 5.0);
 
     utils::loop_with_report(&mut|delta:f64| {
 
         cam.update(delta as f32);
+        program.update(ctx.display(), delta);
 
 		let cam_mat : Matrix4<f32> = cam.into();
         let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
         if run {
-            model_matrix = rotation * model_matrix;
+            model_matrix = rot_mat * model_matrix;
+            model_matrix = model_matrix;
         }
+        //sun_pos =  rotation.rotate_point(sun_pos);
+        //print!("{:?}\n", sun_pos);
 
         // TODO: split this in ctx(perspective), view(camera) and world(in the world)
         let uniforms = uniform! {
@@ -174,6 +212,7 @@ fn main() {
 
             atlas_texture: &atlas_texture,
             atlas_side:    atlas_side as u32,
+			sun_pos:       Into::<[f32; 3]>::into(sun_pos),
         };
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -229,6 +268,6 @@ fn main() {
             perspective_matrix = perspective(deg(45.0), w as f32 / h as f32, NEAR, FAR);
         }
 
-    }, 5); // refresh every 5 secs
+    }, 10); // refresh every 10 secs
 
 }

@@ -26,6 +26,7 @@ impl Context
     pub fn new(width : u32, height : u32) -> Context
     {
         use glium::DisplayBuild;
+        use glium::debug::DebugCallbackBehavior;
 
         Context {
             display_ptr : glium::glutin::WindowBuilder::new()
@@ -33,6 +34,7 @@ impl Context
                     .with_dimensions(width, height)
                     .with_depth_buffer(24)
                     .with_srgb(Some(false))
+                    //.build_glium_debug(DebugCallbackBehavior::PrintAll)
                     .build_glium()
                     .unwrap()
         }
@@ -72,7 +74,7 @@ impl<'a> DrawSurface<'a>{
     pub fn gl_begin(ctx : &'a Context, render_type: RenderType) -> DrawSurface<'a>{
         use glium::Surface;
         let mut target = ctx.display().draw();
-        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+        target.clear_color_and_depth((0.2, 0.5, 0.4, 1.0), 1.0);
         DrawSurface {
      //       ctx: ctx, 
             target: target,
@@ -166,6 +168,8 @@ impl<'a> DrawSurface<'a>{
         self.target.finish().unwrap();
     }
 } // impl ctx
+
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Traits:

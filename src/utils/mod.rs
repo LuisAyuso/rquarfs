@@ -6,24 +6,6 @@ use std::io::Read;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/// load shader from path into a string. this is a file into buffer read
-pub fn load_shader(name: &str) -> Result<String, io::Error> {
-    use std::fs::{self, File};
-
-    let mut path = try!(fs::canonicalize("."));
-    path.push("shaders");
-    path.push(format!("{}{}", name, ".glsl"));
-    print!("load shader: {:?}\n", path);
-
-    let mut f = try!(File::open(path));
-
-    let mut shader_buff = String::new();
-    let _ = f.read_to_string(&mut shader_buff);
-    return Ok(shader_buff);
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /// infinite loop with iterations/second reporting every x seconds
 /// it will pass delta time to function body
