@@ -1,4 +1,4 @@
-#version 430
+#version 330
 
 uniform mat4 perspective_matrix;
 uniform mat4 view_matrix;
@@ -20,7 +20,7 @@ layout (location = 5) in vec2 tex_offset;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 flat   out vec4 face_normal;
-smooth out vec2 texture_out;
+smooth out vec2 texture_coords;
 smooth out vec4 vertex_coord;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -30,8 +30,8 @@ void main() {
 	vec4 tmp = vec4(position + world_position, 1.0);
 	gl_Position = vertex_coord =  perspective_matrix * view_matrix * model_matrix * tmp;
 
-	texture_out = clamp(tex_coord, 0.05, 0.95) / float(atlas_side);
-    texture_out = tex_offset + texture_out;
+	texture_coords = clamp(tex_coord, 0.05, 0.95) / float(atlas_side);
+    texture_coords = tex_offset + texture_coords;
 
     face_normal = normalize(vec4(normal, 1.0));
 }

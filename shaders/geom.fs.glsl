@@ -4,14 +4,14 @@ uniform mat4 perspective_matrix;
 uniform mat4 view_matrix;
 uniform mat4 model_matrix;
 
-uniform sampler2D tex_atlas;
+uniform sampler2D atlas_texture;
 uniform uint atlas_side;
 uniform vec3 sun_pos; 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 flat   in vec4 face_normal;
-smooth in vec2 texture_out;
+smooth in vec2 texture_coords;
 smooth in vec4 vertex_coord;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,7 +23,7 @@ out vec4 frag_color;
 void main()
 {
 
-    vec4 rgba = texture(tex_atlas, texture_out);// * fColor;
+    vec4 rgba = texture(atlas_texture, texture_coords);// * fColor;
 
 	frag_color = vec4(normalize(sun_pos), 1.0);
 

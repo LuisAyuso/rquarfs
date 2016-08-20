@@ -12,11 +12,12 @@ mod utils;
 mod renderer;
  
  #[warn(unused_imports)] 
-use cgmath::{Point3, Vector3, Matrix4, Euler, deg, Quaternion, perspective};
+use cgmath::{Point3, Vector3, Matrix4, Euler, deg, perspective};
 use world::cube;
 use renderer::context;
 use renderer::camera;
 use renderer::shader;
+use renderer::texquad;
 //use rand::Rng;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,11 +69,11 @@ fn main() {
     print!("load height map \n");
     // read height map 
     let height = world::textures::load_rgb("assets/height.jpg");
-    let dimensions = height.dimensions();
+    let height_dimensions = height.dimensions();
 
     // translations for the instances
-    let size_x = dimensions.0;
-    let size_z = dimensions.1;
+    let size_x = height_dimensions.0;
+    let size_z = height_dimensions.1;
     let mut translations: Vec<(f32, f32, f32)> = Vec::new();
     for x in 0..size_x {
         for y in 0..size_z {
@@ -84,6 +85,10 @@ fn main() {
             translations.push((x as f32, y as f32, (components[0] as f32/5.0).trunc()));
         }
     }
+
+    let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
+    let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
+    let quad = texquad::TexQuad::new(&ctx, &height_map);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -157,51 +162,60 @@ fn main() {
 
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
-    use cgmath::Rotation;
+    //use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(100.0, 100.0, 100.0);
+    let sun_pos = Point3::new(100.0, 100.0, 100.0);
 
     utils::loop_with_report(&mut|delta:f64| {
 
         cam.update(delta as f32);
         program.update(ctx.display(), delta);
 
-		let cam_mat : Matrix4<f32> = cam.into();
-        let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
+        // keep mut separated
+        {
 
-        if run {
-            model_matrix = rot_mat * model_matrix;
-            model_matrix = model_matrix;
-        }
-        //sun_pos =  rotation.rotate_point(sun_pos);
-        //print!("{:?}\n", sun_pos);
 
-        // TODO: split this in ctx(perspective), view(camera) and world(in the world)
-        let uniforms = uniform! {
-			perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
-			view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
-			model_matrix:       Into::<[[f32; 4]; 4]>::into(model_matrix),
+            let cam_mat : Matrix4<f32> = cam.into();
+            let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
-            atlas_texture: &atlas_texture,
-            atlas_side:    atlas_side as u32,
-			sun_pos:       Into::<[f32; 3]>::into(sun_pos),
-        };
+            if run {
+                model_matrix = rot_mat * model_matrix;
+                model_matrix = model_matrix;
+            }
+            //sun_pos =  rotation.rotate_point(sun_pos);
+            //print!("{:?}\n", sun_pos);
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        //    render using the new context 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        
-        DrawSurface::gl_begin(&ctx, render_kind)
-                        .draw(&axis_plot, &uniforms)
-                        .draw_instanciated_with_indices_and_program(&cube, 
-                                                                    &instance_attr, 
-                                                                    &program, 
-                                                                    &uniforms)
-                    .gl_end();
+            // TODO: split this in ctx(perspective), view(camera) and world(in the world)
+            let uniforms = uniform! {
+                perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
+                view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
+                model_matrix:       Into::<[[f32; 4]; 4]>::into(model_matrix),
+
+                atlas_texture: &atlas_texture,
+                atlas_side:    atlas_side as u32,
+                sun_pos:       Into::<[f32; 3]>::into(sun_pos),
+            };
+
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            //    render using the new context 
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            
+            DrawSurface::gl_begin(&ctx, render_kind)
+                            .draw(&axis_plot, &uniforms)
+                            .draw_instanciated_with_indices_and_program(&cube, 
+                                                                        &instance_attr, 
+                                                                        &program, 
+                                                                        &uniforms)
+                            .draw_tex_quad(&quad)
+                        .gl_end();
+
+            //println!(" ~~~~~~~~~~~ end frame ~~~~~~~~~~~ ");
+          }
+
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         //    event handling
