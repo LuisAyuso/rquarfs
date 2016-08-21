@@ -27,7 +27,7 @@ impl Context
     pub fn new(width : u32, height : u32) -> Context
     {
         use glium::DisplayBuild;
-        use glium::debug::DebugCallbackBehavior;
+        //use glium::debug::DebugCallbackBehavior;
 
         Context {
             display_ptr : glium::glutin::WindowBuilder::new()
@@ -35,8 +35,8 @@ impl Context
                     .with_dimensions(width, height)
                     .with_depth_buffer(24)
                     .with_srgb(Some(false))
-                    .build_glium_debug(DebugCallbackBehavior::PrintAll)
-                    //.build_glium()
+                    //.build_glium_debug(DebugCallbackBehavior::PrintAll)
+                    .build_glium()
                     .unwrap()
         }
     }
@@ -64,6 +64,7 @@ pub struct DrawSurface<'a>{
 }
 
 impl<'a> DrawSurface<'a>{
+
 
     #[inline]
     pub fn gl_begin(ctx : &'a Context, render_type: RenderType) -> DrawSurface<'a>{
@@ -122,13 +123,14 @@ impl<'a> DrawSurface<'a>{
         self
     } 
 
-    pub fn draw_tex_quad(mut self, quad: &texquad::TexQuad) -> DrawSurface<'a> {
+    pub fn draw_tex_quad(mut self, quad: &texquad::TexQuad, texture: &glium::Texture2d) -> DrawSurface<'a> {
 
         //println!("c");
         use glium::Surface;
+
         // generate uniforms because i doint know how to return the uniforms type
         let quad_uniforms = uniform! {
-            quad_texture: quad.get_texture(),
+            quad_texture: texture,
         };
 
 		self.target.draw(quad.get_vertices(),
@@ -184,24 +186,5 @@ pub trait DrawItem {
 pub trait DrawIndexed {
     fn get_vertices<'a> (&'a self)-> &'a VerticesT;
     fn get_indices<'a> (&'a self) -> &'a IndicesT;
-}
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// test
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#[cfg(test)]
-mod tests {
-    use super::Context;
-    use super::DrawSurface;
-
-
-    #[cfg(test)]
-    pub fn test_framebuffer(){
-
-        // create texture
-        // create framebuffer
-        // draw?
-    }
 }
 

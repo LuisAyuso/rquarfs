@@ -12,18 +12,17 @@ struct QuadVert {
     tex_coords: (f32, f32),
 }
 
-pub struct TexQuad<'a> {
+pub struct TexQuad {
     quad_buffer:glium::vertex::VertexBufferAny,
     quad_program: glium::Program,
-    texture: &'a glium::Texture2d,
 }
 
 
 implement_vertex!(QuadVert, position, tex_coords);
 
-impl<'a> TexQuad<'a> {
+impl TexQuad {
 
-    pub fn new(ctx: &context::Context, texture: &'a glium::Texture2d) -> TexQuad<'a> {
+    pub fn new(ctx: &context::Context) -> TexQuad {
 
         let quad_buffer = glium::VertexBuffer::new(ctx.display(),
                   &[QuadVert { position: (-1.0,-1.0), tex_coords: (0.0, 0.0), },
@@ -43,6 +42,7 @@ impl<'a> TexQuad<'a> {
                 #version 140
                 in vec2 position;
                 in vec2 tex_coords;   
+
                 smooth out vec2 coords;
 
                 void main() {
@@ -66,7 +66,6 @@ impl<'a> TexQuad<'a> {
         TexQuad {
             quad_program: quad_program,
             quad_buffer: quad_buffer.unwrap().into(),
-            texture: texture,
         }
     } // new
     
@@ -79,9 +78,6 @@ impl<'a> TexQuad<'a> {
     }
     pub fn get_primitive(&self) -> glium::index::PrimitiveType{        
         glium::index::PrimitiveType::TrianglesList
-    }
-    pub fn get_texture(& self) -> &glium::Texture2d{
-        self.texture
     }
 
 }

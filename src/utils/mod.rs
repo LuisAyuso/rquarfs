@@ -92,17 +92,16 @@ impl Axis {
                                          position;
                  in vec3 color;
                  \
-                                         uniform mat4 perspective_matrix;
+                                         uniform mat4 perspective;
                  \
-                                         uniform mat4 view_matrix;
+                                         uniform mat4 view;
 
                 out vec3 \
                                          f_color;
 
                 void main() {
                  \
-                                         gl_Position = perspective_matrix * view_matrix * \
-                                         vec4(position, 1.0);
+                                         gl_Position = perspective * view * vec4(position, 1.0);
                     f_color = \
                                          color;
                 }

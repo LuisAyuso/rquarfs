@@ -19,12 +19,12 @@ impl ShadowMapper {
 
         //glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         let texture = glium::texture::Texture2d::empty_with_format(ctx.display(), 
-                                    glium::texture::UncompressedFloatFormat::F32F32F32F32, 
+                                    glium::texture::UncompressedFloatFormat::F32,
                                     glium::texture::MipmapsOption::NoMipmap, 
                                     1024, 1024).unwrap();
 
         let depth = glium::framebuffer::DepthRenderBuffer::new(ctx.display(),
-                             glium::texture::DepthFormat::I24, 1024, 1024,).unwrap();
+                             glium::texture::DepthFormat::I16, 1024, 1024,).unwrap();
 
 
         let shadow_program =
@@ -33,31 +33,54 @@ impl ShadowMapper {
             "
 				#version 330 core
 
-                layout (location = 0) in vec3 position;
-                layout (location = 3) in vec3 world_position;
+                uniform mat4 light_perspective;
+                uniform mat4 light_view;
+                uniform mat4 model;
 
-                uniform mat4 perspective_matrix;
-                uniform mat4 view_matrix;
-                uniform mat4 model_matrix;
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                layout (location = 0) in vec3 position;
+                layout (location = 1) in vec3 normal;
+                layout (location = 2) in vec2 tex_coord;
+                layout (location = 3) in vec3 world_position;
+                layout (location = 4) in vec3 in_color;      
+                layout (location = 5) in vec2 tex_offset;      
+
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                smooth out float distance;
+    
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 				void main(){
                     vec4 tmp = vec4(position + world_position, 1.0);
-                    gl_Position = perspective_matrix * view_matrix * model_matrix * tmp;
+                    gl_Position = light_perspective * light_view * model * tmp;
 				}
             ",
                // fragment shader
             "
-				#version 330 core
+                #version 330 core
 
-				// Ouput data
-				//layout(location = 0) out float fragmentdepth;
-                layout(location = 0) out vec4 frag_color;
+                uniform mat4 perspective;
+                uniform mat4 view;
+                uniform mat4 model;
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                smooth in float distance;
+
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                out float fragmentdepth;
+
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 				void main(){
-					// Not really needed, OpenGL does it anyway
-					//fragmentdepth = gl_FragCoord.z;
-                    frag_color = vec4(2.0, 4.0, 0.0, 1.0);
-				}
+
+                    float x = gl_FragCoord.x / 1024;
+                    float y = gl_FragCoord.y / 1024;
+                    float z = gl_FragCoord.z;
+                    fragmentdepth = z;
+                 }
             ", None).unwrap();
 
         ShadowMapper {
@@ -77,7 +100,7 @@ impl ShadowMapper {
         //println!("b");
         use glium::Surface;
 
-        let mut target  = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
+        let mut framebuffer  = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
                                                                                   &self.shadow_map,
                                                                                   &self.depth_buff,
                                                                                  ).unwrap();
@@ -92,8 +115,9 @@ impl ShadowMapper {
 			.. Default::default()
 		};
 
-		target.clear_depth(0.0);
-        target.draw((obj.get_vertices(), instances.per_instance().unwrap()),
+        //float 16 buffer, only red componet is used
+        framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        framebuffer.draw((obj.get_vertices(), instances.per_instance().unwrap()),
                          obj.get_indices(),
                          &self.shadow_program,
                          uniforms, 

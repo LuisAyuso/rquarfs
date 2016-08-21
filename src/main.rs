@@ -55,8 +55,8 @@ fn main() {
 
     print!("load atlas:\n");
     //let atlas = world::textures::load_atlas("tex_pack").unwrap();
-    let atlas = world::textures::load_atlas("test/atlas1").unwrap();
-    //let atlas_count = atlas.count;
+    let atlas = world::textures::load_atlas("test/atlas2").unwrap();
+    let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
     let image = glium::texture::RawImage2d::from_raw_rgba(atlas.image.into_raw(), image_dimensions);
@@ -97,7 +97,7 @@ fn main() {
 
     //  map overlay ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let quad = texquad::TexQuad::new(&ctx, shadow_maker.texture());
+    let quad = texquad::TexQuad::new(&ctx);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -112,12 +112,13 @@ fn main() {
         }
         implement_vertex!(Attr, world_position, in_color, tex_offset);
 
-        //let mut rng = rand::thread_rng();
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
         let mut count = 0;
         let data = translations.iter()
             .map(|pos| {
 
-                let tex_id = 2;// rng.gen_range(0, atlas_count);
+                let tex_id = rng.gen_range(0, atlas_count);
                 count += 1;
                 let i_off = ((tex_id / atlas_side) as f32) / atlas_side as f32;
                 let j_off = ((tex_id % atlas_side) as f32) / atlas_side as f32;
@@ -177,10 +178,10 @@ fn main() {
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(0.0, 100.0, 0.0);
+    let mut sun_pos = Point3::new(0.0, 100.0, 100.0);
     let sun_rot = Quaternion::from(Euler {
         x: deg(0.1),
-        y: deg(0.0),
+        y: deg(0.1),
         z: deg(0.0),
     });
 
@@ -200,29 +201,44 @@ fn main() {
             }
 
             sun_pos =  sun_rot.rotate_point(sun_pos);
-         //   print!("{:?}\n", sun_pos);
-
-            // same uniforms, names should match
-
-            let uniforms = uniform! {
-                perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
-                view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
-                model_matrix:       Into::<[[f32; 4]; 4]>::into(model_matrix),
-
-                atlas_texture: &atlas_texture,
-                atlas_side:    atlas_side as u32,
-                sun_pos:       Into::<[f32; 3]>::into(sun_pos),
-            };
+            // print!("{:?}\n", sun_pos);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    cast shadows
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            //new view matrix, from the sun
+		    let sun_view_mat = Matrix4::look_at(sun_pos, Point3::new(0.0,0.0,0.0), Vector3::new(0.0,1.0,0.0));
+          //  let bias_matrix = Matrix4::new(
+          //      0.5, 0.0, 0.0, 0.0,
+          //      0.0, 0.5, 0.0, 0.0,
+          //      0.0, 0.0, 0.5, 0.0,
+          //      0.5, 0.5, 0.5, 1.0,
+          //  );
+          //  let sun_view_mat = bias_matrix * perspective_matrix * sun_view_mat;
+            // new uniforms
+            let uniforms = uniform! {
+                light_perspective: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
+                light_view:        Into::<[[f32; 4]; 4]>::into(sun_view_mat),
+                model:             Into::<[[f32; 4]; 4]>::into(model_matrix),
+            };
 
             shadow_maker.draw_depth(&ctx, &cube, &instance_attr, &uniforms);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            let uniforms = uniform! {
+                perspective: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
+                view:        Into::<[[f32; 4]; 4]>::into(view_matrix),
+                model:       Into::<[[f32; 4]; 4]>::into(model_matrix),
+
+                atlas_texture: &atlas_texture,
+                shadow_texture: shadow_maker.texture(),
+                atlas_side:    atlas_side as u32,
+                sun_pos:    Into::<[f32; 3]>::into(sun_pos),
+            };
             
             DrawSurface::gl_begin(&ctx, render_kind)
                             .draw(&axis_plot, &uniforms)
@@ -230,10 +246,10 @@ fn main() {
                                                                         &instance_attr, 
                                                                         &program, 
                                                                         &uniforms)
-                            .draw_tex_quad(&quad)
+                            .draw_tex_quad(&quad, shadow_maker.texture())
                         .gl_end();
 
-            //println!(" ~~~~~~~~~~~ end frame ~~~~~~~~~~~ ");
+           // println!(" ~~~~~~~~~~~ end frame ~~~~~~~~~~~ ");
           }
 
 
