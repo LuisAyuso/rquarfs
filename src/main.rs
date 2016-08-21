@@ -18,6 +18,7 @@ use renderer::context;
 use renderer::camera;
 use renderer::shader;
 use renderer::texquad;
+use renderer::shadowmapper;
 //use rand::Rng;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,7 +69,7 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    let height = world::textures::load_rgb("assets/height.jpg");
+    let height = world::textures::load_rgb("assets/height_small.png");
     let height_dimensions = height.dimensions();
 
     // translations for the instances
@@ -86,9 +87,17 @@ fn main() {
         }
     }
 
-    let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
-    let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
-    let quad = texquad::TexQuad::new(&ctx, &height_map);
+   // let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
+   // let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
+
+    //  Shadow mapping ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    let shadow_maker = shadowmapper::ShadowMapper::new(&ctx);
+
+
+    //  map overlay ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    let quad = texquad::TexQuad::new(&ctx, shadow_maker.texture());
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,13 +171,18 @@ fn main() {
 
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
-    //use cgmath::Rotation;
+    use cgmath::Rotation;
     use cgmath::Quaternion;
-    let mut run = true;
+    let mut run = false;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let sun_pos = Point3::new(100.0, 100.0, 100.0);
+    let mut sun_pos = Point3::new(0.0, 100.0, 0.0);
+    let sun_rot = Quaternion::from(Euler {
+        x: deg(0.1),
+        y: deg(0.0),
+        z: deg(0.0),
+    });
 
     utils::loop_with_report(&mut|delta:f64| {
 
@@ -177,8 +191,6 @@ fn main() {
 
         // keep mut separated
         {
-
-
             let cam_mat : Matrix4<f32> = cam.into();
             let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
@@ -186,10 +198,12 @@ fn main() {
                 model_matrix = rot_mat * model_matrix;
                 model_matrix = model_matrix;
             }
-            //sun_pos =  rotation.rotate_point(sun_pos);
-            //print!("{:?}\n", sun_pos);
 
-            // TODO: split this in ctx(perspective), view(camera) and world(in the world)
+            sun_pos =  sun_rot.rotate_point(sun_pos);
+         //   print!("{:?}\n", sun_pos);
+
+            // same uniforms, names should match
+
             let uniforms = uniform! {
                 perspective_matrix: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
                 view_matrix:        Into::<[[f32; 4]; 4]>::into(view_matrix),
@@ -201,7 +215,13 @@ fn main() {
             };
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            //    render using the new context 
+            //    cast shadows
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            shadow_maker.draw_depth(&ctx, &cube, &instance_attr, &uniforms);
+
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            //    render scene 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             
             DrawSurface::gl_begin(&ctx, render_kind)
