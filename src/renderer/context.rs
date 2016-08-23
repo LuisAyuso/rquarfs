@@ -123,7 +123,9 @@ impl<'a> DrawSurface<'a>{
         self
     } 
 
-    pub fn draw_tex_quad(mut self, quad: &texquad::TexQuad, texture: &glium::Texture2d) -> DrawSurface<'a> {
+    pub fn draw_tex_quad<T>(mut self, quad: &texquad::TexQuad, texture: T) -> DrawSurface<'a> 
+        where T: glium::uniforms::AsUniformValue
+    {
 
         //println!("c");
         use glium::Surface;

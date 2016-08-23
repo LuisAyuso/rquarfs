@@ -10,7 +10,7 @@ use renderer::context;
 pub struct ShadowMapper {
     shadow_program: glium::Program,
     shadow_map: glium::Texture2d,
-    depth_buff:glium::framebuffer::DepthRenderBuffer,
+    depth_tex:glium::texture::DepthTexture2d,
 }
 
 impl ShadowMapper {
@@ -23,8 +23,10 @@ impl ShadowMapper {
                                     glium::texture::MipmapsOption::NoMipmap, 
                                     1024, 1024).unwrap();
 
-        let depth = glium::framebuffer::DepthRenderBuffer::new(ctx.display(),
-                             glium::texture::DepthFormat::I16, 1024, 1024,).unwrap();
+       // let depth = glium::framebuffer::DepthRenderBuffer::new(ctx.display(),
+       //                      glium::texture::DepthFormat::I16, 1024, 1024,).unwrap();
+        let depth = glium::texture::DepthTexture2d::empty(ctx.display(), 1024, 1024).unwrap();
+
 
 
         let shadow_program =
@@ -33,8 +35,7 @@ impl ShadowMapper {
             "
 				#version 330 core
 
-                uniform mat4 light_perspective;
-                uniform mat4 light_view;
+                uniform mat4 light_space_matrix;
                 uniform mat4 model;
 
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -54,15 +55,14 @@ impl ShadowMapper {
 
 				void main(){
                     vec4 tmp = vec4(position + world_position, 1.0);
-                    gl_Position = light_perspective * light_view * model * tmp;
+                    gl_Position = light_space_matrix* model * tmp;
 				}
             ",
                // fragment shader
             "
                 #version 330 core
 
-                uniform mat4 perspective;
-                uniform mat4 view;
+                uniform mat4 light_space_matrix;
                 uniform mat4 model;
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -75,18 +75,17 @@ impl ShadowMapper {
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 				void main(){
-
-                    float x = gl_FragCoord.x / 1024;
-                    float y = gl_FragCoord.y / 1024;
-                    float z = gl_FragCoord.z;
-                    fragmentdepth = z;
+                 //   float x = gl_FragCoord.x / 1024;
+                 //   float y = gl_FragCoord.y / 1024;
+                 //   float z = gl_FragCoord.z;
+                 //   fragmentdepth = z;
                  }
             ", None).unwrap();
 
         ShadowMapper {
             shadow_program: shadow_program,
             shadow_map: texture,
-            depth_buff: depth,
+            depth_tex: depth,
         }
     } // new
 
@@ -102,7 +101,7 @@ impl ShadowMapper {
 
         let mut framebuffer  = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
                                                                                   &self.shadow_map,
-                                                                                  &self.depth_buff,
+                                                                                  &self.depth_tex,
                                                                                  ).unwrap();
 
 		let parameters = glium::DrawParameters {
@@ -116,7 +115,8 @@ impl ShadowMapper {
 		};
 
         //float 16 buffer, only red componet is used
-        framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        //framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        framebuffer.clear_depth(1.0);
         framebuffer.draw((obj.get_vertices(), instances.per_instance().unwrap()),
                          obj.get_indices(),
                          &self.shadow_program,
@@ -126,6 +126,9 @@ impl ShadowMapper {
 
     pub fn texture(&self) -> &glium::Texture2d{
         &self.shadow_map
+    }
+    pub fn depth_as_texture(&self) -> &glium::texture::DepthTexture2d{
+        &self.depth_tex
     }
 }
 
