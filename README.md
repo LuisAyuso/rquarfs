@@ -12,7 +12,7 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
 - [ ] cache world, avoid image reading on load
 - [ ] fix atlas neigboohoding problem
 - [x] phong shading
-- [ ] projected shadows
+- [x] projected shadows
 - [ ] add a check for unused uniforms binding.... this is the second time I get lost here.
 
 
