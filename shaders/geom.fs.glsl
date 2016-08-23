@@ -26,11 +26,12 @@ out vec4 frag_color;
 
 float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 {
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
     if(projCoords.z > 1.0)
         return 0.0;
 
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // Transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)

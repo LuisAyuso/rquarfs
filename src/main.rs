@@ -178,9 +178,9 @@ fn main() {
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(0.0, 50.0, 100.0);
+    let mut sun_pos = Point3::new(0.0, 30.0, 50.0);
     let sun_rot = Quaternion::from(Euler {
-        x: deg(0.0),
+        x: deg(0.1),
         y: deg(0.1),
         z: deg(0.0),
     });
