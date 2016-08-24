@@ -47,15 +47,12 @@ fn main() {
 
     let cube = cube::Cube::new(ctx.display()).unwrap();
 
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    let axis_plot = utils::Axis::new(ctx.display());
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print!("load atlas:\n");
-    //let atlas = world::textures::load_atlas("tex_pack").unwrap();
-    let atlas = world::textures::load_atlas("test/atlas2").unwrap();
+    let atlas = world::textures::load_atlas("tex_pack").unwrap();
+    //let atlas = world::textures::load_atlas("test/atlas2").unwrap();
     let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
@@ -69,7 +66,10 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    let height = world::textures::load_rgb("assets/height_small.png");
+    //let height = world::textures::load_rgb("assets/height_small.png");
+    //let height = world::textures::load_rgb("assets/pico.png");
+    //let height = world::textures::load_rgb("assets/moon.png");
+    let height = world::textures::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
 
     // translations for the instances
@@ -166,24 +166,29 @@ fn main() {
 
     print!("{} instances\n", translations.len());
 
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
     use cgmath::Rotation;
     use cgmath::Quaternion;
-    let mut run = false;
+    let mut run = true;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(0.0, 30.0, 50.0);
+    let mut sun_pos = Point3::new(0.0, 150.0, 250.0);
     let sun_rot = Quaternion::from(Euler {
         x: deg(0.1),
         y: deg(0.1),
         z: deg(0.0),
     });
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    let axis_plot = utils::Axis::new(ctx.display());
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
     utils::loop_with_report(&mut|delta:f64| {
 
@@ -196,11 +201,11 @@ fn main() {
             let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
             if run {
-                model_matrix = rot_mat * model_matrix;
-                model_matrix = model_matrix;
+              //  model_matrix = rot_mat * model_matrix;
+              //  model_matrix = model_matrix;
+                sun_pos =  sun_rot.rotate_point(sun_pos);
             }
 
-            sun_pos =  sun_rot.rotate_point(sun_pos);
             // print!("{:?}\n", sun_pos);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

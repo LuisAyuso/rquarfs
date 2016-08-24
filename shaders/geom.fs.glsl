@@ -26,11 +26,9 @@ out vec4 frag_color;
 
 float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 {
+    //return 0.0;
     // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
-    if(projCoords.z > 1.0)
-        return 0.0;
+    vec3 projCoords = fragPosLightSpace.xyz; // / fragPosLightSpace.w;
 
     // Transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
@@ -41,6 +39,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias)
     // Check whether current frag pos is in shadow
 	float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
 
+    //if(projCoords.z > 1.0)
+        //return 0.0;
     return shadow;
 }  
 
@@ -64,7 +64,7 @@ void main()
     // Calculate shadow
 	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
     float shadow = ShadowCalculation(frag_lightSpace_coords, bias);       
-    vec3 lighting = (ambient + (1.0 - shadow) * diffuse) * color;    
+    vec3 lighting = (ambient + (1-shadow) * diffuse) * color;    
     
     frag_color = vec4(lighting, 1.0f);
 }

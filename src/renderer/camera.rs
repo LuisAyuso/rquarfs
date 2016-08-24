@@ -99,16 +99,16 @@ mod tests {
 
     #[test]
     fn create() {
-	     Camera::new();
+	     Camera::new(Point3::new(0.0, 75.0, -110.0),Point3::new(0.0, 0.0, -0.0));
     }
     #[test]
     fn into_matrix() {
-	     let cam = Camera::new();
+	     let cam = Camera::new(Point3::new(0.0, 75.0, -110.0),Point3::new(0.0, 0.0, -0.0));
         let _ : Matrix4<f32> = cam.into();
     }
     #[test]
     fn target() {
-	     let mut cam = Camera::new();
+	     let mut cam = Camera::new(Point3::new(0.0, 75.0, -110.0),Point3::new(0.0, 0.0, -0.0));
          cam.move_to(Point3::new(0.0, 75.0, -105.0));
         
             print!("{:?}\n", cam);
@@ -127,7 +127,7 @@ mod tests {
     }
     #[test]
     fn target2() {
-	     let mut cam = Camera::new();
+	     let mut cam = Camera::new(Point3::new(0.0, 75.0, -110.0),Point3::new(0.0, 0.0, -0.0));
          cam.change_elevation(5.0);
           //  print!("{:?}\n", cam);
             cam.update(1.1);

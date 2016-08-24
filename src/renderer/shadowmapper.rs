@@ -124,9 +124,6 @@ impl ShadowMapper {
                          &parameters).unwrap();
     } 
 
-    pub fn texture(&self) -> &glium::Texture2d{
-        &self.shadow_map
-    }
     pub fn depth_as_texture(&self) -> &glium::texture::DepthTexture2d{
         &self.depth_tex
     }
