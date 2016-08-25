@@ -66,18 +66,24 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
+    let height = world::textures::load_rgb("assets/height.jpg");
     //let height = world::textures::load_rgb("assets/height_small.png");
     //let height = world::textures::load_rgb("assets/pico.png");
     //let height = world::textures::load_rgb("assets/moon.png");
-    let height = world::textures::load_rgb("assets/test.png");
+    //let height = world::textures::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
 
     // translations for the instances
-    let size_x = height_dimensions.0;
-    let size_z = height_dimensions.1;
+    let size_x :f32 = height_dimensions.0 as f32;
+    let size_z :f32 = height_dimensions.1 as f32;
+
+    // round to closest power of 2
+   // let size_x = size_x.log(2.0).ceil().powi(2);
+   // let size_z = size_z.log(2.0).ceil().powi(2);
+
     let mut translations: Vec<(f32, f32, f32)> = Vec::new();
-    for x in 0..size_x {
-        for y in 0..size_z {
+    for x in 0..size_x as u32{
+        for y in 0..size_z as u32{
             use image::Pixel;
 
         // get height in coordinates x,y

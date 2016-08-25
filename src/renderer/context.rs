@@ -190,3 +190,64 @@ pub trait DrawIndexed {
     fn get_indices<'a> (&'a self) -> &'a IndicesT;
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Tests:
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+#[cfg(test)]
+mod tests {
+    use world;
+    use renderer::quadtree;
+    use cgmath::{Point3, Vector3, Vector4, Matrix4, deg, perspective};
+    use std::fmt::Debug;
+
+    fn print<T> (v: &Vec<T>)
+        where T : Debug
+    {
+        println!("vector contains:");
+        v.iter().map(|elem|{
+                println!("\t{:?}", elem);
+            }).last();
+    }
+
+    #[test]
+    fn pvm_checks() {
+        use image::Pixel;
+  
+        print!("load height map \n");
+        // read height map 
+        let height = world::textures::load_rgb("assets/height.jpg");
+        let height_dimensions = height.dimensions();
+
+        // translations for the instances
+        let size_x :f32 = height_dimensions.0 as f32;
+        let size_z :f32 = height_dimensions.1 as f32;
+
+        print!("gen matrices \n");
+
+		let view = Matrix4::look_at(Point3::new(0.0, 75.0, -110.0),Point3::new(0.0, 0.0, -0.0), Vector3::new(0.0, 1.0, 0.0));
+        let perspective: Matrix4<f32> = perspective(deg(45.0), 1.0, 2.0, 100.0);
+        let model = Matrix4::from_translation(Vector3::new(-(size_x / 2.0), 0.0, -(size_z / 2.0)));
+        let pvm = perspective * view * model;
+
+        print!("test \n");
+
+        let tree = quadtree::Patch::new((0,0), (size_x as u32 -1, size_z as u32 -1));
+        let res = quadtree::test(100, tree, &|(x, z)|{
+            let pixel = height.get_pixel(x,z);
+            let components = pixel.channels();
+            println!("({},{},{})", x, components[0], z);
+            let v = Vector4::new(x as f32, components[0] as f32, z as f32, 1.0);
+
+            let pos = pvm * v;
+            println!("({:?} => {:?})", v, pos);
+
+            let res = pos.x >= 0.0 && pos.x <= 1.0 && pos.y >= 0.0 && pos.y <= 1.0;
+            println!("{}", res);
+
+            res
+        });
+        print(&res);
+        
+    }
+}

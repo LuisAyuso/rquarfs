@@ -1,5 +1,3 @@
-use cgmath::{Point2, Vector2};
-
 
 pub type Point = (u32, u32);
 pub type Vector = (u32, u32);
@@ -111,7 +109,6 @@ fn rec_h<Fun> (bc: u32, x: Patch, f:&Fun) -> Vec<Patch>
 where Fun: Fn(Point) ->bool
 {
     if x.v.1 <= bc{
-        println!("h bc");
         return vec!(x);
     }
 
@@ -123,9 +120,11 @@ where Fun: Fn(Point) ->bool
 
     match (a, b) {
         (TestResult::All, TestResult::All) => return vec!(x),
-        (TestResult::All, TestResult::Some) => return union(rec_v(bc, down, f), up),
-        (TestResult::Some, TestResult::All) => return union(rec_v(bc, up, f), down),
-        _ => Vec::<Patch>::new()
+        (TestResult::All, TestResult::Some) => return add_elem(rec_v(bc, down, f), up),
+        (TestResult::Some, TestResult::All) => return add_elem(rec_v(bc, up, f), down),
+        (TestResult::Some, TestResult::None) =>  rec_v(bc, up, f),
+        (TestResult::None, TestResult::Some) =>  rec_v(bc, down, f),
+        _ => return union(rec_h(bc, up, f), rec_h(bc, down, f)),
     }
 }
 
@@ -134,7 +133,6 @@ fn rec_v<Fun> (bc: u32, x: Patch, f:&Fun) -> Vec<Patch>
 where Fun: Fn(Point) ->bool
 {
     if x.v.0 <= bc{
-        println!("v bc");
         return vec!(x);
     }
 
@@ -142,19 +140,28 @@ where Fun: Fn(Point) ->bool
     // test up
     let a = test_corners(&left, f);
     // test down
-    let b = test_corners(&left, f);
+    let b = test_corners(&right, f);
 
     match (a, b) {
         (TestResult::All, TestResult::All) => return vec!(x),
-        (TestResult::All, TestResult::Some) => return union(rec_h(bc, right, f), left),
-        (TestResult::Some, TestResult::All) => return union(rec_h(bc, left, f), right),
-        _ => Vec::<Patch>::new()
+        (TestResult::All, TestResult::Some) =>   add_elem(rec_h(bc, right, f), left),
+        (TestResult::Some, TestResult::All) =>   add_elem(rec_h(bc, left, f), right),
+        (TestResult::Some, TestResult::None) =>  rec_h(bc, left, f),
+        (TestResult::None, TestResult::Some) =>  rec_h(bc, right, f),
+        _ =>  union(rec_h(bc, left, f), rec_h(bc, right, f)),
     }
 }
 
-fn union<T> (v: Vec<T>, elem: T) -> Vec<T>{
+fn add_elem<T> (v: Vec<T>, elem: T) -> Vec<T>{
     let mut res = v;
     res.push(elem);
+    res
+}
+
+fn union<T> (v1: Vec<T>, v2: Vec<T>) -> Vec<T>{
+    let mut res = v1;
+    let mut other = v2;
+    res.append(&mut other);
     res
 }
 
@@ -165,7 +172,16 @@ fn union<T> (v: Vec<T>, elem: T) -> Vec<T>{
 #[cfg(test)]
 mod tests {
     use super::Patch;
-    use super::{Point,Vector};
+    use std::fmt::Debug;
+
+    fn print<T> (v: &Vec<T>)
+        where T : Debug
+    {
+        println!("vector contains:");
+        v.iter().map(|elem|{
+                println!("\t{:?}", elem);
+            }).last();
+    }
 
     #[test]
     fn vertical_split(){
@@ -206,6 +222,13 @@ mod tests {
         assert_eq!(b, (10,8));
         assert_eq!(c, (32,0));
         assert_eq!(d, (32,8));
+
+        let x = Patch::new((0,0), (8,8));
+        let(a, b, c, d) = x.get_corners();
+        assert_eq!(a, (0,0));
+        assert_eq!(b, (0,8));
+        assert_eq!(c, (8,0));
+        assert_eq!(d, (8,8));
     }
 
     #[test]
@@ -214,7 +237,7 @@ mod tests {
         use super::TestResult;
 
         let x = Patch::new((10,0), (22,8));
-        let ra = test_corners(&x,&|(x,y)|{
+        let ra = test_corners(&x,&|(_,_)|{
          //   println!("test {} {}", x, y);
             true
         });
@@ -232,15 +255,35 @@ mod tests {
     #[test]
     fn search(){
         println!("check recursion1");
-        use super::test_corners;
         use super::test;
 
-        let x = Patch::new((0,0), (0,8));
-    
-        let res = test(4, x, &|(x,y)|{
-            println!("test {} {}", x, y);
-            false
-        });
-        assert_eq!(res.len(), 1);
+        let x = Patch::new((0,0), (8,8));
+        {
+            let res = test(4, x, &|(x,y)|{
+                println!("\ttest {} {}", x, y);
+                false
+            });
+            print(&res);
+            assert_eq!(res.len(), 0);
+        }
+
+        {
+            let res = test(4, x, &|(x,y)|{
+                println!("\ttest {} {}", x, y);
+                true
+            });
+            print(&res);
+            assert_eq!(res.len(), 1);
+        }
+
+        {
+            let res = test(4, x, &|(x,y)|{
+                println!("\ttest {} {}", x, y);
+                y >= 4
+            });
+            print(&res);
+            assert_eq!(res.len(), 3);
+        }
+
     }
 }
