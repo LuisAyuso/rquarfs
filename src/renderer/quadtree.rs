@@ -118,13 +118,15 @@ where Fun: Fn(Point) ->bool
     // test down
     let b = test_corners(&down, f);
 
+    //println!("h{:?} {:?}", a, b);
     match (a, b) {
         (TestResult::All, TestResult::All) => return vec!(x),
         (TestResult::All, TestResult::Some) => return add_elem(rec_v(bc, down, f), up),
         (TestResult::Some, TestResult::All) => return add_elem(rec_v(bc, up, f), down),
         (TestResult::Some, TestResult::None) =>  rec_v(bc, up, f),
         (TestResult::None, TestResult::Some) =>  rec_v(bc, down, f),
-        _ => return union(rec_h(bc, up, f), rec_h(bc, down, f)),
+        (TestResult::Some, TestResult::Some) =>  union(rec_v(bc, down, f),rec_v(bc, up, f)),
+        _ =>  Vec::<Patch>::new(),
     }
 }
 
@@ -142,13 +144,15 @@ where Fun: Fn(Point) ->bool
     // test down
     let b = test_corners(&right, f);
 
+    //println!("v{:?} {:?}", a, b);
     match (a, b) {
         (TestResult::All, TestResult::All) => return vec!(x),
         (TestResult::All, TestResult::Some) =>   add_elem(rec_h(bc, right, f), left),
         (TestResult::Some, TestResult::All) =>   add_elem(rec_h(bc, left, f), right),
         (TestResult::Some, TestResult::None) =>  rec_h(bc, left, f),
         (TestResult::None, TestResult::Some) =>  rec_h(bc, right, f),
-        _ =>  union(rec_h(bc, left, f), rec_h(bc, right, f)),
+        (TestResult::Some, TestResult::Some) =>  union(rec_h(bc, left, f),rec_h(bc, right, f)),
+        _ =>  Vec::<Patch>::new(),
     }
 }
 
@@ -187,6 +191,8 @@ mod tests {
     fn vertical_split(){
         let x = Patch::new((0,0), (8,8));
         let(down, up) = x.split_v();
+        println!("{:?}", down);
+        println!("{:?}", up);
 
         assert_eq!(down.p.0, x.p.0);
         assert_eq!(down.p.1, 0);
@@ -203,6 +209,9 @@ mod tests {
     fn horizontal_split(){
         let x = Patch::new((0,0), (8,8));
         let(left, right) = x.split_h();
+        println!("{:?}", left);
+        println!("{:?}", right);
+
         assert_eq!(left.p.0, x.p.0);
         assert_eq!(left.p.1, x.p.1);
         assert_eq!(left.v.0, x.v.0/2);
@@ -277,13 +286,102 @@ mod tests {
         }
 
         {
-            let res = test(4, x, &|(x,y)|{
-                println!("\ttest {} {}", x, y);
-                y >= 4
+            let res = test(2, x, &|(x,y)|{
+                println!("\ttest {} {} {}", x, y, y > 4);
+                y > 4
             });
             print(&res);
-            assert_eq!(res.len(), 3);
+            assert_eq!(res.len(), 6);
         }
 
+    }
+
+    use world;
+    use cgmath::{Point3, Vector3, Vector4, Matrix4, deg, perspective};
+
+
+    fn load_pvm(h: u32, w: u32) -> Matrix4<f32>{
+        let size_x = h as f32;
+        let size_z = w as f32;
+
+		let view = Matrix4::look_at(Point3::new(0.0, 75.0, -110.0),
+                                    Point3::new(0.0, 0.0, -0.0), 
+                                    Vector3::new(0.0, 1.0, 0.0));
+        let perspective: Matrix4<f32> = perspective(deg(45.0), 1.0, 2.0, 100.0);
+        let model = Matrix4::from_translation(Vector3::new(-(size_x / 2.0), 0.0, -(size_z / 2.0)));
+        perspective * view * model
+    }
+
+    #[test]
+    fn pvm_checks() {
+        use image::Pixel;
+  
+        print!("load height map \n");
+        // read height map 
+        let height = world::textures::load_rgb("assets/height.jpg");
+        let height_dimensions = height.dimensions();
+
+        // translations for the instances
+        let size_x = height_dimensions.0;
+        let size_z = height_dimensions.1;
+
+        let pvm = load_pvm(size_x, size_z);
+
+        print!("test \n");
+
+        let tree = Patch::new((0,0), (size_x as u32 -1, size_z as u32 -1));
+        let res = super::test(100, tree, &|(x, z)|{
+            let pixel = height.get_pixel(x,z);
+            let components = pixel.channels();
+            println!("({},{},{})", x, components[0], z);
+            let v = Vector4::new(x as f32, components[0] as f32, z as f32, 1.0);
+
+            let pos = pvm * v;
+            println!("({:?} => {:?})", v, pos);
+
+            let res = pos.x >= 0.0 && pos.x <= 1.0 && pos.y >= 0.0 && pos.y <= 1.0;
+            println!("{}", res);
+
+            res
+        });
+        print(&res);
+        // four corner out of the grid
+        assert_eq!(res.len(), 0);
+    }
+
+    #[test]
+    fn pvm_checks() {
+        use image::Pixel;
+  
+        print!("load height map \n");
+        // read height map 
+        let height = world::textures::load_rgb("assets/height.jpg");
+        let height_dimensions = height.dimensions();
+
+        // translations for the instances
+        let size_x = height_dimensions.0;
+        let size_z = height_dimensions.1;
+
+        let pvm = load_pvm(size_x, size_z);
+        let frustum = cgmath::Frustum::from_matrix4(pvm);
+
+        print!("test \n");
+
+        let tree = Patch::new((0,0), (size_x as u32 -1, size_z as u32 -1));
+        let res = super::test(100, tree, &|(x, z)|{
+            let pixel = height.get_pixel(x,z);
+            let components = pixel.channels();
+            println!("({},{},{})", x, components[0], z);
+            let v = Vector4::new(x as f32, components[0] as f32, z as f32, 1.0);
+
+            let pos = pvm * v;
+            println!("({:?} => {:?})", v, pos);
+
+            let res = pos.x >= 0.0 && pos.x <= 1.0 && pos.y >= 0.0 && pos.y <= 1.0;
+            println!("{}", res);
+
+            res
+        });
+        print(&res);
     }
 }
