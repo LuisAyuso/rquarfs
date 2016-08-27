@@ -1,8 +1,8 @@
 #version 330 core
 
-uniform mat4 perspective_matrix;
-uniform mat4 view_matrix;
-uniform mat4 model_matrix;
+uniform mat4 perspective;
+uniform mat4 view;
+uniform mat4 model;
 uniform mat4 light_space_matrix;
 
 uniform sampler2D atlas_texture;
@@ -67,4 +67,5 @@ void main()
     vec3 lighting = (ambient + (1-shadow) * diffuse) * color;    
     
     frag_color = vec4(lighting, 1.0f);
+  //  frag_color = clamp(perspective * view * vertex_modelspace, 0.0, 1.0);
 }

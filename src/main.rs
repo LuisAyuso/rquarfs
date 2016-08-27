@@ -5,6 +5,7 @@ extern crate rand;
 extern crate cgmath;
 extern crate image;
 extern crate glutin;
+extern crate time;
 
 
 mod world;
@@ -93,8 +94,8 @@ fn main() {
         }
     }
 
-   // let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
-   // let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
+    let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
+    let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
 
     //  Shadow mapping ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -253,7 +254,8 @@ fn main() {
                                                                         &instance_attr, 
                                                                         &program, 
                                                                         &uniforms)
-                            .draw_tex_quad(&quad, shadow_maker.depth_as_texture())
+                            //.draw_tex_quad(&quad, shadow_maker.depth_as_texture())
+                            .draw_tex_quad(&quad, &height_map)
                         .gl_end();
 
            // println!(" ~~~~~~~~~~~ end frame ~~~~~~~~~~~ ");

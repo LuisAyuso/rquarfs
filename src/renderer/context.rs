@@ -1,4 +1,6 @@
-extern crate glium;
+use glium;
+use time;
+
 
 use renderer::texquad;
 
@@ -190,10 +192,3 @@ pub trait DrawIndexed {
     fn get_indices<'a> (&'a self) -> &'a IndicesT;
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Tests:
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
-//#[cfg(test)]
-//mod tests {
-//}
