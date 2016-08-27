@@ -15,12 +15,36 @@ pub struct Los{
     patches: Vec<Patch>,
 }
 
+impl Los{
+
+    /// generate new line of sight tracking object
+    pub fn new() -> Los{
+        Los{
+            patches: Vec::<Patch>::new(),
+        }
+    }
+
+}
+
+
+
+
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Tests:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
 #[cfg(test)]
 mod tests {
+    use super::Los;
+
+    #[test]
+    fn LosCtor()
+    {   
+        Los::new();
+    }
+
 
     use world;
     use renderer::los::quadtree::{Patch, test, TestResult};
