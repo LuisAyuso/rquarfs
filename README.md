@@ -13,7 +13,7 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
 - [ ] fix atlas neigboohoding problem
 - [x] phong shading
 - [x] projected shadows
-- [ ] not so sure about this anymore -add a check for unused uniforms binding-
+- [ ] not so sure about this anymore ~~add a check for unused uniforms binding~~
 - [ ] add some magic for the uniforms types, maybe a macro to generate a type I can return and work with. (maybe this does not need to be that fast)
 
 
