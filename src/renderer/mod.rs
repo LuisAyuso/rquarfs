@@ -7,4 +7,4 @@ pub mod texquad;
 pub mod shadowmapper;
 
 
-mod los;
+pub mod los;

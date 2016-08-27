@@ -93,6 +93,8 @@ fn main() {
             translations.push((x as f32, y as f32, (components[0] as f32/5.0).trunc()));
         }
     }
+    let mut los = los::Los::new(&height);
+    let lospreview = los::LosPreview::new(&ctx);
 
     let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
     let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
@@ -175,6 +177,7 @@ fn main() {
 
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
+    use renderer::los;
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
@@ -188,9 +191,11 @@ fn main() {
         z: deg(0.0),
     });
 
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let axis_plot = utils::Axis::new(ctx.display());
+
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -230,7 +235,13 @@ fn main() {
                 model:              Into::<[[f32; 4]; 4]>::into(model_matrix),
             };
 
-            shadow_maker.draw_depth(&ctx, &cube, &instance_attr, &uniforms);
+            shadow_maker.compute_depth(&ctx, &cube, &instance_attr, &uniforms);
+
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            //    line of sight  
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            let pvm = perspective_matrix * view_matrix * model_matrix;
+            los.update_view(200, &pvm);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene 
@@ -247,6 +258,8 @@ fn main() {
                 atlas_side:    atlas_side as u32,
                 sun_pos:    Into::<[f32; 3]>::into(sun_pos),
             };
+
+            let losquad = lospreview.get_drawable(&ctx, &los);
             
             DrawSurface::gl_begin(&ctx, render_kind)
                             .draw(&axis_plot, &uniforms)
@@ -254,8 +267,9 @@ fn main() {
                                                                         &instance_attr, 
                                                                         &program, 
                                                                         &uniforms)
-                            //.draw_tex_quad(&quad, shadow_maker.depth_as_texture())
-                            .draw_tex_quad(&quad, &height_map)
+                            //.draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
+                            .draw_overlay_quad(&quad, &height_map)
+                            .draw_overlay_quad(&losquad, &height_map)
                         .gl_end();
 
            // println!(" ~~~~~~~~~~~ end frame ~~~~~~~~~~~ ");

@@ -1,8 +1,4 @@
 use glium;
-use time;
-
-
-use renderer::texquad;
 
 pub type Backend = glium::backend::glutin_backend::GlutinFacade;
 pub type VerticesT = glium::vertex::VertexBufferAny;
@@ -21,6 +17,8 @@ pub enum RenderType{
 pub struct Context
 {
     display_ptr: Backend,
+    pub width: u32,
+    pub height: u32,
 }
 
 
@@ -33,13 +31,34 @@ impl Context
 
         Context {
             display_ptr : glium::glutin::WindowBuilder::new()
-                    .with_title("Quarfs!")
-                    .with_dimensions(width, height)
-                    .with_depth_buffer(24)
-                    .with_srgb(Some(false))
-                    //.build_glium_debug(DebugCallbackBehavior::PrintAll)
-                    .build_glium()
-                    .unwrap()
+                        .with_title("Quarfs!")
+                        .with_dimensions(width, height)
+                        .with_depth_buffer(24)
+                        .with_srgb(Some(false))
+                        //.build_glium_debug(DebugCallbackBehavior::PrintAll)
+                        .build_glium()
+                    .unwrap(),
+            width: width,
+            height: height,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn new_debug(width : u32, height : u32) -> Context
+    {
+        use glium::DisplayBuild;
+        use glium::debug::DebugCallbackBehavior;
+
+        Context {
+            display_ptr : glium::glutin::WindowBuilder::new()
+                        .with_title("Quarfs!")
+                        .with_dimensions(width, height)
+                        .with_depth_buffer(24)
+                        .with_srgb(Some(false))
+                        .build_glium_debug(DebugCallbackBehavior::PrintAll)
+                    .unwrap(),
+            width: width,
+            height: height,
         }
     }
 
@@ -50,6 +69,8 @@ impl Context
 
     pub fn resize(&mut self, w: u32, h: u32){
        print!("resize {}x{}\n", w, h);
+       self.width = w;
+       self.height = h;
 //      TODO: change here the perspective matrix (which should be owned by ctx)
     }
 
@@ -125,8 +146,9 @@ impl<'a> DrawSurface<'a>{
         self
     } 
 
-    pub fn draw_tex_quad<T>(mut self, quad: &texquad::TexQuad, texture: T) -> DrawSurface<'a> 
-        where T: glium::uniforms::AsUniformValue
+    pub fn draw_overlay_quad<O, T>(mut self, quad: &O, texture: T) -> DrawSurface<'a> 
+        where O: DrawItem + Program,
+        T: glium::uniforms::AsUniformValue
     {
 
         //println!("c");
@@ -159,8 +181,6 @@ impl<'a> DrawSurface<'a>{
     pub fn gl_end(self){
         self.target.finish().unwrap();
     }
-
-
 
 } // impl ctx
 

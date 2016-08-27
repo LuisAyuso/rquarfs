@@ -16,18 +16,17 @@ pub struct ShadowMapper {
 impl ShadowMapper {
 
     pub fn new(ctx: &context::Context) -> ShadowMapper {
+        use glium::texture;
 
         //glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-        let texture = glium::texture::Texture2d::empty_with_format(ctx.display(), 
-                                    glium::texture::UncompressedFloatFormat::F32,
-                                    glium::texture::MipmapsOption::NoMipmap, 
+        let texture = texture::Texture2d::empty_with_format(ctx.display(), 
+                                    texture::UncompressedFloatFormat::F32,
+                                    texture::MipmapsOption::NoMipmap, 
                                     1024, 1024).unwrap();
 
-       // let depth = glium::framebuffer::DepthRenderBuffer::new(ctx.display(),
        //                      glium::texture::DepthFormat::I16, 1024, 1024,).unwrap();
-        let depth = glium::texture::DepthTexture2d::empty(ctx.display(), 1024, 1024).unwrap();
-
-
+        let depth = texture::DepthTexture2d::empty_with_format(ctx.display(), texture::DepthFormat::F32,
+                                            texture::MipmapsOption::NoMipmap, 1024, 1024).unwrap();
 
         let shadow_program =
             glium::Program::from_source(ctx.display(),
@@ -89,7 +88,7 @@ impl ShadowMapper {
         }
     } // new
 
-    pub fn draw_depth<O,U>(&self, 
+    pub fn compute_depth<O,U>(&self, 
                              ctx: &context::Context,
                              obj : &O, 
                              instances: &context::VerticesT, 

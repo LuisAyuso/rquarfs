@@ -68,18 +68,27 @@ impl TexQuad {
             quad_buffer: quad_buffer.unwrap().into(),
         }
     } // new
-    
-    pub fn get_program(& self) -> &glium::program::Program{
-        &self.quad_program
-    }
+}
 
-    pub fn get_vertices (& self)-> &context::VerticesT{
-         &self.quad_buffer
+use renderer::context::{DrawItem, Program};
+
+impl DrawItem for TexQuad{
+
+    fn get_vertices<'a> (&'a self)-> &'a glium::vertex::VertexBufferAny{
+        &self.quad_buffer
     }
-    pub fn get_primitive(&self) -> glium::index::PrimitiveType{        
+    fn get_primitive(&self) -> glium::index::PrimitiveType{
         glium::index::PrimitiveType::TrianglesList
     }
-
 }
+
+impl Program for TexQuad{
+
+    fn get_program<'a>(&'a self) -> &'a glium::Program{
+        &self.quad_program
+    }
+}
+
+
 
 

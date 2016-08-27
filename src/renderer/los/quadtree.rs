@@ -11,8 +11,8 @@ pub type Vector = (u32, u32);
 //// will of course use the geometrical properties of the coordinate
 #[derive(Copy, Clone, Debug)]
 pub struct Patch{
-    p: Point,
-    v: Vector,
+    pub p: Point,
+    pub v: Vector,
 }
 
 //   (c)                p + v (d)
