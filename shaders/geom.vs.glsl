@@ -17,6 +17,7 @@ layout (location = 2) in vec2 tex_coord;
 layout (location = 3) in vec3 world_position;
 layout (location = 4) in vec3 in_color;      
 layout (location = 5) in vec2 tex_offset;      
+layout (location = 6) in float vox_height;      
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,7 +32,9 @@ smooth out vec4 frag_lightSpace_coords;
 
 void main() {
 
-	vec4 vertex_real_coords = vec4(position + world_position, 1.0);
+	vec3 tmp = vec3(position.x, position.y*vox_height, position.z);
+    vec4 vertex_real_coords = vec4(tmp + world_position, 1.0);
+
 	vertex_modelspace = model * vertex_real_coords;
 	gl_Position =  perspective * view * vertex_modelspace;
 

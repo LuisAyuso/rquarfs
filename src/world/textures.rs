@@ -81,6 +81,39 @@ pub fn load_textures<F: glium::backend::Facade>(display: &F,
     textures
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pub fn get_coords_height(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
+    use image::Pixel;
+    let pixel = height_map.get_pixel(i,j);
+    (pixel.channels()[0] as f32 / 5.0).trunc()
+}
+
+pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
+    use std::cmp;
+    let (max_i, max_j) = height_map.dimensions();
+        
+    if i == 0 { return 200.0; }
+    if j == 0 { return 200.0; }
+    if max_i-1 == i { return 200.0; }
+    if max_j-1 == j { return 200.0; }
+
+    let kernel = vec![(-1, 1),( 0, 1),( 1, 1),
+                      (-1, 0),        ( 1, 0),
+                      (-1,-1),( 0,-1),( 1,-1),];
+
+    let res = kernel.iter().map(|pair| {
+        let a = i as i32 + pair.0 as i32;
+        let b = j as i32 + pair.1 as i32;
+        get_coords_height(height_map, a as u32, b as u32)
+    }).fold(256.0, |acc: f32, x: f32| acc.min(x) );
+
+    let current = get_coords_height(height_map, i, j);
+
+    current -res
+}
+
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

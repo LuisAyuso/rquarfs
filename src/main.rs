@@ -67,10 +67,10 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    let height = world::textures::load_rgb("assets/height.jpg");
+    //let height = world::textures::load_rgb("assets/height.jpg");
     //let height = world::textures::load_rgb("assets/height_small.png");
     //let height = world::textures::load_rgb("assets/pico.png");
-    //let height = world::textures::load_rgb("assets/moon.png");
+    let height = world::textures::load_rgb("assets/moon.png");
     //let height = world::textures::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
 
@@ -88,17 +88,12 @@ fn main() {
             use image::Pixel;
 
         // get height in coordinates x,y
-            let pixel = height.get_pixel(x,y);
-            let components = pixel.channels();
-            translations.push((x as f32, y as f32, (components[0] as f32/5.0).trunc()));
+            //let pixel = height.get_pixel(x,y);
+            //let components = pixel.channels();
+            let h = world::textures::get_coords_height(&height, x, y);
+            translations.push((x as f32, y as f32, h));
         }
     }
-    let mut los = los::Los::new(&height);
-    let lospreview = los::LosPreview::new(&ctx);
-
-    let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
-    let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
-
     //  Shadow mapping ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let shadow_maker = shadowmapper::ShadowMapper::new(&ctx);
@@ -118,8 +113,9 @@ fn main() {
             world_position: (f32, f32, f32),
             in_color: (f32, f32, f32),
             tex_offset: (f32, f32),
+            vox_height: f32,
         }
-        implement_vertex!(Attr, world_position, in_color, tex_offset);
+        implement_vertex!(Attr, world_position, in_color, tex_offset, vox_height);
 
         use rand::Rng;
         let mut rng = rand::thread_rng();
@@ -135,17 +131,29 @@ fn main() {
                 //   print!("{}  {},{} @ {},{}\n", tex_id,
                 //                                 (tex_id % atlas_side), (tex_id / atlas_side),
                 //                                 i_off, j_off);
+             
+                let h = world::textures::get_max_neighbour(&height, pos.0 as u32, pos.1 as u32);
 
                 Attr {
                     world_position: (pos.0, pos.2, pos.1),
                     in_color: (rand::random(), rand::random(), rand::random()),
                     tex_offset: (i_off as f32, j_off as f32),
+                    vox_height: h,
                 }
             })
             .collect::<Vec<_>>();
 
         glium::vertex::VertexBuffer::dynamic(ctx.display(), &data).unwrap().into()
     };
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    let mut los = los::Los::new(&height);
+    let lospreview = los::LosPreview::new(&ctx);
+
+    let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
+    let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...

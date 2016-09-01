@@ -27,20 +27,20 @@ impl Cube{
     pub fn new<F: glium::backend::Facade>(display: &F) ->Option<Cube>{
         let vertices = glium::VertexBuffer::new(display,
              &[
-               Vertex { position: (-0.5, -0.5, -0.5),normal: ( 0.0,-1.0, 0.0), tex_coord: (0.0, 0.0), }, //-0
-               Vertex { position: (-0.5, 0.5, -0.5), normal: ( 0.0, 0.0,-1.0), tex_coord: (1.0, 0.0), }, //-1
-               Vertex { position: (0.5, -0.5, -0.5), normal: ( 8.0, 0.0, 8.0), tex_coord: (0.0, 1.0), }, // 2
-               Vertex { position: (0.5, 0.5, -0.5),  normal: (-1.0, 0.0, 0.0), tex_coord: (1.0, 1.0), }, //-3
+               Vertex { position: (-1.0, -1.0, -1.0),normal: ( 0.0,-1.0, 0.0), tex_coord: (0.0, 0.0), }, //-0
+               Vertex { position: (-1.0, 0.0, -1.0), normal: ( 0.0, 0.0,-1.0), tex_coord: (1.0, 0.0), }, //-1
+               Vertex { position: (0.0, -1.0, -1.0), normal: ( 8.0, 0.0, 8.0), tex_coord: (0.0, 1.0), }, // 2
+               Vertex { position: (0.0, 0.0, -1.0),  normal: (-1.0, 0.0, 0.0), tex_coord: (1.0, 1.0), }, //-3
 
-               Vertex { position: (-0.5, -0.5, 0.5), normal: ( 1.0, 0.0, 0.0), tex_coord: (0.0, 1.0), }, //-4 
-               Vertex { position: (-0.5, 0.5, 0.5),  normal: ( 0.0, 8.0, 0.0), tex_coord: (1.0, 1.0), }, // 5
-               Vertex { position: (0.5, -0.5, 0.5),  normal: ( 8.0, 8.0, 0.0), tex_coord: (0.0, 0.0), }, // 6
-               Vertex { position: (0.5, 0.5, 0.5),   normal: ( 0.0, 0.0, 1.0), tex_coord: (1.0, 0.0), }, //-7 
+               Vertex { position: (-1.0, -1.0, 0.0), normal: ( 1.0, 0.0, 0.0), tex_coord: (0.0, 1.0), }, //-4 
+               Vertex { position: (-1.0, 0.0, 0.0),  normal: ( 0.0, 8.0, 0.0), tex_coord: (1.0, 1.0), }, // 5
+               Vertex { position: (0.0, -1.0, 0.0),  normal: ( 8.0, 8.0, 0.0), tex_coord: (0.0, 0.0), }, // 6
+               Vertex { position: (0.0, 0.0, 0.0),   normal: ( 0.0, 0.0, 1.0), tex_coord: (1.0, 0.0), }, //-7 
 
-               Vertex { position: (-0.5, -0.5, 0.5), normal: ( 0.0, 0.0, 8.0), tex_coord: (1.0, 0.0), }, // 4' 8
-               Vertex { position: (-0.5, 0.5, 0.5),  normal: ( 0.0, 1.0, 0.0), tex_coord: (0.0, 0.0), }, //-5' 9
-               Vertex { position: (0.5, -0.5, 0.5),  normal: ( 0.0, 8.0, 0.0), tex_coord: (1.0, 1.0), }, // 6'10
-               Vertex { position: (0.5, 0.5, 0.5),   normal: ( 0.0, 8.0, 8.0), tex_coord: (0.0, 1.0), }  // 7'11 
+               Vertex { position: (-1.0, -1.0, 0.0), normal: ( 0.0, 0.0, 8.0), tex_coord: (1.0, 0.0), }, // 4' 8
+               Vertex { position: (-1.0, 0.0, 0.0),  normal: ( 0.0, 1.0, 0.0), tex_coord: (0.0, 0.0), }, //-5' 9
+               Vertex { position: (0.0, -1.0, 0.0),  normal: ( 0.0, 8.0, 0.0), tex_coord: (1.0, 1.0), }, // 6'10
+               Vertex { position: (0.0, 0.0, 0.0),   normal: ( 0.0, 8.0, 8.0), tex_coord: (0.0, 1.0), }  // 7'11 
              ]);
 
         let indices = glium::IndexBuffer::new(display,

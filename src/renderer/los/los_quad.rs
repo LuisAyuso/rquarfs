@@ -64,7 +64,10 @@ impl LosQuad {
         for patch in patches.iter(){
             vertices.push(LosVert{ position: (patch.p.0 as f32 / w, patch.p.1 as f32 / h) }) ;
             vertices.push(LosVert{ position: (patch.p.0 as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
+            vertices.push(LosVert{ position: (patch.p.0 as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
             vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
+            vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
+            vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, patch.p.1 as f32 / h) });
             vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, patch.p.1 as f32 / h) });
             vertices.push(LosVert{ position: (patch.p.0 as f32 / w, patch.p.1 as f32 / h) });
         }
