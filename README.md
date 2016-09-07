@@ -18,7 +18,7 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
 - [ ] add some magic for the uniforms types, maybe a macro to generate a type I can return and work with. (maybe this does not need to be that fast)
 - [ ] move prerspective matrix into context.
 - [ ] create a world class and move the model matrix there. 
-- [ ] fix depth 1 issue, add fillings 
+- [x] fix depth 1 issue, add fillings 
 
 # OR:
 study vert + TCS + TES + GEOM to generate the cubes.
