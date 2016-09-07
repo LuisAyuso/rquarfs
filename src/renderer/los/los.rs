@@ -15,6 +15,7 @@ pub type Patch = quadtree::Patch;
 pub struct Los{
     patches: Vec<Patch>,
     height_map: image::RgbImage,
+    last_matrix: Matrix4<f32>,
 }
 
 impl Los{
@@ -24,9 +25,11 @@ impl Los{
     /// on new object... but then we have a borrowed texture for the whole program
     /// execution. For this reason, I guess I will copy the buffer localy....
     pub fn new(depth: &image::RgbImage) -> Los{
+        use cgmath::Zero;
         Los{
             patches: Vec::<Patch>::new(),
             height_map: depth.clone(),
+            last_matrix: Matrix4::zero(), 
         }
     }
 
@@ -37,18 +40,22 @@ impl Los{
     pub fn update_view(&mut self, precision: u32, pvm: &Matrix4<f32>) {
         use renderer::los::quadtree::{test, TestResult};
 
+        if self.last_matrix == *pvm { return; }
+        self.last_matrix = pvm.clone();
+        //println!(" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
+
         let (size_x, size_z) = self.height_map.dimensions();
 
         let tree = Patch::new((0,0), (size_x-1, size_z-1));
-        self.patches = test(200, tree, &|p|{
+        self.patches = test(precision, tree, &|p|{
 
-            //println!("test {:?}", p);
+            //println!("{:?}", p);
             let (a,b,c,d) = p.get_corners();
 
             let res = [check_voxel(a, &pvm, &self.height_map),
-            check_voxel(b, &pvm, &self.height_map),
-            check_voxel(c, &pvm, &self.height_map),
-            check_voxel(d, &pvm, &self.height_map),];
+                       check_voxel(b, &pvm, &self.height_map),
+                       check_voxel(c, &pvm, &self.height_map),
+                       check_voxel(d, &pvm, &self.height_map),];
 
             let mut result = TestResult::Refine;
 
@@ -99,10 +106,15 @@ impl Los{
                 flag && (elem.1 < -1.0 || elem.1 > 1.0)
             }) { result =  TestResult::Discard }
 
+
             //println!("  {:?}: {:?}",res, result);
             //println!("   {:?}", result);
             result
         });
+    }
+
+    pub fn dimensions(&self) -> (u32, u32){
+        self.height_map.dimensions()
     }
 }
 
@@ -119,10 +131,11 @@ fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbIm
     let v = Vector4::new(x as f32, components[0] as f32, z as f32, 1.0);
 
     let pos = pvm * v;
-    let a = pos.x;
-    let b = pos.y;
 
-    // println!("{:?} => ({},{})", v, a, b);
+    let a = pos.x / pos.w;
+    let b = pos.y / pos.w;
+
+  //  println!("{:?} => {:?}",  v, pos);
     (a,b)
 }
 
@@ -158,20 +171,20 @@ fn both_sides(v: &[(f32, f32); 4]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::Los; 
-    use cgmath::{Point3, Vector3, Vector4, Matrix4, deg, perspective};
+    use cgmath::{Point3, Vector3, Matrix4, deg, perspective};
     use super::check_voxel;
     use super::both_sides;
 
     #[test]
     fn los_ctor()
     {   
-        let height_map = world::textures::load_rgb("assets/height.jpg");
+        let height_map = world::textures::load_rgb("assets/test.png");
         Los::new(&height_map);
     }
 
 
     use world;
-    use renderer::los::quadtree::{Patch, test, TestResult};
+    use renderer::los::quadtree::{test, TestResult};
     use std::fmt::Debug;
     use time;
 
@@ -210,7 +223,7 @@ mod tests {
   
         print!("load height_map map \n");
         // read height_map map 
-        let height_map = world::textures::load_rgb("assets/height.jpg");
+        let height_map = world::textures::load_rgb("assets/test.png");
         let mut los = Los::new(&height_map);        // translations for the instances
         let (size_x, size_z) = height_map.dimensions();
 

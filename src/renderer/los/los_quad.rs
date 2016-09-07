@@ -33,7 +33,7 @@ impl LosQuad {
                 #version 140
                 in vec2 position;
                 void main() {
-                    gl_Position = vec4(position,0.0, 1.0); 
+                    gl_Position = vec4(position.x, position.y, 0.0, 1.0); 
                 }
             ",
                // fragment shader
@@ -41,7 +41,7 @@ impl LosQuad {
                 #version 140
                 out vec4 frag_color;
                 void main() {
-                    frag_color = vec4( 0.6, 0.4, 0.4, 1.0);
+                    frag_color = vec4( 0.8, 0.4, 0.4, 1.0);
                 }
             ", None).unwrap();
 
@@ -53,23 +53,30 @@ impl LosQuad {
     pub fn get_drawable<'s>(&'s self, ctx: &context::Context, los: &Los) -> LosQuadDraw<'s>{
 
         // generate vertices out of patches!
-        // yes, i know this should be cached or something, but for now it will make
-        // the job
-        let w = ctx.width as f32;
-        let h = ctx.width as f32;
+        // yes, i know this should be cached or something, but for now it will make the job
 
+        let (w,h) = los.dimensions();
         let patches = los.get_patches();
 
         let mut vertices : Vec<LosVert> = Vec::new();
-        for patch in patches.iter(){
-            vertices.push(LosVert{ position: (patch.p.0 as f32 / w, patch.p.1 as f32 / h) }) ;
-            vertices.push(LosVert{ position: (patch.p.0 as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
-            vertices.push(LosVert{ position: (patch.p.0 as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
-            vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
-            vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, (patch.p.1 + patch.v.1) as f32 / h) });
-            vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, patch.p.1 as f32 / h) });
-            vertices.push(LosVert{ position: ((patch.p.0 + patch.v.0) as f32 / w, patch.p.1 as f32 / h) });
-            vertices.push(LosVert{ position: (patch.p.0 as f32 / w, patch.p.1 as f32 / h) });
+        for tmp in patches.iter(){
+
+            let mut point: (f32, f32) = (tmp.p.0 as f32, tmp.p.1 as f32);
+            let mut vector: (f32, f32) = (tmp.v.0 as f32, tmp.v.1 as f32);
+
+            point.0 = point.0 / w as f32  * 2.0- 1.0;
+            point.1 = point.1 / w as f32 * 2.0 - 1.0;
+            vector.0 = vector.0 / h as f32 * 2.0;
+            vector.1 = vector.1 / h as f32 * 2.0;
+
+            vertices.push(LosVert{ position: (point.0 , point.1 ) }) ;
+            vertices.push(LosVert{ position: (point.0 , (point.1 + vector.1) ) });
+            vertices.push(LosVert{ position: (point.0 , (point.1 + vector.1) ) });
+            vertices.push(LosVert{ position: ((point.0 + vector.0) , (point.1 + vector.1) ) });
+            vertices.push(LosVert{ position: ((point.0 + vector.0) , (point.1 + vector.1) ) });
+            vertices.push(LosVert{ position: ((point.0 + vector.0) , point.1 ) });
+            vertices.push(LosVert{ position: ((point.0 + vector.0) , point.1 ) });
+            vertices.push(LosVert{ position: (point.0 , point.1 ) });
         }
         
         let vert_buffer = glium::VertexBuffer::new(ctx.display(), vertices.as_slice()).unwrap();

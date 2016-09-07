@@ -67,10 +67,10 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    //let height = world::textures::load_rgb("assets/height.jpg");
+    let height = world::textures::load_rgb("assets/height.jpg");
     //let height = world::textures::load_rgb("assets/height_small.png");
     //let height = world::textures::load_rgb("assets/pico.png");
-    let height = world::textures::load_rgb("assets/moon.png");
+    //let height = world::textures::load_rgb("assets/moon.png");
     //let height = world::textures::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
 
@@ -221,7 +221,7 @@ fn main() {
             let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
             if run {
-              //  model_matrix = rot_mat * model_matrix;
+             //   model_matrix = rot_mat * model_matrix;
               //  model_matrix = model_matrix;
                 sun_pos =  sun_rot.rotate_point(sun_pos);
             }
@@ -249,7 +249,7 @@ fn main() {
             //    line of sight  
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             let pvm = perspective_matrix * view_matrix * model_matrix;
-            los.update_view(200, &pvm);
+            los.update_view(50, &pvm);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene 

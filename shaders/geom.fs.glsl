@@ -14,7 +14,7 @@ uniform vec3 sun_pos;
 
 flat   in vec4 face_normal;
 smooth in vec2 texture_coords;
-smooth in vec4 vertex_modelspace;
+flat in vec4 vertex_modelspace;
 smooth in vec4 frag_lightSpace_coords;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,5 +67,14 @@ void main()
     vec3 lighting = (ambient + (1-shadow) * diffuse) * color;    
     
     frag_color = vec4(lighting, 1.0f);
-  //  frag_color = clamp(perspective * view * vertex_modelspace, 0.0, 1.0);
+
+    //frag_color = clamp(perspective * view * vertex_modelspace, 0.0, 1.0);
+
+//    vec4 point = perspective * view * vertex_modelspace;
+//    vec2 pos_ndc = (point.xy/point.w); 
+//
+//    if (pos_ndc.x < 0.5 && pos_ndc.x > -0.5)
+//        frag_color =  vec4(0.0, 1.0, 0.0, 1.0);
+//    else
+//        frag_color =  vec4(0.0, 0.0, 0.0, 1.0);
 }

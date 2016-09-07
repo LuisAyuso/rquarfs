@@ -23,7 +23,7 @@ layout (location = 6) in float vox_height;
 
 flat   out vec4 face_normal;
 smooth out vec2 texture_coords;
-smooth out vec4 vertex_modelspace;
+flat out vec4 vertex_modelspace;
 smooth out vec4 frag_lightSpace_coords;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

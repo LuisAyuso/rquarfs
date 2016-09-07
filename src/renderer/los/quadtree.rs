@@ -33,7 +33,7 @@ impl Patch{
         }
     }
 
-    fn split_v(self) -> (Patch, Patch){
+    fn split_v(&self) -> (Patch, Patch){
         let half = self.v.1 / 2;  // 1 is y
         (Patch{
             p: self.p,
@@ -45,7 +45,7 @@ impl Patch{
         }
         )
     }
-    fn split_h(self) -> (Patch, Patch){
+    fn split_h(&self) -> (Patch, Patch){
         let half = self.v.0 / 2;  // 0 is x
         (Patch{
             p: self.p,
@@ -57,7 +57,7 @@ impl Patch{
         })
     }
 
-    pub fn get_corners(self) -> (Point, Point, Point, Point){
+    pub fn get_corners(&self) -> (Point, Point, Point, Point){
         (
             self.p,
             (self.p.0, self.p.1 + self.v.1),
@@ -98,19 +98,17 @@ where Fun: Fn(&Patch) ->TestResult
     }
 
     let(down, up) = x.split_v();
-    // test up
-    let a = test_f(&up);
-    // test down
-    let b = test_f(&down);
+    let a = test_f(&down);
+    let b = test_f(&up);
 
     //println!("h{:?} {:?}", a, b);
     match (a, b) {
         (TestResult::Take, TestResult::Take) => return vec!(x),
-        (TestResult::Take, TestResult::Refine) => return add_elem(rec_v(bc, down, test_f), up),
-        (TestResult::Refine, TestResult::Take) => return add_elem(rec_v(bc, up, test_f), down),
+        (TestResult::Take, TestResult::Refine) => return add_elem(rec_v(bc, up, test_f), down),
+        (TestResult::Refine, TestResult::Take) => return add_elem(rec_v(bc, down, test_f), up),
         (TestResult::Refine, TestResult::Refine) =>  union(rec_v(bc, down, test_f),rec_v(bc, up, test_f)),
-        (TestResult::Refine, TestResult::Discard) =>  rec_v(bc, up, test_f),
-        (TestResult::Discard, TestResult::Refine) =>  rec_v(bc, down, test_f),
+        (TestResult::Refine, TestResult::Discard) =>  rec_v(bc, down, test_f),
+        (TestResult::Discard, TestResult::Refine) =>  rec_v(bc, up, test_f),
         _ =>  Vec::<Patch>::new(),
     }
 }
@@ -124,9 +122,7 @@ where Fun: Fn(&Patch) ->TestResult
     }
 
     let(left, right) = x.split_h();
-    // test up
     let a = test_f(&left);
-    // test down
     let b = test_f(&right);
 
     //println!("v{:?} {:?}", a, b);
