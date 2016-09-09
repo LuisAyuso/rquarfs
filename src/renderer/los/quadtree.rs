@@ -37,7 +37,7 @@ impl Patch{
         let half = self.v.1 / 2;  // 1 is y
         (Patch{
             p: self.p,
-            v: (self.v.0, half-1),
+            v: (self.v.0, half),
         },
         Patch{
             p: (self.p.0, self.p.1 + half),
@@ -49,7 +49,7 @@ impl Patch{
         let half = self.v.0 / 2;  // 0 is x
         (Patch{
             p: self.p,
-            v: (half-1, self.v.1),
+            v: (half, self.v.1),
         },
         Patch{
             p: (self.p.0 + half, self.p.1),
@@ -60,9 +60,9 @@ impl Patch{
     pub fn get_corners(&self) -> (Point, Point, Point, Point){
         (
             self.p,
-            (self.p.0, self.p.1 + self.v.1),
-            (self.p.0+ self.v.0, self.p.1),
-            (self.p.0+ self.v.0, self.p.1 + self.v.1),
+            (self.p.0, self.p.1 + self.v.1 -1),
+            (self.p.0+ self.v.0 -1, self.p.1),
+            (self.p.0+ self.v.0 -1, self.p.1 + self.v.1 -1),
         )
     }
 }
@@ -179,7 +179,7 @@ mod tests {
         assert_eq!(down.p.0, x.p.0);
         assert_eq!(down.p.1, 0);
         assert_eq!(down.v.0, x.v.0);
-        assert_eq!(down.v.1, 3);
+        assert_eq!(down.v.1, 4);
 
         assert_eq!(up.p.0, x.p.0);
         assert_eq!(up.p.1, 4);
@@ -196,7 +196,7 @@ mod tests {
 
         assert_eq!(left.p.0, x.p.0);
         assert_eq!(left.p.1, x.p.1);
-        assert_eq!(left.v.0, x.v.0/2-1);
+        assert_eq!(left.v.0, x.v.0/2);
         assert_eq!(left.v.1, x.v.1);
 
         assert_eq!(right.p.0, x.p.0+4);
@@ -210,16 +210,16 @@ mod tests {
         let x = Patch::new((10,0), (22,8));
         let(a, b, c, d) = x.get_corners();
         assert_eq!(a, (10,0));
-        assert_eq!(b, (10,8));
-        assert_eq!(c, (32,0));
-        assert_eq!(d, (32,8));
+        assert_eq!(b, (10,7));
+        assert_eq!(c, (31,0));
+        assert_eq!(d, (31,7));
 
         let x = Patch::new((0,0), (8,8));
         let(a, b, c, d) = x.get_corners();
         assert_eq!(a, (0,0));
-        assert_eq!(b, (0,8));
-        assert_eq!(c, (8,0));
-        assert_eq!(d, (8,8));
+        assert_eq!(b, (0,7));
+        assert_eq!(c, (7,0));
+        assert_eq!(d, (7,7));
     }
 
     #[test]

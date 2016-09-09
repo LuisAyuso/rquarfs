@@ -249,7 +249,7 @@ fn main() {
             //    line of sight  
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             let pvm = perspective_matrix * view_matrix * model_matrix;
-            los.update_view(50, &pvm);
+            los.update_view(10, &pvm);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene 

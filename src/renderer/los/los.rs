@@ -52,10 +52,17 @@ impl Los{
             //println!("{:?}", p);
             let (a,b,c,d) = p.get_corners();
 
-            let res = [check_voxel(a, &pvm, &self.height_map),
+            let tmp = [check_voxel(a, &pvm, &self.height_map),
                        check_voxel(b, &pvm, &self.height_map),
                        check_voxel(c, &pvm, &self.height_map),
                        check_voxel(d, &pvm, &self.height_map),];
+            let mut res = Vec::new();
+            for x in tmp.iter(){
+                match x {
+                    &None => return TestResult::Discard,
+                    &Some(pair) => res.push(pair),
+                }
+            }
 
             let mut result = TestResult::Refine;
 
@@ -88,6 +95,7 @@ impl Los{
             //     --------------
             // if both sides (X): Refine
             else if both_sides( &res) {
+                println!(" both_sides {:?} => {:?}", p, res);
                 result = TestResult::Refine;
             } 
 
@@ -107,7 +115,7 @@ impl Los{
             }) { result =  TestResult::Discard }
 
 
-            //println!("  {:?}: {:?}",res, result);
+            //println!(" {:?}: {:?}",res, result);
             //println!("   {:?}", result);
             result
         });
@@ -119,7 +127,7 @@ impl Los{
 }
 
 /// check whenever a 2,5D coordinate is inside of the view
-fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbImage) -> (f32, f32){
+fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbImage) -> Option<(f32, f32)>{
     use std::cmp;
     use image::Pixel;
 
@@ -135,13 +143,23 @@ fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbIm
     let a = pos.x / pos.w;
     let b = pos.y / pos.w;
 
-  //  println!("{:?} => {:?}",  v, pos);
-    (a,b)
+    if pos.z <0.0{
+        println!("z neg {:?} ({},{})", pos, a, b);
+        return None
+    }
+    if pos.w <0.0{
+        println!("w neg {:?} ({},{})", pos, a, b);
+        return None
+    }
+
+
+  //println!("{:?} => {:?}",  v, pos);
+    Some((a,b))
 }
 
 /// check whenever the patch overflows overflows both sides, (patch is wider than view and we need 
 /// to refine
-fn both_sides(v: &[(f32, f32); 4]) -> bool {
+fn both_sides(v: &Vec<(f32, f32)>) -> bool {
 
     let scoped = v.iter().map(|p|{
         let a = p.0.min(1.0).max(-1.0);
