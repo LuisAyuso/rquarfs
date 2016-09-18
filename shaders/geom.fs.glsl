@@ -67,14 +67,4 @@ void main()
     vec3 lighting = (ambient + (1-shadow) * diffuse) * color;    
     
     frag_color = vec4(lighting, 1.0f);
-
-    //frag_color = clamp(perspective * view * vertex_modelspace, 0.0, 1.0);
-
-//    vec4 point = perspective * view * vertex_modelspace;
-//    vec2 pos_ndc = (point.xy/point.w); 
-//
-//    if (pos_ndc.x < 0.5 && pos_ndc.x > -0.5)
-//        frag_color =  vec4(0.0, 1.0, 0.0, 1.0);
-//    else
-//        frag_color =  vec4(0.0, 0.0, 0.0, 1.0);
 }

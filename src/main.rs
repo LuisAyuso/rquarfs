@@ -157,7 +157,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-    let eye = Point3::new(10.0, 60.0, -110.0); 
+    let eye = Point3::new(10.0, 50.0, -150.0); 
     let looking = Point3::new(0.0, 0.0, 0.0); // Point3::new(0.0, 0.0, -10.0);
 	let mut cam =  camera::Camera::new(eye, looking);
     
@@ -167,7 +167,7 @@ fn main() {
     let mut perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, NEAR, FAR);
     let mut model_matrix: Matrix4<f32> =
         Matrix4::from_translation(Vector3::new(-(size_x as f32 / 2.0), 0.0, -(size_z as f32 / 2.0)));
-        //Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
+        //Matrix4::from_translation(Vector3::new(100.0, 0.0, 0.0));
 
     // per increment rotation
     //let rotation = Matrix4::from(Quaternion::from(Euler {
@@ -209,7 +209,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+    let mut chunk_size: u32 = 20;
     utils::loop_with_report(&mut|delta:f64| {
 
         cam.update(delta as f32);
@@ -249,7 +249,7 @@ fn main() {
             //    line of sight  
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             let pvm = perspective_matrix * view_matrix * model_matrix;
-            los.update_view(10, &pvm);
+            los.update_view(chunk_size, &pvm);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene 
@@ -280,7 +280,6 @@ fn main() {
                             .draw_overlay_quad(&losquad, &height_map)
                         .gl_end();
 
-           // println!(" ~~~~~~~~~~~ end frame ~~~~~~~~~~~ ");
           }
 
 
@@ -306,6 +305,8 @@ fn main() {
                         => render_kind = RenderType::WireFrame,
                     Event::KeyboardInput(ElementState::Released, 30, _)  =>
                                     cam.move_to(Point3::new(0.0, 65.0,-110.0)),
+                    Event::KeyboardInput(ElementState::Released, 86, _)  => chunk_size += 10,
+                    Event::KeyboardInput(ElementState::Released, 82, _)  => chunk_size -= 10,
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
                     Event::MouseWheel(x,_) => match x{

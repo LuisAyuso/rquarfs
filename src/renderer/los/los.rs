@@ -4,6 +4,14 @@ use image;
 use cgmath::{Matrix4, Vector4};
 
 
+#[derive(Debug, PartialEq)]
+enum RelPos{
+    Less,
+    In,
+    Greather,
+    Back,
+}
+
 pub type Patch = quadtree::Patch;
 
 /// Line Of Sight computation,
@@ -16,6 +24,7 @@ pub struct Los{
     patches: Vec<Patch>,
     height_map: image::RgbImage,
     last_matrix: Matrix4<f32>,
+    last_precission: u32,
 }
 
 impl Los{
@@ -30,6 +39,7 @@ impl Los{
             patches: Vec::<Patch>::new(),
             height_map: depth.clone(),
             last_matrix: Matrix4::zero(), 
+            last_precission: 0,
         }
     }
 
@@ -40,8 +50,11 @@ impl Los{
     pub fn update_view(&mut self, precision: u32, pvm: &Matrix4<f32>) {
         use renderer::los::quadtree::{test, TestResult};
 
-        if self.last_matrix == *pvm { return; }
+        if self.last_matrix == *pvm  && self.last_precission == precision { return; }
         self.last_matrix = pvm.clone();
+        self.last_precission = precision;
+        //println!(" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
+        //println!("chunk_size {}", precision);
         //println!(" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
 
         let (size_x, size_z) = self.height_map.dimensions();
@@ -52,72 +65,82 @@ impl Los{
             //println!("{:?}", p);
             let (a,b,c,d) = p.get_corners();
 
-            let tmp = [check_voxel(a, &pvm, &self.height_map),
+            let res = [check_voxel(a, &pvm, &self.height_map),
                        check_voxel(b, &pvm, &self.height_map),
                        check_voxel(c, &pvm, &self.height_map),
                        check_voxel(d, &pvm, &self.height_map),];
-            let mut res = Vec::new();
-            for x in tmp.iter(){
-                match x {
-                    &None => return TestResult::Discard,
-                    &Some(pair) => res.push(pair),
+
+           // println!(" {:?}\t{:?}", p, res);
+
+            // if all are behind, discard
+            if res.iter().all(|x|{
+                match *x{
+                    (RelPos::Back, _) => true,
+                    _ => false,
                 }
+            }){ 
+                return TestResult::Discard; 
             }
 
-            let mut result = TestResult::Refine;
+            //  ~~~~~~~~~~~ behind camera ~~~~~~~~~~~~~~~~~~~~~~~~~
+            if res.iter().all(|x|{
+                match *x{
+                    (_,RelPos::Back) => true,
+                    _ => false,
+                }
+            }){ 
+                return TestResult::Discard; 
+            }
 
-            //   -----------------
-            //   |   x      x    |
-            //   |               |
-            //   |   x      x    |
-            //   -----------------
-            // if all in, Take it
-            if res.iter().fold(true, |flag, &elem| {
-                flag && (elem.0 >= -1.0 && elem.0 <= 1.0) &&
-                (elem.1 >= -1.0 && elem.1 <= 1.0) 
-            }) { result =  TestResult::Take }
+            //  ~~~~~~~~~~~ same side? ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            if res.iter().all(|x|{
+                match *x{
+                    (RelPos::Less, _) => true,
+                    _ => false,
+                }
+            }){ 
+                return TestResult::Discard; 
+            }
+            if res.iter().all(|x|{
+                match *x{
+                    (_, RelPos::Less) => true,
+                    _ => false,
+                }
+            }){ 
+                return TestResult::Discard; 
+            }
+            if res.iter().all(|x|{
+                match *x{
+                    (RelPos::Greather, _) => true,
+                    _ => false,
+                }
+            }){ 
+                return TestResult::Discard; 
+            }
 
-            //         --------------
-            //       x |       x    |
-            //         |            |
-            //       x |       x    |
-            //         --------------
-            // if any in, Refine 
-            else if res.iter().fold(false, |flag, &elem| {
-                flag || (elem.0 >= -1.0 && elem.0 <= 1.0) ||
-                (elem.1 >= -1.0 && elem.1 <= 1.0) 
-            }) { result =  TestResult::Refine }
+            if res.iter().all(|x|{
+                match *x{
+                    (_, RelPos::Greather) => true,
+                    _ => false,
+                }
+            }){ 
+                return TestResult::Discard; 
+            }
 
-            //     --------------
-            //  x  |            |  x
-            //     |            |
-            //  x  |            |  x
-            //     --------------
-            // if both sides (X): Refine
-            else if both_sides( &res) {
-                println!(" both_sides {:?} => {:?}", p, res);
-                result = TestResult::Refine;
-            } 
+            //  ~~~~~~~~~~~ all inside? ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            //  we could take, but is better if let it reach the base case
+            //  this way we get chunks of the very same size
+            if res.iter().all(|x:&(RelPos, RelPos)|{
+                match *x{
+                    (RelPos::In, RelPos::In) => true,
+                    _ => false,
+                }
+            }){ 
+                //println!("Take {:?} {:?}", p, res);
+                return TestResult::Refine; 
+            }
 
-            //         --------------
-            //  x    x |            |
-            //         |            |
-            //  x    x |            |
-            //         --------------
-            // are on the same side (X): DISCARD
-            else if res.iter().fold(true, |flag, &elem| {
-                flag && (elem.0 < -1.0 || elem.0 > 1.0)
-            }) { result =  TestResult::Discard }
-
-            // are on the same side (Y): DISCARD
-            else if res.iter().fold(true, |flag, &elem| {
-                flag && (elem.1 < -1.0 || elem.1 > 1.0)
-            }) { result =  TestResult::Discard }
-
-
-            //println!(" {:?}: {:?}",res, result);
-            //println!("   {:?}", result);
-            result
+            return TestResult::Refine;
         });
     }
 
@@ -127,59 +150,43 @@ impl Los{
 }
 
 /// check whenever a 2,5D coordinate is inside of the view
-fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbImage) -> Option<(f32, f32)>{
+///http://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
+fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbImage) -> (RelPos, RelPos){
     use std::cmp;
     use image::Pixel;
 
     let (x,z) = corner;
 
     let pixel = height_map.get_pixel(x,z);
-    let components = pixel.channels();
-    //println!("({},{},{})", x, components[0], z);
-    let v = Vector4::new(x as f32, components[0] as f32, z as f32, 1.0);
+    let h =(pixel.channels()[0] as f32 / 5.0).trunc();
+    let v = Vector4::new(x as f32, h, z as f32, 1.0);
 
     let pos = pvm * v;
 
     let a = pos.x / pos.w;
     let b = pos.y / pos.w;
+    let c = pos.z / pos.w;
+    //println!("{:?} ({},{})", corner, a, b);
 
-    if pos.z <0.0{
-        println!("z neg {:?} ({},{})", pos, a, b);
-        return None
+    if pos.w < 0.0{
+        return (RelPos::Back, RelPos::Back);
     }
-    if pos.w <0.0{
-        println!("w neg {:?} ({},{})", pos, a, b);
-        return None
+    if c < 0.0{
+        return (RelPos::Back, RelPos::Back);
+    }
+    if c > 1.0{
+        return (RelPos::Back, RelPos::Back);
     }
 
+    let mut i = RelPos::In;
+    let mut j = RelPos::In;
+    if a < -1.0 { i = RelPos::Less; }
+    if b < -1.0 { j = RelPos::Less; }
+    if a >  1.0 { i = RelPos::Greather; }
+    if b >  1.0 { j = RelPos::Greather; }
 
-  //println!("{:?} => {:?}",  v, pos);
-    Some((a,b))
+    (i,j)
 }
-
-/// check whenever the patch overflows overflows both sides, (patch is wider than view and we need 
-/// to refine
-fn both_sides(v: &Vec<(f32, f32)>) -> bool {
-
-    let scoped = v.iter().map(|p|{
-        let a = p.0.min(1.0).max(-1.0);
-        let b = p.1.min(1.0).max(-1.0);
-        assert!(a == -1.0 || a == 1.0);
-        assert!(b == -1.0 || b == 1.0);
-        (a as i8,b as i8)
-    });
-
-    let res = scoped.fold((0,0), |acum, p|{
-        (acum.0 + p.0, acum.1 + p.1)
-    });
-
-    let bothsides_x = res.0 != 4 && res.0 != -4;
-    let bothsides_y = res.1 != 4 && res.1 != -4;
-   // println!(" bothsides: ({},{}), {} {}", res.0, res.1, bothsides_x, bothsides_y);
-    bothsides_x || bothsides_y
-}
-
-
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -191,7 +198,6 @@ mod tests {
     use super::Los; 
     use cgmath::{Point3, Vector3, Matrix4, deg, perspective};
     use super::check_voxel;
-    use super::both_sides;
 
     #[test]
     fn los_ctor()

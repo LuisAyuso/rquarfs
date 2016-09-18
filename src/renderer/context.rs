@@ -168,7 +168,7 @@ impl<'a> DrawSurface<'a>{
                              viewport: Some(glium::Rect{ 
                                  left: 10, 
                                  bottom: 10, 
-                                 width: 400,
+                                 width: 300,
                                  height: 300,
                              }),
                              ..Default::default()
