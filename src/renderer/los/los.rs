@@ -130,15 +130,15 @@ impl Los{
             //  ~~~~~~~~~~~ all inside? ~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //  we could take, but is better if let it reach the base case
             //  this way we get chunks of the very same size
-            if res.iter().all(|x:&(RelPos, RelPos)|{
-                match *x{
-                    (RelPos::In, RelPos::In) => true,
-                    _ => false,
-                }
-            }){ 
-                //println!("Take {:?} {:?}", p, res);
-                return TestResult::Refine; 
-            }
+           // if res.iter().all(|x:&(RelPos, RelPos)|{
+           //     match *x{
+           //         (RelPos::In, RelPos::In) => true,
+           //         _ => false,
+           //     }
+           // }){ 
+           //     //println!("Take {:?} {:?}", p, res);
+           //     return TestResult::Take; 
+           // }
 
             return TestResult::Refine;
         });
@@ -170,7 +170,7 @@ fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbIm
     if pos.w < 0.0{
         return (RelPos::Back, RelPos::Back);
     }
-    if c < 0.0{
+    if c <= 0.0{
         return (RelPos::Back, RelPos::Back);
     }
     if c > 1.0{

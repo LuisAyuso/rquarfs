@@ -1,33 +1,30 @@
-
-
 // the idea: some structure which, given an object, can instanciate all the 
 // triangles needed to store it, and can keep a continuous allocated buffer
 // in gpu which holds all triangles from all registered objects
 //
-// Index, can it perform automatic indexing? this should not be that difficult
 // when update, it can mark the objects which are not registered and compact the gpu buffer.
-//
-//
-//  buffer A:  vertices (compacted, vertices might be shared)
-//  buffer B: indices (contiguous for each object)
-//  map:      hash Object -> chunk in indices (offset, lenght)
-//
-//  question, what happens with: texture coordinates? normals? 
 
 use std::collections::BTreeMap;
 use std::vec::Vec;
 use std::cmp::PartialEq;
 use std::hash::{Hash, SipHasher, Hasher};
 
+#[derive(Clone)]
+struct Chunk {
+    offset: usize,
+    size: usize,
+    sequence: u64, 
+}
 
-type Chunk = (usize, usize);
-
-/// contains a map, hash -> chunk in buffer, which tells us where is stored the data for a given
-/// object (index)
+/// buffer A:  vertices (compacted, vertices might be shared)
+/// buffer B: indices (contiguous for each object)
+/// map:      hash Object -> chunk in indices (offset, lenght)
 pub struct ChunkManager<T> {
     vertices: Vec<T>,
     indices: Vec<usize>,
     map: BTreeMap<u64, Chunk>,
+    sequence: u64,
+    free: Vec<Chunk>,
 }
 
 impl<T> ChunkManager<T>
@@ -39,13 +36,36 @@ impl<T> ChunkManager<T>
             vertices: Vec::new(),
             indices: Vec::new(),
             map: BTreeMap::new(),
+            sequence: 0,
+            free: Vec::with_capacity(0),
         }
     }
 
-    pub fn add_chunk<O>(&mut self, object: &O)
+    /// inserts a chunk, reuses memory if possible (indices)
+    fn insert_chunk(&mut self, mut indices: &mut Vec<usize>) -> Chunk{
+
+        //if self.free.len() == 0 {
+
+            let chunk = Chunk{ 
+                    offset: self.indices.len(), 
+                    size: indices.len(),
+                    sequence: self.sequence,
+            };
+
+            self.indices.append(&mut indices);
+            return chunk
+        //}
+    }
+    
+
+    /// inserts one object in the manager, prevents duplicates
+    pub fn add_object<O>(&mut self, object: &O) 
     where O: VertexGenerator<T> + Hash {
         let hash = hash(object);
-        if self.map.contains_key(&hash) { return; }
+        if self.map.contains_key(&hash) { 
+            self.map.get_mut(&hash).unwrap().sequence = self.sequence;
+            return;
+        }
 
         let vertices = object.get_vertices();
         let mut obj_indx = Vec::<usize>::with_capacity(vertices.len());
@@ -59,10 +79,32 @@ impl<T> ChunkManager<T>
             }
         }
         
-        let chunk = (self.indices.len(), obj_indx.len());
-        self.indices.append(&mut obj_indx);
+        let chunk = self.insert_chunk(&mut obj_indx);
 
         self.map.insert(hash, chunk);
+    }
+
+    /// insert a list of objects in the manager
+    /// keeps track of unused chunks and marks to remove.
+    pub fn add_batch<O>(&mut self, objects: &Vec<O>)
+    where O: VertexGenerator<T> + Hash {
+        self.sequence += 1;
+
+        for obj in objects.iter(){
+           self.add_object(obj);
+        }
+
+        let mut to_remove = Vec::new();
+        for (key,chunk) in &self.map{
+            if chunk.sequence != self.sequence{
+                self.free.push(chunk.clone());
+                to_remove.push(*key);
+            }
+        }
+
+        for key in to_remove{
+            self.map.remove(&key);
+        }
     }
 
     pub fn vertices (&self) -> &Vec<T>{
@@ -115,34 +157,80 @@ mod chunks {
     #[test]
     fn ctor()
     {   
-       ChunkManager::<u32>::new();
+        ChunkManager::<u32>::new();
     }
 
     #[test]
     fn add()
     {   
-       let mut mgr = ChunkManager::<u32>::new();
+        let mut mgr = ChunkManager::<u32>::new();
+        assert_eq!(mgr.free.len(), 0);
 
-       assert_eq!(mgr.vertices.len(), 0);
-       assert_eq!(mgr.indices.len(), 0);
+        assert_eq!(mgr.vertices.len(), 0);
+        assert_eq!(mgr.indices.len(), 0);
 
-       let a = Segment { begin: 0, lenght: 10 };
-       let b = Segment { begin: 10, lenght: 10 };
-       let c = Segment { begin: 0, lenght: 20 };
+        let a = Segment { begin: 0, lenght: 10 };
+        let b = Segment { begin: 10, lenght: 10 };
+        let c = Segment { begin: 0, lenght: 20 };
 
 
-       mgr.add_chunk(&a);
-       assert_eq!(mgr.vertices.len(), 2);
-       assert_eq!(mgr.indices.len(), 2);
+        mgr.add_object(&a);
+        assert_eq!(mgr.vertices().len(), 2);
+        assert_eq!(mgr.indices().len(), 2);
 
-       mgr.add_chunk(&b);
-       assert_eq!(mgr.vertices.len(), 3);
-       assert_eq!(mgr.indices.len(), 4);
+        mgr.add_object(&b);
+        assert_eq!(mgr.vertices().len(), 3);
+        assert_eq!(mgr.indices().len(), 4);
 
-       mgr.add_chunk(&c);
-       assert_eq!(mgr.vertices.len(), 3);
-       assert_eq!(mgr.indices.len(), 6);
+        mgr.add_object(&c);
+        assert_eq!(mgr.vertices().len(), 3);
+        assert_eq!(mgr.indices().len(), 6);
+
+        // nothing changes if we repeat
+
+        mgr.add_object(&c);
+        assert_eq!(mgr.vertices().len(), 3);
+        assert_eq!(mgr.indices().len(), 6);
+
+        mgr.add_object(&b);
+        assert_eq!(mgr.vertices().len(), 3);
+        assert_eq!(mgr.indices().len(), 6);
+
+        mgr.add_object(&a);
+        assert_eq!(mgr.vertices().len(), 3);
+        assert_eq!(mgr.indices().len(), 6);
+        assert_eq!(mgr.free.len(), 0);
     }
 
+    #[test]
+    fn batch()
+    {   
+        let mut v = Vec::new();
+ 
+        let a = Segment { begin: 0, lenght: 10 };
+        let b = Segment { begin: 10, lenght: 10 };
+        let c = Segment { begin: 0, lenght: 20 };
+        let d = Segment { begin: 0, lenght: 30 };
 
+        v.push(a);
+        v.push(b);
+        v.push(c);
+        v.push(d);
+ 
+        let mut mgr = ChunkManager::<u32>::new();
+
+        mgr.add_batch(&v);
+        assert_eq!(mgr.vertices().len(), 4);
+        assert_eq!(mgr.indices().len(), 8);
+        assert_eq!(mgr.free.len(), 0);
+
+        v.remove(3);
+
+        mgr.add_batch(&v);
+
+        assert_eq!(mgr.vertices().len(), 4);
+        assert_eq!(mgr.indices().len(), 8);
+
+        assert_eq!(mgr.free.len(), 1);
+    }
 }
