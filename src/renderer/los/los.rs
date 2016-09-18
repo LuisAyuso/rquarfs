@@ -152,7 +152,6 @@ impl Los{
 /// check whenever a 2,5D coordinate is inside of the view
 ///http://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
 fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbImage) -> (RelPos, RelPos){
-    use std::cmp;
     use image::Pixel;
 
     let (x,z) = corner;
@@ -197,7 +196,6 @@ fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbIm
 mod tests {
     use super::Los; 
     use cgmath::{Point3, Vector3, Matrix4, deg, perspective};
-    use super::check_voxel;
 
     #[test]
     fn los_ctor()
@@ -208,7 +206,6 @@ mod tests {
 
 
     use world;
-    use renderer::los::quadtree::{test, TestResult};
     use std::fmt::Debug;
     use time;
 

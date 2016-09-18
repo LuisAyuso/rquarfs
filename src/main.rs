@@ -85,11 +85,7 @@ fn main() {
     let mut translations: Vec<(f32, f32, f32)> = Vec::new();
     for x in 0..size_x as u32{
         for y in 0..size_z as u32{
-            use image::Pixel;
-
-        // get height in coordinates x,y
-            //let pixel = height.get_pixel(x,y);
-            //let components = pixel.channels();
+            // get height in coordinates x,y
             let h = world::textures::get_coords_height(&height, x, y);
             translations.push((x as f32, y as f32, h));
         }
@@ -178,6 +174,7 @@ fn main() {
     });
 
     let rot_mat = Matrix4::from(rotation);
+    let _ = rot_mat;
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
