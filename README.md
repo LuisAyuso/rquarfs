@@ -20,12 +20,31 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
 - [ ] create a world class and move the model matrix there. 
 - [x] fix depth 1 issue, add fillings 
 
-# OR:
-study vert + TCS + TES + GEOM to generate the cubes.
+
 
 # future research... 
 I have to read some of this:
 
-freetype: 
+OGL
+* http://github.prideout.net/modern-opengl-prezo/
+
+terrain:
+* height maps: https://github.com/prideout/heman
+* http://vterrain.org/Elevation/Artificial/
+
+smoke, clouds:
+* http://prideout.net/blog/?p=63
+* http://prideout.net/blog/?p=67
+* http://prideout.net/blog/?p=58
+* http://prideout.net/blog/?p=69
+* http://vterrain.org/Atmosphere/Clouds/index.html
+* http://ws.iat.sfu.ca/papers/clouds.pdf
+* http://www.markmark.net/PDFs/RTCloudsForGames_HarrisGDC2002.pdf
+* http://nis-ei.eng.hokudai.ac.jp/~doba/papers/sig00_cloud.pdf
+
+flocks:
+* http://www.red3d.com/cwr/boids/
+
+text:
 * http://learnopengl.com/#!In-Practice/Text-Rendering
 * https://github.com/PistonDevelopers/freetype-rs
