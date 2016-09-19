@@ -31,6 +31,7 @@ OGL
 terrain:
 * height maps: https://github.com/prideout/heman
 * http://vterrain.org/Elevation/Artificial/
+* http://terrain.party/
 
 smoke, clouds:
 * http://prideout.net/blog/?p=63
