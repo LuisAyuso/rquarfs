@@ -1,4 +1,3 @@
-
 extern crate glium;
 extern crate image;
 extern crate threadpool;
@@ -287,6 +286,79 @@ pub fn load_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct Mesh_Point {
+    position: (f32, f32, f32),
+}
+implement_vertex!(Mesh_Point, position);
+
+pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<Mesh_Point>{
+    let mut list = Vec::new();
+
+    let (max_x, max_y) = height_map.dimensions();
+    let (max_i, max_j) = (max_x/step, max_y/step);
+
+    for i in 0..max_j-1{
+        for j in 0..max_j-1{
+
+            let a = (i*step, j*step);
+            let b = ((i+1)*step, (j)*step);
+            let c = ((i)*step, (j+1)*step);
+            let d = ((i+1)*step, (j+1)*step);
+
+            list.push(Mesh_Point{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
+            list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+            list.push(Mesh_Point{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
+
+            list.push(Mesh_Point{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
+            list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+            list.push(Mesh_Point{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+
+            assert!(i*step < max_x);
+            assert!(j*step < max_y);
+        }
+    }
+
+    let a = max_x as f32;
+    let b = max_y as f32;
+    let d = -100.0;
+
+    // add sides:
+    list.push( Mesh_Point { position: ( 0.0, 0.0, 0.0) });
+    list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
+    list.push( Mesh_Point { position: (   a,   d, 0.0) });
+
+    list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
+    list.push( Mesh_Point { position: (   a,   d, 0.0) });
+    list.push( Mesh_Point { position: ( 0.0,   d, 0.0) });
+
+    list.push( Mesh_Point { position: ( 0.0, 0.0, 0.0) });
+    list.push( Mesh_Point { position: ( 0.0, 0.0,   b) });
+    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
+
+    list.push( Mesh_Point { position: ( 0.0, 0.0, 0.0) });
+    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
+    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
+
+    list.push( Mesh_Point { position: ( 0.0, 0.0,   b) });
+    list.push( Mesh_Point { position: (   a, 0.0,   b) });
+    list.push( Mesh_Point { position: (   a,   d,   b) });
+
+    list.push( Mesh_Point { position: (   a, 0.0,   b) });
+    list.push( Mesh_Point { position: (   a,   d,   b) });
+    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
+
+    list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
+    list.push( Mesh_Point { position: (   a, 0.0,   b) });
+    list.push( Mesh_Point { position: (   a,   d,   b) });
+
+    list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
+    list.push( Mesh_Point { position: (   a,   d,   b) });
+    list.push( Mesh_Point { position: (   a,   d,   b) });
+
+    list
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -317,5 +389,14 @@ mod tests {
         assert!(generate_atlas("test/atlas3").is_ok());
         assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
         assert!(load_atlas("test/atlas3").is_ok());
+    }
+
+    use super::load_rgb;
+    use super::to_mesh; 
+
+    #[test]
+    fn get_mesh(){
+        let map = load_rgb("assets/pico.png");
+        let x = to_mesh(10, &map);
     }
 }

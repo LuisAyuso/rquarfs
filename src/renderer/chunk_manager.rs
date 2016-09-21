@@ -19,19 +19,19 @@ struct Chunk {
 /// buffer A:  vertices (compacted, vertices might be shared)
 /// buffer B: indices (contiguous for each object)
 /// map:      hash Object -> chunk in indices (offset, lenght)
-pub struct ChunkManager<T> {
-    vertices: Vec<T>,
+pub struct ChunkManager<Ver> {
+    vertices: Vec<Ver>,
     indices: Vec<usize>,
     map: BTreeMap<u64, Chunk>,
     sequence: u64,
     free: Vec<Chunk>,
 }
 
-impl<T> ChunkManager<T>
-    where T: PartialEq 
+impl<Ver> ChunkManager<Ver>
+    where Ver: PartialEq 
 {
 
-    pub fn new() -> ChunkManager<T>{
+    pub fn new() -> ChunkManager<Ver>{
         ChunkManager{
             vertices: Vec::new(),
             indices: Vec::new(),
@@ -60,7 +60,7 @@ impl<T> ChunkManager<T>
 
     /// inserts one object in the manager, prevents duplicates
     pub fn add_object<O>(&mut self, object: &O) 
-    where O: VertexGenerator<T> + Hash {
+    where O: VertexGenerator<Ver> + Hash {
         let hash = hash(object);
         if self.map.contains_key(&hash) { 
             self.map.get_mut(&hash).unwrap().sequence = self.sequence;
@@ -87,7 +87,7 @@ impl<T> ChunkManager<T>
     /// insert a list of objects in the manager
     /// keeps track of unused chunks and marks to remove.
     pub fn add_batch<O>(&mut self, objects: &Vec<O>)
-    where O: VertexGenerator<T> + Hash {
+    where O: VertexGenerator<Ver> + Hash {
         self.sequence += 1;
 
         for obj in objects.iter(){
@@ -107,7 +107,7 @@ impl<T> ChunkManager<T>
         }
     }
 
-    pub fn vertices (&self) -> &Vec<T>{
+    pub fn vertices (&self) -> &Vec<Ver>{
         &self.vertices
     }
     pub fn indices (&self) -> &Vec<usize>{
@@ -118,9 +118,9 @@ impl<T> ChunkManager<T>
 
 /// this trait needs to be implemented by the objects, so they can generate vertices (maybe
 /// something else as well, like normals, tex coords)
-pub trait VertexGenerator<T>{
+pub trait VertexGenerator<Ver>{
 
-    fn get_vertices(&self) -> Vec<T>;
+    fn get_vertices(&self) -> Vec<Ver>;
 }
 
 

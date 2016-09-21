@@ -162,14 +162,14 @@ fn check_voxel(corner: (u32, u32), pvm: &Matrix4<f32>, height_map: &image::RgbIm
 
     let pos = pvm * v;
 
+    if pos.w <= 0.0{
+        return (RelPos::Back, RelPos::Back);
+    }
     let a = pos.x / pos.w;
     let b = pos.y / pos.w;
     let c = pos.z / pos.w;
     //println!("{:?} ({},{})", corner, a, b);
 
-    if pos.w < 0.0{
-        return (RelPos::Back, RelPos::Back);
-    }
     if c <= 0.0{
         return (RelPos::Back, RelPos::Back);
     }

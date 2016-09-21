@@ -1,6 +1,7 @@
 extern crate glium;
 
 use renderer::context;
+use glium::vertex::MultiVerticesSource;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Shadow mapper code
@@ -40,11 +41,6 @@ impl ShadowMapper {
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                 layout (location = 0) in vec3 position;
-                layout (location = 1) in vec3 normal;
-                layout (location = 2) in vec2 tex_coord;
-                layout (location = 3) in vec3 world_position;
-                layout (location = 4) in vec3 in_color;      
-                layout (location = 5) in vec2 tex_offset;      
 
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -53,8 +49,7 @@ impl ShadowMapper {
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 				void main(){
-                    vec4 tmp = vec4(position + world_position, 1.0);
-                    gl_Position = light_space_matrix* model * tmp;
+                    gl_Position = light_space_matrix* model * vec4( position, 1.0);
 				}
             ",
                // fragment shader
@@ -88,12 +83,11 @@ impl ShadowMapper {
         }
     } // new
 
-    pub fn compute_depth<O,U>(&self, 
+    pub fn compute_depth<U>(&self, 
                              ctx: &context::Context,
-                             obj : &O, 
-                             instances: &context::VerticesT, 
+                             vertices: &glium::vertex::VertexBufferAny,
                              uniforms: &U) 
-    where O: context::DrawIndexed, U: glium::uniforms::Uniforms
+    where U: glium::uniforms::Uniforms
     {
         //println!("b");
         use glium::Surface;
@@ -102,6 +96,7 @@ impl ShadowMapper {
                                                                                   &self.shadow_map,
                                                                                   &self.depth_tex,
                                                                                  ).unwrap();
+        let indices = glium::index::NoIndices( glium::index::PrimitiveType::TrianglesList);
 
 		let parameters = glium::DrawParameters {
             backface_culling: glium::BackfaceCullingMode::CullClockwise,
@@ -110,14 +105,16 @@ impl ShadowMapper {
                 write: true,
                 ..Default::default()
             },
+            // nonsense, just debug
+            //polygon_mode: glium::draw_parameters::PolygonMode::Line,
 			.. Default::default()
 		};
 
         //float 16 buffer, only red componet is used
         //framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
         framebuffer.clear_depth(1.0);
-        framebuffer.draw((obj.get_vertices(), instances.per_instance().unwrap()),
-                         obj.get_indices(),
+        framebuffer.draw(vertices,
+                         indices,
                          &self.shadow_program,
                          uniforms, 
                          &parameters).unwrap();

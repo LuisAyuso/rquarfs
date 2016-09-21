@@ -147,6 +147,11 @@ fn main() {
     let mut los = los::Los::new(&height);
     let lospreview = los::LosPreview::new(&ctx);
 
+
+    let terrain = world::textures::to_mesh(10, &height);
+    let terrain_mesh = glium::VertexBuffer::new(ctx.display(), &terrain).unwrap();
+    let terrain_mesh : glium::vertex::VertexBufferAny = terrain_mesh.into();
+
     let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
     let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
 
@@ -240,7 +245,7 @@ fn main() {
                 model:              Into::<[[f32; 4]; 4]>::into(model_matrix),
             };
 
-            shadow_maker.compute_depth(&ctx, &cube, &instance_attr, &uniforms);
+            shadow_maker.compute_depth(&ctx, &terrain_mesh, &uniforms);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    line of sight  
@@ -272,9 +277,9 @@ fn main() {
                                                                         &instance_attr, 
                                                                         &program, 
                                                                         &uniforms)
-                            //.draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
-                            .draw_overlay_quad(&quad, &height_map)
-                            .draw_overlay_quad(&losquad, &height_map)
+                            .draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
+          //                  .draw_overlay_quad(&quad, &height_map)
+          //                  .draw_overlay_quad(&losquad, &height_map)
                         .gl_end();
 
           }
