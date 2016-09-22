@@ -194,7 +194,7 @@ fn main() {
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(0.0, 150.0, 250.0);
+    let mut sun_pos = Point3::new(0.0, 75.0, size_x as f32 / 2.0 + 100.0);
     let sun_rot = Quaternion::from(Euler {
         x: deg(0.1),
         y: deg(0.1),
@@ -236,7 +236,7 @@ fn main() {
 
             //new view matrix, from the sun
 		    let sun_view_mat = Matrix4::look_at(sun_pos, Point3::new(0.0,0.0,0.0), Vector3::new(0.0,1.0,0.0));
-            let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, NEAR, FAR);
+            let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, 20.0, size_x as f32 + size_x as f32 * 0.5);
             let light_space_matrix = sun_perspective * sun_view_mat;
 
             // new uniforms
@@ -279,7 +279,7 @@ fn main() {
                                                                         &uniforms)
                             .draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
           //                  .draw_overlay_quad(&quad, &height_map)
-          //                  .draw_overlay_quad(&losquad, &height_map)
+                            .draw_overlay_quad(&losquad, &height_map)
                         .gl_end();
 
           }

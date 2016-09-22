@@ -92,11 +92,6 @@ pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
     //use std::cmp;
     let (max_i, max_j) = height_map.dimensions();
         
-    if i == 0 { return 200.0; }
-    if j == 0 { return 200.0; }
-    if max_i-1 == i { return 200.0; }
-    if max_j-1 == j { return 200.0; }
-
     let kernel = vec![(-1, 1),( 0, 1),( 1, 1),
                       (-1, 0),        ( 1, 0),
                       (-1,-1),( 0,-1),( 1,-1),];
@@ -104,6 +99,12 @@ pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
     let res = kernel.iter().map(|pair| {
         let a = i as i32 + pair.0 as i32;
         let b = j as i32 + pair.1 as i32;
+
+        if a < 0 { return 256.0; }
+        if b < 0 { return 256.0; }
+        if a as u32 >= max_i { return 256.0; }
+        if b as u32 >= max_j { return 256.0; }
+
         get_coords_height(height_map, a as u32, b as u32)
     }).fold(256.0, |acc: f32, x: f32| acc.min(x) );
 
@@ -292,13 +293,16 @@ pub struct Mesh_Point {
 }
 implement_vertex!(Mesh_Point, position);
 
+
+// TODO: - mesh is not complete, what if step does not divide the side?  
+//       - use indices, this can turn to be a pretty damm big mesh
 pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<Mesh_Point>{
     let mut list = Vec::new();
 
     let (max_x, max_y) = height_map.dimensions();
     let (max_i, max_j) = (max_x/step, max_y/step);
 
-    for i in 0..max_j-1{
+    for i in 0..max_i-1{
         for j in 0..max_j-1{
 
             let a = (i*step, j*step);
@@ -307,54 +311,77 @@ pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<Mesh_Point>{
             let d = ((i+1)*step, (j+1)*step);
 
             list.push(Mesh_Point{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
-            list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
             list.push(Mesh_Point{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
+            list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
 
             list.push(Mesh_Point{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
-            list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
             list.push(Mesh_Point{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+            list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
 
             assert!(i*step < max_x);
             assert!(j*step < max_y);
+
+            if i == 0{
+                list.push(Mesh_Point{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
+                list.push(Mesh_Point{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
+                list.push(Mesh_Point{ position: (c.0 as f32, 0.0, c.1 as f32)} );
+
+                list.push(Mesh_Point{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
+                list.push(Mesh_Point{ position: (a.0 as f32, 0.0, a.1 as f32)} );
+                list.push(Mesh_Point{ position: (c.0 as f32, 0.0, c.1 as f32)} );
+            }
+            if i == max_i -2{
+                list.push(Mesh_Point{ position: (b.0 as f32, 0.0, b.1 as f32)} );
+                list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+                list.push(Mesh_Point{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+
+                list.push(Mesh_Point{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+                list.push(Mesh_Point{ position: (d.0 as f32, 0.0, d.1 as f32)} );
+                list.push(Mesh_Point{ position: (b.0 as f32, 0.0, b.1 as f32)} );
+            }
+            if j == 0{
+                list.push(Mesh_Point{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
+                list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+                list.push(Mesh_Point{ position: (a.0 as f32, 0.0, a.1 as f32)} );
+
+                list.push(Mesh_Point{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+                list.push(Mesh_Point{ position: (b.0 as f32, 0.0, b.1 as f32)} );
+                list.push(Mesh_Point{ position: (a.0 as f32, 0.0, a.1 as f32)} );
+            }
+            if j == max_j -2{
+                list.push(Mesh_Point{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
+                list.push(Mesh_Point{ position: (c.0 as f32, 0.0, c.1 as f32)} );
+                list.push(Mesh_Point{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+
+                list.push(Mesh_Point{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+                list.push(Mesh_Point{ position: (c.0 as f32, 0.0, c.1 as f32)} );
+                list.push(Mesh_Point{ position: (d.0 as f32, 0.0, d.1 as f32)} );
+            }
         }
     }
 
-    let a = max_x as f32;
-    let b = max_y as f32;
+
+    let a = (max_i as f32 -1.0) * step as f32;
+    let b = (max_j as f32 -1.0) * step as f32;
     let d = -100.0;
 
-    // add sides:
+
+    // inverted piramid, only 4 triangles close the volume
     list.push( Mesh_Point { position: ( 0.0, 0.0, 0.0) });
     list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
-    list.push( Mesh_Point { position: (   a,   d, 0.0) });
-
-    list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
-    list.push( Mesh_Point { position: (   a,   d, 0.0) });
-    list.push( Mesh_Point { position: ( 0.0,   d, 0.0) });
+    list.push( Mesh_Point { position: ( a/2.0, d, b/2.0) });  // check
 
     list.push( Mesh_Point { position: ( 0.0, 0.0, 0.0) });
-    list.push( Mesh_Point { position: ( 0.0, 0.0,   b) });
-    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
+    list.push( Mesh_Point { position: ( a/2.0, d, b/2.0) });
+    list.push( Mesh_Point { position: ( 0.0, 0.0, b) });
 
-    list.push( Mesh_Point { position: ( 0.0, 0.0, 0.0) });
-    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
-    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
+    list.push( Mesh_Point { position: ( 0.0, 0.0, b) });
+    list.push( Mesh_Point { position: ( a/2.0, d, b/2.0) });
+    list.push( Mesh_Point { position: (   a, 0.0, b) });
 
-    list.push( Mesh_Point { position: ( 0.0, 0.0,   b) });
-    list.push( Mesh_Point { position: (   a, 0.0,   b) });
-    list.push( Mesh_Point { position: (   a,   d,   b) });
-
-    list.push( Mesh_Point { position: (   a, 0.0,   b) });
-    list.push( Mesh_Point { position: (   a,   d,   b) });
-    list.push( Mesh_Point { position: ( 0.0,   d,   b) });
-
+    list.push( Mesh_Point { position: (   a, 0.0, b) });
+    list.push( Mesh_Point { position: ( a/2.0, d, b/2.0) });
     list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
-    list.push( Mesh_Point { position: (   a, 0.0,   b) });
-    list.push( Mesh_Point { position: (   a,   d,   b) });
-
-    list.push( Mesh_Point { position: (   a, 0.0, 0.0) });
-    list.push( Mesh_Point { position: (   a,   d,   b) });
-    list.push( Mesh_Point { position: (   a,   d,   b) });
 
     list
 }
