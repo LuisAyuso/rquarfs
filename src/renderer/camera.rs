@@ -81,6 +81,10 @@ impl Camera{
         self.view_eye = self.view_eye + vector.normalize()*step;
      //   print!("at! {:?} -> {:?}\n", self.view_eye, self.target_eye);
     }
+
+    pub fn get_eye(&self) -> Point3<f32>{
+        self.view_eye
+    }
 }
 
 impl Into<Matrix4<f32>> for Camera {

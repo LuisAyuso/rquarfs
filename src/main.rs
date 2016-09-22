@@ -67,9 +67,9 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    let height = world::textures::load_rgb("assets/height.jpg");
+    //let height = world::textures::load_rgb("assets/height.jpg");
     //let height = world::textures::load_rgb("assets/height_small.png");
-    //let height = world::textures::load_rgb("assets/pico.png");
+    let height = world::textures::load_rgb("assets/pico.png");
     //let height = world::textures::load_rgb("assets/moon.png");
     //let height = world::textures::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
@@ -236,7 +236,7 @@ fn main() {
 
             //new view matrix, from the sun
 		    let sun_view_mat = Matrix4::look_at(sun_pos, Point3::new(0.0,0.0,0.0), Vector3::new(0.0,1.0,0.0));
-            let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, 20.0, size_x as f32 + size_x as f32 * 0.5);
+            let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, 20.0, size_x as f32 * 2.0);
             let light_space_matrix = sun_perspective * sun_view_mat;
 
             // new uniforms
@@ -267,6 +267,7 @@ fn main() {
                 shadow_texture: shadow_maker.depth_as_texture(),
                 atlas_side:    atlas_side as u32,
                 sun_pos:    Into::<[f32; 3]>::into(sun_pos),
+                cam_pos:    Into::<[f32; 3]>::into(cam.get_eye()),
             };
 
             let losquad = lospreview.get_drawable(&ctx, &los);
