@@ -120,6 +120,40 @@ impl ShadowMapper {
                          &parameters).unwrap();
     } 
 
+    pub fn compute_depth_with_indices<U>(&self, 
+                             ctx: &context::Context,
+                             vertices: &glium::vertex::VertexBufferAny,
+                             indices: &glium::index::IndexBufferAny,
+                             uniforms: &U) 
+    where U: glium::uniforms::Uniforms
+    {
+        //println!("b");
+        use glium::Surface;
+
+        let mut framebuffer  = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
+                                                                                  &self.shadow_map,
+                                                                                  &self.depth_tex,
+                                                                                 ).unwrap();
+		let parameters = glium::DrawParameters {
+            backface_culling: glium::BackfaceCullingMode::CullClockwise,
+            depth: glium::Depth {
+                test: glium::DepthTest::IfLess,
+                write: true,
+                ..Default::default()
+            },
+			.. Default::default()
+		};
+
+        //float 16 buffer, only red componet is used
+        //framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        framebuffer.clear_depth(1.0);
+        framebuffer.draw(vertices,
+                         indices,
+                         &self.shadow_program,
+                         uniforms, 
+                         &parameters).unwrap();
+    } 
+
     pub fn depth_as_texture(&self) -> &glium::texture::DepthTexture2d{
         &self.depth_tex
     }

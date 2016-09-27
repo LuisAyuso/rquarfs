@@ -81,7 +81,7 @@ void main()
     // Calculate shadow
 	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
     float shadow = ShadowCalculation(frag_lightSpace_coords, bias);       
-    vec3 lighting = (ambient + (1-shadow) * diffuse + specular) * color;    
+    vec3 lighting = (ambient + (1-shadow) * (diffuse + specular)) * color;    
     
     frag_color = vec4(lighting, 1.0f);
 }

@@ -287,12 +287,22 @@ pub fn load_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     }
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #[derive(Copy, Clone)]
 pub struct Mesh_Point {
     position: (f32, f32, f32),
 }
 implement_vertex!(Mesh_Point, position);
 
+impl PartialEq for Mesh_Point {
+fn eq(&self, other: &Mesh_Point) -> bool {
+        self.position.0 == other.position.0 &&
+        self.position.1 == other.position.1 &&
+        self.position.2 == other.position.2
+    }
+}
 
 // TODO: - mesh is not complete, what if step does not divide the side?  
 //       - use indices, this can turn to be a pretty damm big mesh

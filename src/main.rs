@@ -147,10 +147,16 @@ fn main() {
     let mut los = los::Los::new(&height);
     let lospreview = los::LosPreview::new(&ctx);
 
-
     let terrain = world::textures::to_mesh(10, &height);
-    let terrain_mesh = glium::VertexBuffer::new(ctx.display(), &terrain).unwrap();
-    let terrain_mesh : glium::vertex::VertexBufferAny = terrain_mesh.into();
+    let (vert, indx) = renderer::index_vertex_list(&terrain);
+
+    println!("mesh {} vertices, v: {} i: {}", terrain.len(), vert.len(), indx.len());
+
+    let terrain_v = glium::VertexBuffer::new(ctx.display(), &vert).unwrap();
+    let terrain_v : glium::vertex::VertexBufferAny = terrain_v.into();
+
+    let terrain_i = glium::IndexBuffer::new(ctx.display(), glium::index::PrimitiveType::TrianglesList, &indx).unwrap();
+    let terrain_i : glium::index::IndexBufferAny = terrain_i.into();
 
     let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
     let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
@@ -194,7 +200,7 @@ fn main() {
     let mut render_kind = RenderType::Textured;
 
     // sun pos
-    let mut sun_pos = Point3::new(0.0, 75.0, size_x as f32 / 2.0 + 100.0);
+    let mut sun_pos = Point3::new(0.0, 75.0, size_x as f32); // / 2.0 + 20.0);
     let sun_rot = Quaternion::from(Euler {
         x: deg(0.1),
         y: deg(0.1),
@@ -236,7 +242,7 @@ fn main() {
 
             //new view matrix, from the sun
 		    let sun_view_mat = Matrix4::look_at(sun_pos, Point3::new(0.0,0.0,0.0), Vector3::new(0.0,1.0,0.0));
-            let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, 20.0, size_x as f32 * 2.0);
+            let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, 20.0, size_x as f32 * 1.5);
             let light_space_matrix = sun_perspective * sun_view_mat;
 
             // new uniforms
@@ -245,7 +251,7 @@ fn main() {
                 model:              Into::<[[f32; 4]; 4]>::into(model_matrix),
             };
 
-            shadow_maker.compute_depth(&ctx, &terrain_mesh, &uniforms);
+            shadow_maker.compute_depth_with_indices(&ctx, &terrain_v, &terrain_i, &uniforms);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    line of sight  
@@ -280,7 +286,7 @@ fn main() {
                                                                         &uniforms)
                             .draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
           //                  .draw_overlay_quad(&quad, &height_map)
-                            .draw_overlay_quad(&losquad, &height_map)
+          //                  .draw_overlay_quad(&losquad, &height_map)
                         .gl_end();
 
           }

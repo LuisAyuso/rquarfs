@@ -33,33 +33,6 @@ pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
     }
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//    convert to vertex + index
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-pub fn index_vertex_list<T> (vertices_org: &[T]) -> (Vec<T>, Vec<u32>)
-where T: PartialEq  + Clone
-{
-
-    let mut vertices : Vec<T> = Vec::new();
-    let mut indices : Vec<u32> = Vec::new();
-
-    // for each vertex, search in vertices list, if not there, insert the last one.
-    for v in vertices_org{
-        let pos = vertices.iter().position(|r| *r == *v);
-        match pos{
-            None => { vertices.push(v.clone()); indices.push((vertices.len() - 1) as u32); },
-            Some(x) => indices.push(x as u32),
-        }
-    }
-    vertices.shrink_to_fit();
-    indices.shrink_to_fit();
-
-    (vertices, indices)
-}
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Axis drawing
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -178,42 +151,4 @@ impl Program for Axis{
 }
 
 
-#[cfg(test)]
-mod utils {
 
-    use super::index_vertex_list;
-
-    // unidimensional test
-    #[derive(Copy, Clone)]
-    struct Vertex{
-        point: (f32, f32, f32),
-    }
-    impl PartialEq for Vertex {
-    fn eq(&self, other: &Vertex) -> bool {
-            self.point.0 == other.point.0 &&
-            self.point.1 == other.point.1 &&
-            self.point.2 == other.point.2
-        }
-    }
-
-    #[test]
-    fn index_vertices()
-    {   
-        let mut v = Vec::new();
- 
-        v.push(Vertex { point: (0.0, 0.0, 0.0), });
-        v.push(Vertex { point: (1.0, 0.0, 0.0), });
-        v.push(Vertex { point: (0.0, 2.0, 0.0), });
-        v.push(Vertex { point: (0.0, 0.0, 3.0), });
-
-        v.push(Vertex { point: (0.0, 0.0, 0.0), });
-        v.push(Vertex { point: (1.0, 0.0, 0.0), });
-        v.push(Vertex { point: (0.0, 2.0, 0.0), });
-        v.push(Vertex { point: (0.0, 0.0, 3.0), });
- 
-        let (vertices, indices) = index_vertex_list(&v);
-        assert_eq!(vertices.len(), 4);
-        assert_eq!(indices.len(), 8);
-    }
-
-}
