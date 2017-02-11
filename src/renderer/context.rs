@@ -114,8 +114,7 @@ impl<'a> DrawSurface<'a>{
     }
 
     #[inline]
-    pub fn draw<O,U>(mut self, obj : &O, uniforms: &U)
-        -> DrawSurface<'a>
+    pub fn draw<O,U>(&mut self, obj : &O, uniforms: &U)
     where O : DrawItem + Program, U: glium::uniforms::Uniforms
     {
         //println!("a");
@@ -125,15 +124,14 @@ impl<'a> DrawSurface<'a>{
                          &obj.get_program(),
                          uniforms, 
                          &self.render_params).unwrap();
-        self
     }
 
     #[inline]
-    pub fn draw_instanciated_with_indices_and_program<O,P,U>(mut self, 
+    pub fn draw_instanciated_with_indices_and_program<O,P,U>(&mut self, 
                                                              obj : &O, 
                                                              instances: &VerticesT, 
                                                              prg : &P, 
-                                                             uniforms: &U) -> DrawSurface<'a>
+                                                             uniforms: &U) 
     where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
     {
         //println!("b");
@@ -143,10 +141,9 @@ impl<'a> DrawSurface<'a>{
                          prg.get_program(),
                          uniforms, 
                          &self.render_params).unwrap();
-        self
     } 
 
-    pub fn draw_overlay_quad<O, T>(mut self, quad: &O, texture: T) -> DrawSurface<'a> 
+    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T)  
         where O: DrawItem + Program,
         T: glium::uniforms::AsUniformValue
     {
@@ -174,11 +171,10 @@ impl<'a> DrawSurface<'a>{
                              ..Default::default()
                          },).unwrap();
         //println!(" == ");
-        self
     }
 
     #[inline]
-    pub fn gl_end(self){
+    pub fn gl_end(mut self){
         self.target.finish().unwrap();
     }
 

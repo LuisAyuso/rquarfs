@@ -7,7 +7,6 @@ extern crate image;
 extern crate glutin;
 extern crate time;
 
-
 mod world;
 mod utils;
 mod renderer;
@@ -27,6 +26,12 @@ use renderer::shadowmapper;
 
 const WINDOW_WIDTH: u32 = 1920;
 const WINDOW_HEIGHT: u32 = 1080;
+
+enum Preview {
+    ShadowMap,
+    HeightMap,
+    LosMap
+}
 
 fn main() {
 
@@ -48,7 +53,6 @@ fn main() {
 
     let cube = cube::Cube::new(ctx.display()).unwrap();
 
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print!("load atlas:\n");
@@ -68,8 +72,8 @@ fn main() {
     print!("load height map \n");
     // read height map 
     //let height = world::textures::load_rgb("assets/height.jpg");
-    //let height = world::textures::load_rgb("assets/height_small.png");
-    let height = world::textures::load_rgb("assets/pico.png");
+    let height = world::textures::load_rgb("assets/height_small.png");
+    //let height = world::textures::load_rgb("assets/pico.png");
     //let height = world::textures::load_rgb("assets/moon.png");
     //let height = world::textures::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
@@ -174,10 +178,8 @@ fn main() {
     let mut perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, NEAR, FAR);
     let mut model_matrix: Matrix4<f32> =
         Matrix4::from_translation(Vector3::new(-(size_x as f32 / 2.0), 0.0, -(size_z as f32 / 2.0)));
-        //Matrix4::from_translation(Vector3::new(100.0, 0.0, 0.0));
 
     // per increment rotation
-    //let rotation = Matrix4::from(Quaternion::from(Euler {
     let rotation = Quaternion::from(Euler {
         x: deg(0.0),
         y: deg(0.1),
@@ -197,6 +199,7 @@ fn main() {
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
+    let mut compute_shadows = false;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
@@ -207,16 +210,15 @@ fn main() {
         z: deg(0.0),
     });
 
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let axis_plot = utils::Axis::new(ctx.display());
-
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    let mut preview = Preview::ShadowMap;
     let mut chunk_size: u32 = 20;
     utils::loop_with_report(&mut|delta:f64| {
 
@@ -245,13 +247,16 @@ fn main() {
             let sun_perspective = cgmath::ortho(-512.0, 512.0,-512.0, 512.0, 20.0, size_x as f32 * 1.5);
             let light_space_matrix = sun_perspective * sun_view_mat;
 
-            // new uniforms
-            let uniforms = uniform! {
-                light_space_matrix: Into::<[[f32; 4]; 4]>::into(light_space_matrix),
-                model:              Into::<[[f32; 4]; 4]>::into(model_matrix),
-            };
+            if compute_shadows{
 
-            shadow_maker.compute_depth_with_indices(&ctx, &terrain_v, &terrain_i, &uniforms);
+                // new uniforms
+                let uniforms = uniform! {
+                    light_space_matrix: Into::<[[f32; 4]; 4]>::into(light_space_matrix),
+                    model:              Into::<[[f32; 4]; 4]>::into(model_matrix),
+                };
+
+                shadow_maker.compute_depth_with_indices(&ctx, &terrain_v, &terrain_i, &uniforms);
+            }
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    line of sight  
@@ -274,21 +279,23 @@ fn main() {
                 atlas_side:    atlas_side as u32,
                 sun_pos:    Into::<[f32; 3]>::into(sun_pos),
                 cam_pos:    Into::<[f32; 3]>::into(cam.get_eye()),
+                shadows:    compute_shadows,
             };
 
             let losquad = lospreview.get_drawable(&ctx, &los);
             
-            DrawSurface::gl_begin(&ctx, render_kind)
-                            .draw(&axis_plot, &uniforms)
-                            .draw_instanciated_with_indices_and_program(&cube, 
-                                                                        &instance_attr, 
-                                                                        &program, 
-                                                                        &uniforms)
-                            .draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
-          //                  .draw_overlay_quad(&quad, &height_map)
-          //                  .draw_overlay_quad(&losquad, &height_map)
-                        .gl_end();
-
+            let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
+            surface.draw(&axis_plot, &uniforms);
+            surface.draw_instanciated_with_indices_and_program(&cube, 
+                                                               &instance_attr, 
+                                                               &program, 
+                                                               &uniforms);
+            match preview{
+                Preview::ShadowMap => surface.draw_overlay_quad(&quad, &height_map),
+                Preview::HeightMap => surface.draw_overlay_quad(&quad, shadow_maker.depth_as_texture()),
+                Preview::LosMap => surface.draw_overlay_quad(&losquad, &height_map),
+            };
+            surface.gl_end();
           }
 
 
@@ -307,7 +314,10 @@ fn main() {
                 match ev {
                     Event::Closed => std::process::exit(0),  // the window has been closed 
                     Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
-                    Event::KeyboardInput(ElementState::Released, 33, _) => run = !run,
+                    Event::KeyboardInput(ElementState::Released, 33, _) 
+                        => { run = !run; },
+                    Event::KeyboardInput(ElementState::Released, 0, _) 
+                        => { compute_shadows = !compute_shadows; print!("toggle shadows\n"); },
                     Event::KeyboardInput(ElementState::Released, 32, _)
                         => render_kind = RenderType::Textured,
                     Event::KeyboardInput(ElementState::Released, 31, _) 
@@ -316,6 +326,9 @@ fn main() {
                                     cam.move_to(Point3::new(0.0, 65.0,-110.0)),
                     Event::KeyboardInput(ElementState::Released, 86, _)  => chunk_size += 10,
                     Event::KeyboardInput(ElementState::Released, 82, _)  => chunk_size -= 10,
+                    Event::KeyboardInput(ElementState::Released, 18, _)  => preview = Preview::HeightMap,
+                    Event::KeyboardInput(ElementState::Released, 19, _)  => preview = Preview::ShadowMap,
+                    Event::KeyboardInput(ElementState::Released, 20, _)  => preview = Preview::LosMap,
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
                     Event::MouseWheel(x,_) => match x{

@@ -7,7 +7,8 @@
 use std::collections::BTreeMap;
 use std::vec::Vec;
 use std::cmp::PartialEq;
-use std::hash::{Hash, SipHasher, Hasher};
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 #[derive(Clone)]
 struct Chunk {
@@ -125,7 +126,7 @@ pub trait VertexGenerator<Ver>{
 
 
 fn hash<T: Hash>(t: &T) -> u64 {
-    let mut s = SipHasher::new();
+    let mut s = DefaultHasher::new();
     t.hash(&mut s);
     s.finish()
 }

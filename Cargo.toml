@@ -14,3 +14,6 @@ resources = ["assets", "shaders"]
 	regex = "*"
 	glob = "*"
 	glutin = "*"
+
+[profile.release]
+    debug = true

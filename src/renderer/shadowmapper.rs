@@ -1,7 +1,6 @@
 extern crate glium;
 
 use renderer::context;
-use glium::vertex::MultiVerticesSource;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Shadow mapper code
@@ -83,6 +82,7 @@ impl ShadowMapper {
         }
     } // new
 
+    #[allow(dead_code)]
     pub fn compute_depth<U>(&self, 
                              ctx: &context::Context,
                              vertices: &glium::vertex::VertexBufferAny,

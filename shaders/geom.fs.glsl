@@ -10,6 +10,7 @@ uniform sampler2D shadow_texture;
 uniform uint atlas_side;
 uniform vec3 sun_pos;
 uniform vec3 cam_pos;
+uniform bool shadowsEnabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -78,10 +79,19 @@ void main()
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
     vec3 specular = spec * lightColor;    
 
+    vec3 lighting;
+
     // Calculate shadow
-	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
-    float shadow = ShadowCalculation(frag_lightSpace_coords, bias);       
-    vec3 lighting = (ambient + (1-shadow) * (diffuse + specular)) * color;    
+    if (shadowsEnabled)
+    {
+        float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+        float shadow = ShadowCalculation(frag_lightSpace_coords, bias);       
+        lighting = (ambient + (1-shadow) * (diffuse + specular)) * color;    
+    }
+    else
+    {
+        lighting = color;    
+    }
     
     frag_color = vec4(lighting, 1.0f);
 }

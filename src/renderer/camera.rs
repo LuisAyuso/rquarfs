@@ -23,11 +23,6 @@ impl Camera{
         }
     }
 
-//    #[inline]
-//    pub fn get_eye(self) -> Point3<f32>{
-//        self.view_eye
-//    }
-
     #[inline]
     pub fn change_elevation(&mut self, target:f32)
     {
