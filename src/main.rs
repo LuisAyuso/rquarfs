@@ -319,7 +319,7 @@ fn main() {
                     Event::KeyboardInput(_, x, _) => print!("key {}\n", x),
                     Event::Resized(w, h) => resizes.push((w,h)),
                     Event::MouseWheel(x,_) => match x{
-                            glutin::MouseScrollDelta::LineDelta(_, y) =>
+                            glium::glutin::MouseScrollDelta::LineDelta(_, y) =>
                                     cam.change_elevation(y*5.0),
                             _ => (),
                     },
