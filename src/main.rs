@@ -207,8 +207,8 @@ fn main() {
     // sun pos
     let mut sun_pos = Point3::new(0.0, 75.0, size_x as f32); // / 2.0 + 20.0);
     let sun_rot = Quaternion::from(Euler {
-        x: deg(0.1),
-        y: deg(0.1),
+        x: deg(0.02),
+        y: deg(0.02),
         z: deg(0.0),
     });
 
