@@ -200,7 +200,7 @@ mod tests {
     #[test]
     fn los_ctor()
     {   
-        let height_map = world::textures::load_rgb("assets/test.png");
+        let height_map = world::image_atlas::load_rgb("assets/test.png");
         Los::new(&height_map);
     }
 
@@ -244,7 +244,7 @@ mod tests {
   
         print!("load height_map map \n");
         // read height_map map 
-        let height_map = world::textures::load_rgb("assets/test.png");
+        let height_map = world::image_atlas::load_rgb("assets/test.png");
         let mut los = Los::new(&height_map);        // translations for the instances
         let (size_x, size_z) = height_map.dimensions();
 

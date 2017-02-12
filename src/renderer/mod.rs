@@ -6,6 +6,7 @@ pub mod shader;
 pub mod texquad;
 pub mod shadowmapper;
 pub mod chunk_manager;
+pub mod textures;
 
 pub mod los;
 

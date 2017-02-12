@@ -10,7 +10,7 @@ uniform sampler2D shadow_texture;
 uniform uint atlas_side;
 uniform vec3 sun_pos;
 uniform vec3 cam_pos;
-uniform bool shadowsEnabled;
+uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

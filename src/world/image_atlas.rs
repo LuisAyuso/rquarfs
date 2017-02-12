@@ -54,34 +54,6 @@ pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#[allow(dead_code)]
-pub fn load_textures<F: glium::backend::Facade>(display: &F,
-                                                set_name: &str)
-                                                -> Vec<glium::texture::Texture2d> {
-    let mut path = fs::canonicalize(".").unwrap();
-    path.push("assets");
-    path.push(set_name);
-    print!("load textures: {:?}\n", path);
-
-    let images = load_images_rgba(&path);
-    let mut textures = Vec::new();
-
-    // iterate over textures:
-    use std::fs;
-    for image in images {
-        let image_dimensions = image.dimensions();
-        let image = glium::texture::RawImage2d::from_raw_rgba_reversed(image.into_raw(),
-                                                                       image_dimensions);
-        let texture = glium::texture::Texture2d::new(display, image).unwrap();
-        textures.push(texture)
-    }
-
-    textures
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 pub fn get_coords_height(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
     use image::Pixel;
     let pixel = height_map.get_pixel(i,j);
@@ -407,26 +379,26 @@ mod tests {
     use super::load_atlas;
     use super::Atlas;
 
-    //#[test]
-    //fn test1() {
-    //    assert!(generate_atlas("test/atlas1").is_ok());
-    //    assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
-    //    assert!(load_atlas("test/atlas1").is_ok());
-    //}
+    #[test]
+    fn test1() {
+        assert!(generate_atlas("test/atlas1").is_ok());
+        assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
+        assert!(load_atlas("test/atlas1").is_ok());
+    }
 
-    //#[test]
-    //fn test2() {
-    //    assert!(generate_atlas("test/atlas2").is_ok());
-    //    assert!(load_atlas("test/atlas2").is_ok());
-    //    assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
-    //}
+    #[test]
+    fn test2() {
+        assert!(generate_atlas("test/atlas2").is_ok());
+        assert!(load_atlas("test/atlas2").is_ok());
+        assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
+    }
 
-    //#[test]
-    //fn test3() {
-    //    assert!(generate_atlas("test/atlas3").is_ok());
-    //    assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
-    //    assert!(load_atlas("test/atlas3").is_ok());
-    //}
+    #[test]
+    fn test3() {
+        assert!(generate_atlas("test/atlas3").is_ok());
+        assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
+        assert!(load_atlas("test/atlas3").is_ok());
+    }
 
     use super::load_rgb;
     use super::to_mesh; 

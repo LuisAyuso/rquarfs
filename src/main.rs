@@ -201,7 +201,7 @@ fn main() {
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
-    let mut compute_shadows = false;
+    let mut compute_shadows = true;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
@@ -281,7 +281,7 @@ fn main() {
                 atlas_side:    atlas_side as u32,
                 sun_pos:    Into::<[f32; 3]>::into(sun_pos),
                 cam_pos:    Into::<[f32; 3]>::into(cam.get_eye()),
-                shadows:    compute_shadows,
+                shadows_enabled:   compute_shadows, 
             };
 
             let losquad = lospreview.get_drawable(&ctx, &los);

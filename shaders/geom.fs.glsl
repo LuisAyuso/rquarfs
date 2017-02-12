@@ -10,7 +10,7 @@ uniform sampler2D shadow_texture;
 uniform uint atlas_side;
 uniform vec3 sun_pos;
 uniform vec3 cam_pos;
-uniform bool shadowsEnabled;
+uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -82,7 +82,7 @@ void main()
     vec3 lighting;
 
     // Calculate shadow
-    if (shadowsEnabled)
+    if (shadows_enabled)
     {
         float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
         float shadow = ShadowCalculation(frag_lightSpace_coords, bias);       
