@@ -19,6 +19,8 @@ use renderer::camera;
 use renderer::shader;
 use renderer::texquad;
 use renderer::shadowmapper;
+
+use world::image_atlas as img_atlas;
 //use rand::Rng;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,8 +58,8 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     print!("load atlas:\n");
-    let atlas = world::textures::load_atlas("tex_pack").unwrap();
-    //let atlas = world::textures::load_atlas("test/atlas2").unwrap();
+    let atlas = img_atlas::load_atlas("tex_pack").unwrap();
+    //let atlas = img_atlas::load_atlas("test/atlas2").unwrap();
     let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
@@ -71,11 +73,11 @@ fn main() {
     
     print!("load height map \n");
     // read height map 
-    //let height = world::textures::load_rgb("assets/height.jpg");
-    let height = world::textures::load_rgb("assets/height_small.png");
-    //let height = world::textures::load_rgb("assets/pico.png");
-    //let height = world::textures::load_rgb("assets/moon.png");
-    //let height = world::textures::load_rgb("assets/test.png");
+    //let height = img_atlas::load_rgb("assets/height.jpg");
+    let height = img_atlas::load_rgb("assets/height_small.png");
+    //let height = img_atlas::load_rgb("assets/pico.png");
+    //let height = img_atlas::load_rgb("assets/moon.png");
+    //let height = img_atlas::load_rgb("assets/test.png");
     let height_dimensions = height.dimensions();
 
     // translations for the instances
@@ -90,7 +92,7 @@ fn main() {
     for x in 0..size_x as u32{
         for y in 0..size_z as u32{
             // get height in coordinates x,y
-            let h = world::textures::get_coords_height(&height, x, y);
+            let h = img_atlas::get_coords_height(&height, x, y);
             translations.push((x as f32, y as f32, h));
         }
     }
@@ -132,7 +134,7 @@ fn main() {
                 //                                 (tex_id % atlas_side), (tex_id / atlas_side),
                 //                                 i_off, j_off);
              
-                let h = world::textures::get_max_neighbour(&height, pos.0 as u32, pos.1 as u32);
+                let h = img_atlas::get_max_neighbour(&height, pos.0 as u32, pos.1 as u32);
 
                 Attr {
                     world_position: (pos.0, pos.2, pos.1),
@@ -151,7 +153,7 @@ fn main() {
     let mut los = los::Los::new(&height);
     let lospreview = los::LosPreview::new(&ctx);
 
-    let terrain = world::textures::to_mesh(10, &height);
+    let terrain = img_atlas::to_mesh(10, &height);
     let (vert, indx) = renderer::index_vertex_list(&terrain);
 
     println!("mesh {} vertices, v: {} i: {}", terrain.len(), vert.len(), indx.len());
