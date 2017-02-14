@@ -379,26 +379,26 @@ mod tests {
     use super::load_atlas;
     use super::Atlas;
 
-    #[test]
-    fn test1() {
-        assert!(generate_atlas("test/atlas1").is_ok());
-        assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
-        assert!(load_atlas("test/atlas1").is_ok());
-    }
-
-    #[test]
-    fn test2() {
-        assert!(generate_atlas("test/atlas2").is_ok());
-        assert!(load_atlas("test/atlas2").is_ok());
-        assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
-    }
-
-    #[test]
-    fn test3() {
-        assert!(generate_atlas("test/atlas3").is_ok());
-        assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
-        assert!(load_atlas("test/atlas3").is_ok());
-    }
+//    #[test]
+//    fn test1() {
+//        assert!(generate_atlas("test/atlas1").is_ok());
+//        assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
+//        assert!(load_atlas("test/atlas1").is_ok());
+//    }
+//
+//    #[test]
+//    fn test2() {
+//        assert!(generate_atlas("test/atlas2").is_ok());
+//        assert!(load_atlas("test/atlas2").is_ok());
+//        assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
+//    }
+//
+//    #[test]
+//    fn test3() {
+//        assert!(generate_atlas("test/atlas3").is_ok());
+//        assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
+//        assert!(load_atlas("test/atlas3").is_ok());
+//    }
 
     use super::load_rgb;
     use super::to_mesh; 
