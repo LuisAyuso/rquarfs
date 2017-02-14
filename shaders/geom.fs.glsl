@@ -68,12 +68,14 @@ void main()
     vec3 ambient = 0.15 * color;
 
     // Diffuse
-    vec3 lightDir = normalize(sun_pos - vertex_modelspace.xyz);
+    vec3 sun_pos2 = (vec4(sun_pos, 1.0)* model).xyz;
+    vec3 lightDir = normalize(sun_pos2 - vertex_modelspace.xyz);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
 
     // Specular
-    vec3 viewDir = normalize(cam_pos - vertex_modelspace.xyz);
+    vec3 cam_pos2 = (vec4(cam_pos, 1.0)* model).xyz;
+    vec3 viewDir = normalize(cam_pos2 - vertex_modelspace.xyz);
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
