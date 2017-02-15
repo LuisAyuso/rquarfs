@@ -6,7 +6,13 @@
             "request": "launch",
             "name": "Debug",
             "program": "${workspaceRoot}/target/debug/rquarfs>",
-            "args": [],
+            "args": []
+        },
+        {
+            "name": "Debug",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceRoot}/target/debug/rquarfs",
             "cwd": "${workspaceRoot}"
         }
     ]
