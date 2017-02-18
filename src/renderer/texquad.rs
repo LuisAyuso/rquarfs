@@ -112,4 +112,7 @@ impl Program for TexQuad {
     fn get_program(&self) -> &glium::Program {
         &self.quad_program
     }
+    fn with_tess(&self) -> bool{
+        self.quad_program.has_tessellation_shaders()
+    }
 }

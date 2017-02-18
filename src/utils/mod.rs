@@ -147,4 +147,7 @@ impl Program for Axis {
     fn get_program(&self) -> &glium::Program {
         &self.axis_program
     }
+    fn with_tess(&self) -> bool{
+        self.axis_program.has_tessellation_shaders()
+    }
 }

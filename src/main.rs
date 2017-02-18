@@ -208,7 +208,7 @@ fn main() {
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
-    let mut compute_shadows = false;
+    let mut compute_shadows = true;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
@@ -372,7 +372,6 @@ fn main() {
             perspective_matrix = perspective(deg(45.0), w as f32 / h as f32, NEAR, FAR);
         }
 
-    },
-                            10); // refresh every 10 secs
+    }, 10); // refresh every 10 secs
 
 }

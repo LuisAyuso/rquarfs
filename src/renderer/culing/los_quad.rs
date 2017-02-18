@@ -113,4 +113,7 @@ impl<'a> Program for LosQuadDraw<'a> {
     fn get_program(&self) -> &glium::Program {
         &self.quad.los_program
     }
+    fn with_tess(&self) -> bool {
+        self.quad.los_program.has_tessellation_shaders()
+    }
 }

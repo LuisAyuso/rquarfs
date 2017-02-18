@@ -12,7 +12,7 @@ fn get_path_to_shader(name: &str) -> Result<path::PathBuf, io::Error> {
     let mut path = try!(fs::canonicalize("."));
     path.push("shaders");
     path.push(format!("{}{}", name, ".glsl"));
-    //print!("load shader: {:?}", path);
+    println!("load shader: {:?}", path);
     Ok(path)
 }
 
@@ -89,7 +89,7 @@ pub enum ShaderError{
 /// listens to filesystem to reload if file was changed
 pub struct ProgramReloader{
     program: glium::program::Program,
-    paths: [String; 2],
+    paths: Vec<String>,
     date: time::SystemTime,
     last_check: f64,
 }
@@ -101,6 +101,27 @@ impl ProgramReloader{
     pub fn new<F: glium::backend::Facade>(display: &F, vs_name: &str, fs_name: &str) 
         -> Result<ProgramReloader, ShaderError>
     {
+        println!("load shader from: {}.glsl {}.glsl", vs_name, fs_name);
+
+        let prog = load_program(display, vs_name, fs_name);
+        if prog.is_none(){ return Err(ShaderError::CompileError);}
+
+        Ok(ProgramReloader{
+            program: prog.unwrap(),
+            paths: vec!(vs_name.to_string(), fs_name.to_string()),
+            date: time::SystemTime::now(),
+            last_check: 0.0,
+        })
+    }
+
+    pub fn new_tes<F: glium::backend::Facade>(display: &F, 
+                                              vs_name: &str, 
+                                              tc_name: &str,
+                                              te_name: &str,
+                                              gs_name: &str,
+                                              fs_name: &str) 
+        -> Result<ProgramReloader, ShaderError>
+    {
         println!("load shader from: {}.vs.glsl {}.fs.glsl", vs_name, fs_name);
 
         let prog = load_program(display, vs_name, fs_name);
@@ -108,7 +129,7 @@ impl ProgramReloader{
 
         Ok(ProgramReloader{
             program: prog.unwrap(),
-            paths: [vs_name.to_string(), fs_name.to_string()],
+            paths: vec!(vs_name.to_string(), fs_name.to_string()),
             date: time::SystemTime::now(),
             last_check: 0.0,
         })
@@ -146,8 +167,30 @@ impl context::Program for ProgramReloader{
     fn get_program(&self) -> &glium::program::Program{
         &self.program
     }
+    fn with_tess(&self) -> bool{
+        self.program.has_tessellation_shaders()
+    }
 }
 
 
+#[cfg(test)]
+mod tests {
 
+    use super::ProgramReloader;
+    use glium::glutin::HeadlessRendererBuilder;
+    use glium::DisplayBuild;
 
+    #[test]
+    fn create() {
+        use std::fs;
+
+        if let Ok(ctx) = HeadlessRendererBuilder::new(100,100).build_glium(){
+
+            let bad = ProgramReloader::new(&ctx, "nonsense", "geom.fs");
+            assert!(bad.is_err());
+            let good = ProgramReloader::new(&ctx, "test.vs", "test.fs");
+            assert!(good.is_ok());
+        }
+
+    }
+}

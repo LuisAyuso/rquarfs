@@ -142,7 +142,23 @@ impl<'a> DrawSurface<'a> {
             .unwrap();
     }
 
-    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T)
+    #[inline]
+    pub fn draw_tessellated<O,P,U>(&mut self, 
+                                   obj : &O, 
+                                   prg : &P, 
+                                   uniforms: &U) 
+    where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
+    {
+        //println!("b");
+        use glium::Surface;
+        self.target.draw(obj.get_vertices(),
+                         obj.get_indices(),
+                         prg.get_program(),
+                         uniforms, 
+                         &self.render_params).unwrap();
+    } 
+
+    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T)  
         where O: DrawItem + Program,
               T: glium::uniforms::AsUniformValue
     {
@@ -186,13 +202,17 @@ impl<'a> DrawSurface<'a> {
 // Traits:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pub trait Program {
+pub trait Program{
     fn get_program(&self) -> &glium::program::Program;
+    fn with_tess(&self) -> bool;
 }
 
 impl Program for glium::program::Program {
     fn get_program(&self) -> &glium::program::Program {
         &self
+    }
+    fn with_tess(&self) -> bool{
+        self.has_tessellation_shaders()
     }
 }
 
