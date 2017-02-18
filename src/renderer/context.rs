@@ -191,7 +191,7 @@ pub trait Program {
 }
 
 impl Program for glium::program::Program {
-    fn get_program<'a>(&'a self) -> &'a glium::program::Program {
+    fn get_program(&self) -> &glium::program::Program {
         &self
     }
 }
@@ -199,11 +199,11 @@ impl Program for glium::program::Program {
 /// is drawable if we can plot it right away.
 /// we have a geometry and a program that should understand it
 pub trait DrawItem {
-    fn get_vertices<'a>(&'a self) -> &'a VerticesT;
+    fn get_vertices(&self) -> &VerticesT;
     fn get_primitive(&self) -> PrimitiveT;
 }
 
 pub trait DrawIndexed {
-    fn get_vertices<'a>(&'a self) -> &'a VerticesT;
-    fn get_indices<'a>(&'a self) -> &'a IndicesT;
+    fn get_vertices(&self) -> &VerticesT;
+    fn get_indices(&self) -> &IndicesT;
 }
