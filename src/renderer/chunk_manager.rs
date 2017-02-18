@@ -1,4 +1,4 @@
-// the idea: some structure which, given an object, can instanciate all the 
+// the idea: some structure which, given an object, can instanciate all the
 // triangles needed to store it, and can keep a continuous allocated buffer
 // in gpu which holds all triangles from all registered objects
 //
@@ -14,7 +14,7 @@ use std::collections::hash_map::DefaultHasher;
 struct Chunk {
     offset: usize,
     size: usize,
-    sequence: u64, 
+    sequence: u64,
 }
 
 /// buffer A:  vertices (compacted, vertices might be shared)
@@ -29,11 +29,10 @@ pub struct ChunkManager<Ver> {
 }
 
 impl<Ver> ChunkManager<Ver>
-    where Ver: PartialEq 
+    where Ver: PartialEq
 {
-
-    pub fn new() -> ChunkManager<Ver>{
-        ChunkManager{
+    pub fn new() -> ChunkManager<Ver> {
+        ChunkManager {
             vertices: Vec::new(),
             indices: Vec::new(),
             map: BTreeMap::new(),
@@ -43,27 +42,28 @@ impl<Ver> ChunkManager<Ver>
     }
 
     /// inserts a chunk, reuses memory if possible (indices)
-    fn insert_chunk(&mut self, mut indices: &mut Vec<usize>) -> Chunk{
+    fn insert_chunk(&mut self, mut indices: &mut Vec<usize>) -> Chunk {
 
         //if self.free.len() == 0 {
 
-            let chunk = Chunk{ 
-                    offset: self.indices.len(), 
-                    size: indices.len(),
-                    sequence: self.sequence,
-            };
+        let chunk = Chunk {
+            offset: self.indices.len(),
+            size: indices.len(),
+            sequence: self.sequence,
+        };
 
-            self.indices.append(&mut indices);
-            return chunk
+        self.indices.append(&mut indices);
+        chunk
         //}
     }
-    
+
 
     /// inserts one object in the manager, prevents duplicates
-    pub fn add_object<O>(&mut self, object: &O) 
-    where O: VertexGenerator<Ver> + Hash {
+    pub fn add_object<O>(&mut self, object: &O)
+        where O: VertexGenerator<Ver> + Hash
+    {
         let hash = hash(object);
-        if self.map.contains_key(&hash) { 
+        if self.map.contains_key(&hash) {
             self.map.get_mut(&hash).unwrap().sequence = self.sequence;
             return;
         }
@@ -72,14 +72,17 @@ impl<Ver> ChunkManager<Ver>
         let mut obj_indx = Vec::<usize>::with_capacity(vertices.len());
 
         // for each vertex, search in vertices list, if not there, insert the last one.
-        for v in vertices{
+        for v in vertices {
             let pos = self.vertices.iter().position(|r| *r == v);
-            match pos{
-                None => { self.vertices.push(v); obj_indx.push((self.vertices.len() - 1) as usize); },
+            match pos {
+                None => {
+                    self.vertices.push(v);
+                    obj_indx.push((self.vertices.len() - 1) as usize);
+                }
                 Some(x) => obj_indx.push(x as usize),
             }
         }
-        
+
         let chunk = self.insert_chunk(&mut obj_indx);
 
         self.map.insert(hash, chunk);
@@ -88,30 +91,31 @@ impl<Ver> ChunkManager<Ver>
     /// insert a list of objects in the manager
     /// keeps track of unused chunks and marks to remove.
     pub fn add_batch<O>(&mut self, objects: &Vec<O>)
-    where O: VertexGenerator<Ver> + Hash {
+        where O: VertexGenerator<Ver> + Hash
+    {
         self.sequence += 1;
 
-        for obj in objects.iter(){
-           self.add_object(obj);
+        for obj in objects.iter() {
+            self.add_object(obj);
         }
 
         let mut to_remove = Vec::new();
-        for (key,chunk) in &self.map{
-            if chunk.sequence != self.sequence{
+        for (key, chunk) in &self.map {
+            if chunk.sequence != self.sequence {
                 self.free.push(chunk.clone());
                 to_remove.push(*key);
             }
         }
 
-        for key in to_remove{
+        for key in to_remove {
             self.map.remove(&key);
         }
     }
 
-    pub fn vertices (&self) -> &Vec<Ver>{
+    pub fn vertices(&self) -> &Vec<Ver> {
         &self.vertices
     }
-    pub fn indices (&self) -> &Vec<usize>{
+    pub fn indices(&self) -> &Vec<usize> {
         &self.indices
     }
 }
@@ -119,8 +123,7 @@ impl<Ver> ChunkManager<Ver>
 
 /// this trait needs to be implemented by the objects, so they can generate vertices (maybe
 /// something else as well, like normals, tex coords)
-pub trait VertexGenerator<Ver>{
-
+pub trait VertexGenerator<Ver> {
     fn get_vertices(&self) -> Vec<Ver>;
 }
 
@@ -139,40 +142,46 @@ mod chunks {
 
     // unidimensional test
     #[derive(Hash)]
-    struct Segment{
+    struct Segment {
         begin: u32,
         lenght: u32,
     }
 
-    impl VertexGenerator<u32> for Segment
-    {
-        fn get_vertices(&self) -> Vec<u32>{
+    impl VertexGenerator<u32> for Segment {
+        fn get_vertices(&self) -> Vec<u32> {
             let mut x = Vec::with_capacity(2);
             x.push(self.begin);
-            x.push(self.begin+self.lenght);
+            x.push(self.begin + self.lenght);
             x
         }
     }
 
 
     #[test]
-    fn ctor()
-    {   
+    fn ctor() {
         ChunkManager::<u32>::new();
     }
 
     #[test]
-    fn add()
-    {   
+    fn add() {
         let mut mgr = ChunkManager::<u32>::new();
         assert_eq!(mgr.free.len(), 0);
 
         assert_eq!(mgr.vertices.len(), 0);
         assert_eq!(mgr.indices.len(), 0);
 
-        let a = Segment { begin: 0, lenght: 10 };
-        let b = Segment { begin: 10, lenght: 10 };
-        let c = Segment { begin: 0, lenght: 20 };
+        let a = Segment {
+            begin: 0,
+            lenght: 10,
+        };
+        let b = Segment {
+            begin: 10,
+            lenght: 10,
+        };
+        let c = Segment {
+            begin: 0,
+            lenght: 20,
+        };
 
 
         mgr.add_object(&a);
@@ -204,20 +213,31 @@ mod chunks {
     }
 
     #[test]
-    fn batch()
-    {   
+    fn batch() {
         let mut v = Vec::new();
- 
-        let a = Segment { begin: 0, lenght: 10 };
-        let b = Segment { begin: 10, lenght: 10 };
-        let c = Segment { begin: 0, lenght: 20 };
-        let d = Segment { begin: 0, lenght: 30 };
+
+        let a = Segment {
+            begin: 0,
+            lenght: 10,
+        };
+        let b = Segment {
+            begin: 10,
+            lenght: 10,
+        };
+        let c = Segment {
+            begin: 0,
+            lenght: 20,
+        };
+        let d = Segment {
+            begin: 0,
+            lenght: 30,
+        };
 
         v.push(a);
         v.push(b);
         v.push(c);
         v.push(d);
- 
+
         let mut mgr = ChunkManager::<u32>::new();
 
         mgr.add_batch(&v);

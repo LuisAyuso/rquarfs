@@ -13,7 +13,7 @@ struct QuadVert {
 }
 
 pub struct TexQuad {
-    quad_buffer:glium::vertex::VertexBufferAny,
+    quad_buffer: glium::vertex::VertexBufferAny,
     quad_program: glium::Program,
 }
 
@@ -21,47 +21,74 @@ pub struct TexQuad {
 implement_vertex!(QuadVert, position, tex_coords);
 
 impl TexQuad {
-
     pub fn new(ctx: &context::Context) -> TexQuad {
 
         let quad_buffer = glium::VertexBuffer::new(ctx.display(),
-                  &[QuadVert { position: (-1.0,-1.0), tex_coords: (0.0, 0.0), },
-                    QuadVert { position: (-1.0, 1.0), tex_coords: (0.0, 1.0), },
-                    QuadVert { position: ( 1.0,-1.0), tex_coords: (1.0, 0.0), },
+                                                   &[QuadVert {
+                                                         position: (-1.0, -1.0),
+                                                         tex_coords: (0.0, 0.0),
+                                                     },
+                                                     QuadVert {
+                                                         position: (-1.0, 1.0),
+                                                         tex_coords: (0.0, 1.0),
+                                                     },
+                                                     QuadVert {
+                                                         position: (1.0, -1.0),
+                                                         tex_coords: (1.0, 0.0),
+                                                     },
 
-                    QuadVert { position: ( 1.0,-1.0), tex_coords: (1.0, 0.0), },
-                    QuadVert { position: ( 1.0, 1.0), tex_coords: (1.0, 1.0), },
-                    QuadVert { position: (-1.0, 1.0), tex_coords: (0.0, 1.0), },
-                ]
-        );
+                                                     QuadVert {
+                                                         position: (1.0, -1.0),
+                                                         tex_coords: (1.0, 0.0),
+                                                     },
+                                                     QuadVert {
+                                                         position: (1.0, 1.0),
+                                                         tex_coords: (1.0, 1.0),
+                                                     },
+                                                     QuadVert {
+                                                         position: (-1.0, 1.0),
+                                                         tex_coords: (0.0, 1.0),
+                                                     }]);
 
         let quad_program =
             glium::Program::from_source(ctx.display(),
-                // vertex shader
-            "
+                                        // vertex shader
+                                        "
                 #version 140
-                in vec2 position;
+                in vec2 \
+                                         position;
                 in vec2 tex_coords;   
 
-                smooth out vec2 coords;
+                \
+                                         smooth out vec2 coords;
 
                 void main() {
-                    gl_Position = vec4(position,0.0, 1.0); 
-                    coords = tex_coords;
+                    \
+                                         gl_Position = vec4(position,0.0, 1.0); 
+                    \
+                                         coords = tex_coords;
                 }
             ",
-               // fragment shader
-            "
+                                        // fragment shader
+                                        "
                 #version 140
-                uniform sampler2D quad_texture;
-                smooth in vec2 coords;
+                uniform \
+                                         sampler2D quad_texture;
+                smooth in vec2 \
+                                         coords;
                 out vec4 frag_color;
 
-                void main() {
-                    frag_color = texture(quad_texture, coords);
-                    //frag_color = vec4(coords, 0.0, 1.0);
-                }
-            ", None).unwrap();
+                \
+                                         void main() {
+                    frag_color = \
+                                         texture(quad_texture, coords);
+                    \
+                                         //frag_color = vec4(coords, 0.0, 1.0);
+                \
+                                         }
+            ",
+                                        None)
+                .unwrap();
 
         TexQuad {
             quad_program: quad_program,
@@ -72,23 +99,17 @@ impl TexQuad {
 
 use renderer::context::{DrawItem, Program};
 
-impl DrawItem for TexQuad{
-
-    fn get_vertices<'a> (&'a self)-> &'a glium::vertex::VertexBufferAny{
+impl DrawItem for TexQuad {
+    fn get_vertices(&self) -> &glium::vertex::VertexBufferAny {
         &self.quad_buffer
     }
-    fn get_primitive(&self) -> glium::index::PrimitiveType{
+    fn get_primitive(&self) -> glium::index::PrimitiveType {
         glium::index::PrimitiveType::TrianglesList
     }
 }
 
-impl Program for TexQuad{
-
-    fn get_program<'a>(&'a self) -> &'a glium::Program{
+impl Program for TexQuad {
+    fn get_program<'a>(&'a self) -> &'a glium::Program {
         &self.quad_program
     }
 }
-
-
-
-

@@ -28,7 +28,7 @@ pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
                 samples += 1;
             }
 
-            print!("fps: {} \n", (samples as f64) / fps_accum);
+            println!("fps: {} \n", (samples as f64) / fps_accum);
         }
     }
 }
@@ -43,7 +43,7 @@ struct AxisVert {
 }
 
 pub struct Axis {
-    axis_buffer:glium::vertex::VertexBufferAny,
+    axis_buffer: glium::vertex::VertexBufferAny,
     axis_program: glium::Program,
 }
 
@@ -79,7 +79,8 @@ impl Axis {
                                                          position: (0.0, 0.0, 100.0),
                                                          color: (0.0, 0.0, 1.0),
                                                      }])
-            .unwrap().into();
+            .unwrap()
+            .into();
 
         let axis_program =
             glium::Program::from_source(display,
@@ -117,38 +118,33 @@ impl Axis {
     } // new
 
 
-//    pub fn draw<T, U>(&self, target: &mut T, uniforms: &U)
-//        where T: glium::Surface,
-//              U: glium::uniforms::Uniforms
-//    {
-//        let axis_indices = glium::index::NoIndices(glium::index::PrimitiveType::LinesList);
-//        target.draw(&self.axis_buffer,
-//                  &axis_indices,
-//                  &self.axis_program,
-//                  uniforms,
-//                  &Default::default())
-//            .unwrap();
-//    }
+    //    pub fn draw<T, U>(&self, target: &mut T, uniforms: &U)
+    //        where T: glium::Surface,
+    //              U: glium::uniforms::Uniforms
+    //    {
+    //        let axis_indices = glium::index::NoIndices(glium::index::PrimitiveType::LinesList);
+    //        target.draw(&self.axis_buffer,
+    //                  &axis_indices,
+    //                  &self.axis_program,
+    //                  uniforms,
+    //                  &Default::default())
+    //            .unwrap();
+    //    }
 }
 
 use renderer::context::{DrawItem, Program};
 
-impl DrawItem for Axis{
-
-    fn get_vertices<'a> (&'a self)-> &'a glium::vertex::VertexBufferAny{
+impl DrawItem for Axis {
+    fn get_vertices(&self) -> &glium::vertex::VertexBufferAny {
         &self.axis_buffer
     }
-    fn get_primitive(&self) -> glium::index::PrimitiveType{
+    fn get_primitive(&self) -> glium::index::PrimitiveType {
         glium::index::PrimitiveType::LinesList
     }
 }
 
-impl Program for Axis{
-
-    fn get_program<'a>(&'a self) -> &'a glium::Program{
+impl Program for Axis {
+    fn get_program<'a>(&'a self) -> &'a glium::Program {
         &self.axis_program
     }
 }
-
-
-

@@ -22,7 +22,7 @@ use self::glob::glob;
 // to use a shader on it
 pub fn load_rgb(filename: &str) -> image::RgbImage {
     let path = fs::canonicalize(&filename).unwrap();
-    print!("load image: {:?}\n", path);
+    println!("load image: {:?}\n", path);
 
     // iterate over images:
     use std::fs;
@@ -35,7 +35,7 @@ pub fn load_rgb(filename: &str) -> image::RgbImage {
 
 pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
     let path = fs::canonicalize(&path).unwrap();
-    print!("load image: {:?}\n", path);
+    println!("load image: {:?}\n", path);
 
     let count = fs::read_dir(&path).unwrap().count();
     let mut images = Vec::with_capacity(count);
@@ -46,7 +46,7 @@ pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
         let dir = entry.unwrap();
         let image = image::open(dir.path()).unwrap();
         images.push(image.to_rgba());
-        print!("load {:?}\n", dir.file_name());
+        println!("load {:?}\n", dir.file_name());
     }
 
     images
@@ -54,35 +54,43 @@ pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-pub fn get_coords_height(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
+pub fn get_coords_height(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
     use image::Pixel;
-    let pixel = height_map.get_pixel(i,j);
+    let pixel = height_map.get_pixel(i, j);
     (pixel.channels()[0] as f32 / 5.0).trunc()
 }
 
-pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32{
+pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
     //use std::cmp;
     let (max_i, max_j) = height_map.dimensions();
-        
-    let kernel = vec![(-1, 1),( 0, 1),( 1, 1),
-                      (-1, 0),        ( 1, 0),
-                      (-1,-1),( 0,-1),( 1,-1),];
 
-    let res = kernel.iter().map(|pair| {
-        let a = i as i32 + pair.0 as i32;
-        let b = j as i32 + pair.1 as i32;
+    let kernel = vec![(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)];
 
-        if a < 0 { return 256.0; }
-        if b < 0 { return 256.0; }
-        if a as u32 >= max_i { return 256.0; }
-        if b as u32 >= max_j { return 256.0; }
+    let res = kernel.iter()
+        .map(|pair| {
+            let a = i as i32 + pair.0 as i32;
+            let b = j as i32 + pair.1 as i32;
 
-        get_coords_height(height_map, a as u32, b as u32)
-    }).fold(256.0, |acc: f32, x: f32| acc.min(x) );
+            if a < 0 {
+                return 256.0;
+            }
+            if b < 0 {
+                return 256.0;
+            }
+            if a as u32 >= max_i {
+                return 256.0;
+            }
+            if b as u32 >= max_j {
+                return 256.0;
+            }
+
+            get_coords_height(height_map, a as u32, b as u32)
+        })
+        .fold(256.0, |acc: f32, x: f32| acc.min(x));
 
     let current = get_coords_height(height_map, i, j);
 
-    current -res
+    current - res
 }
 
 
@@ -168,7 +176,7 @@ impl Atlas {
         let folder = file_path.parent();
         let _ = fs::create_dir(&folder.unwrap());
 
-        print!("save->{:?}\n", file_path);
+        println!("save->{:?}\n", file_path);
         self.image.save(&file_path)
     }
 } // Atlas
@@ -183,14 +191,14 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     let mut path = fs::canonicalize(".").unwrap();
     path.push("assets");
     path.push(set_name);
-    print!("load textures: {:?}\n", path);
+    println!("load textures: {:?}\n", path);
 
     let tex_count = fs::read_dir(&path).unwrap().count();
 
     // put textures in a square:
     let side = (tex_count as f32).sqrt().ceil() as u32;
 
-    print!("textures: {} -> side:{}  \n", tex_count, side);
+    println!("textures: {} -> side:{}  \n", tex_count, side);
 
     let images = load_images_rgba(&path);
 
@@ -230,8 +238,8 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
 
     // resize? i readed somewhere about power of 2 mipmaps, this might help.
 
-    
-    
+
+
     let cache_path = fs::canonicalize("./assets/cache/").unwrap();
     // save to cache. cache is the same as the set_name name
     let atlas = Atlas::new(tex_count,
@@ -249,11 +257,10 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
 pub fn load_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     match glob(format!("./assets/cache/{}*", set_name).as_str()) {
         Ok(mut m) => {
-            let atlas = match m.next() {
+            match m.next() {
                 Some(path) => Atlas::from_file(path.unwrap().to_str().unwrap_or("")),
                 None => generate_atlas(set_name),
-            };
-            atlas
+            }
         }
         Err(_) => Err(Error::new(ErrorKind::Other, "oh no!")),
     }
@@ -269,101 +276,160 @@ pub struct MeshPoint {
 implement_vertex!(MeshPoint, position);
 
 impl PartialEq for MeshPoint {
-fn eq(&self, other: &MeshPoint) -> bool {
-        self.position.0 == other.position.0 &&
-        self.position.1 == other.position.1 &&
+    fn eq(&self, other: &MeshPoint) -> bool {
+        self.position.0 == other.position.0 && self.position.1 == other.position.1 &&
         self.position.2 == other.position.2
     }
 }
 
-// TODO: - mesh is not complete, what if step does not divide the side?  
+// TODO: - mesh is not complete, what if step does not divide the side?
 //       - use indices, this can turn to be a pretty damm big mesh
-pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<MeshPoint>{
+pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<MeshPoint> {
     let mut list = Vec::new();
 
     let (max_x, max_y) = height_map.dimensions();
-    let (max_i, max_j) = (max_x/step, max_y/step);
+    let (max_i, max_j) = (max_x / step, max_y / step);
 
-    for i in 0..max_i-1{
-        for j in 0..max_j-1{
+    for i in 0..max_i - 1 {
+        for j in 0..max_j - 1 {
 
-            let a = (i*step, j*step);
-            let b = ((i+1)*step, (j)*step);
-            let c = ((i)*step, (j+1)*step);
-            let d = ((i+1)*step, (j+1)*step);
+            let a = (i * step, j * step);
+            let b = ((i + 1) * step, (j) * step);
+            let c = ((i) * step, (j + 1) * step);
+            let d = ((i + 1) * step, (j + 1) * step);
 
-            list.push(MeshPoint{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
-            list.push(MeshPoint{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
-            list.push(MeshPoint{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+            list.push(MeshPoint {
+                position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32),
+            });
+            list.push(MeshPoint {
+                position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32),
+            });
+            list.push(MeshPoint {
+                position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32),
+            });
 
-            list.push(MeshPoint{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
-            list.push(MeshPoint{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
-            list.push(MeshPoint{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
+            list.push(MeshPoint {
+                position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32),
+            });
+            list.push(MeshPoint {
+                position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32),
+            });
+            list.push(MeshPoint {
+                position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32),
+            });
 
-            assert!(i*step < max_x);
-            assert!(j*step < max_y);
+            assert!(i * step < max_x);
+            assert!(j * step < max_y);
 
-            if i == 0{
-                list.push(MeshPoint{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
-                list.push(MeshPoint{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
-                list.push(MeshPoint{ position: (c.0 as f32, 0.0, c.1 as f32)} );
+            if i == 0 {
+                list.push(MeshPoint {
+                    position: (c.0 as f32,
+                               get_coords_height(height_map, c.0, c.1) as f32,
+                               c.1 as f32),
+                });
+                list.push(MeshPoint {
+                    position: (a.0 as f32,
+                               get_coords_height(height_map, a.0, a.1) as f32,
+                               a.1 as f32),
+                });
+                list.push(MeshPoint { position: (c.0 as f32, 0.0, c.1 as f32) });
 
-                list.push(MeshPoint{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
-                list.push(MeshPoint{ position: (a.0 as f32, 0.0, a.1 as f32)} );
-                list.push(MeshPoint{ position: (c.0 as f32, 0.0, c.1 as f32)} );
+                list.push(MeshPoint {
+                    position: (a.0 as f32,
+                               get_coords_height(height_map, a.0, a.1) as f32,
+                               a.1 as f32),
+                });
+                list.push(MeshPoint { position: (a.0 as f32, 0.0, a.1 as f32) });
+                list.push(MeshPoint { position: (c.0 as f32, 0.0, c.1 as f32) });
             }
-            if i == max_i -2{
-                list.push(MeshPoint{ position: (b.0 as f32, 0.0, b.1 as f32)} );
-                list.push(MeshPoint{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
-                list.push(MeshPoint{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+            if i == max_i - 2 {
+                list.push(MeshPoint { position: (b.0 as f32, 0.0, b.1 as f32) });
+                list.push(MeshPoint {
+                    position: (b.0 as f32,
+                               get_coords_height(height_map, b.0, b.1) as f32,
+                               b.1 as f32),
+                });
+                list.push(MeshPoint {
+                    position: (d.0 as f32,
+                               get_coords_height(height_map, d.0, d.1) as f32,
+                               d.1 as f32),
+                });
 
-                list.push(MeshPoint{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
-                list.push(MeshPoint{ position: (d.0 as f32, 0.0, d.1 as f32)} );
-                list.push(MeshPoint{ position: (b.0 as f32, 0.0, b.1 as f32)} );
+                list.push(MeshPoint {
+                    position: (d.0 as f32,
+                               get_coords_height(height_map, d.0, d.1) as f32,
+                               d.1 as f32),
+                });
+                list.push(MeshPoint { position: (d.0 as f32, 0.0, d.1 as f32) });
+                list.push(MeshPoint { position: (b.0 as f32, 0.0, b.1 as f32) });
             }
-            if j == 0{
-                list.push(MeshPoint{ position: (a.0 as f32, get_coords_height(height_map, a.0, a.1) as f32, a.1 as f32)} );
-                list.push(MeshPoint{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
-                list.push(MeshPoint{ position: (a.0 as f32, 0.0, a.1 as f32)} );
+            if j == 0 {
+                list.push(MeshPoint {
+                    position: (a.0 as f32,
+                               get_coords_height(height_map, a.0, a.1) as f32,
+                               a.1 as f32),
+                });
+                list.push(MeshPoint {
+                    position: (b.0 as f32,
+                               get_coords_height(height_map, b.0, b.1) as f32,
+                               b.1 as f32),
+                });
+                list.push(MeshPoint { position: (a.0 as f32, 0.0, a.1 as f32) });
 
-                list.push(MeshPoint{ position: (b.0 as f32, get_coords_height(height_map, b.0, b.1) as f32, b.1 as f32)} );
-                list.push(MeshPoint{ position: (b.0 as f32, 0.0, b.1 as f32)} );
-                list.push(MeshPoint{ position: (a.0 as f32, 0.0, a.1 as f32)} );
+                list.push(MeshPoint {
+                    position: (b.0 as f32,
+                               get_coords_height(height_map, b.0, b.1) as f32,
+                               b.1 as f32),
+                });
+                list.push(MeshPoint { position: (b.0 as f32, 0.0, b.1 as f32) });
+                list.push(MeshPoint { position: (a.0 as f32, 0.0, a.1 as f32) });
             }
-            if j == max_j -2{
-                list.push(MeshPoint{ position: (c.0 as f32, get_coords_height(height_map, c.0, c.1) as f32, c.1 as f32)} );
-                list.push(MeshPoint{ position: (c.0 as f32, 0.0, c.1 as f32)} );
-                list.push(MeshPoint{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
+            if j == max_j - 2 {
+                list.push(MeshPoint {
+                    position: (c.0 as f32,
+                               get_coords_height(height_map, c.0, c.1) as f32,
+                               c.1 as f32),
+                });
+                list.push(MeshPoint { position: (c.0 as f32, 0.0, c.1 as f32) });
+                list.push(MeshPoint {
+                    position: (d.0 as f32,
+                               get_coords_height(height_map, d.0, d.1) as f32,
+                               d.1 as f32),
+                });
 
-                list.push(MeshPoint{ position: (d.0 as f32, get_coords_height(height_map, d.0, d.1) as f32, d.1 as f32)} );
-                list.push(MeshPoint{ position: (c.0 as f32, 0.0, c.1 as f32)} );
-                list.push(MeshPoint{ position: (d.0 as f32, 0.0, d.1 as f32)} );
+                list.push(MeshPoint {
+                    position: (d.0 as f32,
+                               get_coords_height(height_map, d.0, d.1) as f32,
+                               d.1 as f32),
+                });
+                list.push(MeshPoint { position: (c.0 as f32, 0.0, c.1 as f32) });
+                list.push(MeshPoint { position: (d.0 as f32, 0.0, d.1 as f32) });
             }
         }
     }
 
 
-    let a = (max_i as f32 -1.0) * step as f32;
-    let b = (max_j as f32 -1.0) * step as f32;
+    let a = (max_i as f32 - 1.0) * step as f32;
+    let b = (max_j as f32 - 1.0) * step as f32;
     let d = -100.0;
 
 
     // inverted piramid, only 4 triangles close the volume
-    list.push( MeshPoint { position: ( 0.0, 0.0, 0.0) });
-    list.push( MeshPoint { position: (   a, 0.0, 0.0) });
-    list.push( MeshPoint { position: ( a/2.0, d, b/2.0) });  // check
+    list.push(MeshPoint { position: (0.0, 0.0, 0.0) });
+    list.push(MeshPoint { position: (a, 0.0, 0.0) });
+    list.push(MeshPoint { position: (a / 2.0, d, b / 2.0) }); // check
 
-    list.push( MeshPoint { position: ( 0.0, 0.0, 0.0) });
-    list.push( MeshPoint { position: ( a/2.0, d, b/2.0) });
-    list.push( MeshPoint { position: ( 0.0, 0.0, b) });
+    list.push(MeshPoint { position: (0.0, 0.0, 0.0) });
+    list.push(MeshPoint { position: (a / 2.0, d, b / 2.0) });
+    list.push(MeshPoint { position: (0.0, 0.0, b) });
 
-    list.push( MeshPoint { position: ( 0.0, 0.0, b) });
-    list.push( MeshPoint { position: ( a/2.0, d, b/2.0) });
-    list.push( MeshPoint { position: (   a, 0.0, b) });
+    list.push(MeshPoint { position: (0.0, 0.0, b) });
+    list.push(MeshPoint { position: (a / 2.0, d, b / 2.0) });
+    list.push(MeshPoint { position: (a, 0.0, b) });
 
-    list.push( MeshPoint { position: (   a, 0.0, b) });
-    list.push( MeshPoint { position: ( a/2.0, d, b/2.0) });
-    list.push( MeshPoint { position: (   a, 0.0, 0.0) });
+    list.push(MeshPoint { position: (a, 0.0, b) });
+    list.push(MeshPoint { position: (a / 2.0, d, b / 2.0) });
+    list.push(MeshPoint { position: (a, 0.0, 0.0) });
 
     list
 }
@@ -379,32 +445,32 @@ mod tests {
     use super::load_atlas;
     use super::Atlas;
 
-//    #[test]
-//    fn test1() {
-//        assert!(generate_atlas("test/atlas1").is_ok());
-//        assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
-//        assert!(load_atlas("test/atlas1").is_ok());
-//    }
-//
-//    #[test]
-//    fn test2() {
-//        assert!(generate_atlas("test/atlas2").is_ok());
-//        assert!(load_atlas("test/atlas2").is_ok());
-//        assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
-//    }
-//
-//    #[test]
-//    fn test3() {
-//        assert!(generate_atlas("test/atlas3").is_ok());
-//        assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
-//        assert!(load_atlas("test/atlas3").is_ok());
-//    }
+    //    #[test]
+    //    fn test1() {
+    //        assert!(generate_atlas("test/atlas1").is_ok());
+    //        assert!(Atlas::from_file("./assets/cache/test/atlas1.1_750x750_1x1.atlas.png").is_ok());
+    //        assert!(load_atlas("test/atlas1").is_ok());
+    //    }
+    //
+    //    #[test]
+    //    fn test2() {
+    //        assert!(generate_atlas("test/atlas2").is_ok());
+    //        assert!(load_atlas("test/atlas2").is_ok());
+    //        assert!(Atlas::from_file("./assets/cache/test/atlas2.2_750x750_2x2.atlas.png").is_ok());
+    //    }
+    //
+    //    #[test]
+    //    fn test3() {
+    //        assert!(generate_atlas("test/atlas3").is_ok());
+    //        assert!(Atlas::from_file("./assets/cache/test/atlas3.25_750x750_5x5.atlas.png").is_ok());
+    //        assert!(load_atlas("test/atlas3").is_ok());
+    //    }
 
     use super::load_rgb;
-    use super::to_mesh; 
+    use super::to_mesh;
 
     #[test]
-    fn get_mesh(){
+    fn get_mesh() {
         let map = load_rgb("assets/pico.png");
         let x = to_mesh(10, &map);
     }
