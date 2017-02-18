@@ -33,14 +33,14 @@ impl Camera {
             to = Point3::new(self.target_eye.x,
                              self.target_eye.y + target,
                              self.target_eye.z);
-        }
+        };
         self.move_to(to);
     }
 
     #[inline]
     pub fn move_to(&mut self, target: Point3<f32>) {
         self.target_eye = target;
-        //   println!("goto: {:?}\n", self.target_eye);
+        //   println!("goto: {:?}", self.target_eye);
     }
 
     #[inline]
@@ -61,14 +61,14 @@ impl Camera {
         let step = CAMERA_SPEED * delta;
         let vector = self.target_eye.to_vec() - self.view_eye.to_vec();
 
-        //     println!("v {:?} \n", vector);
+        //     println!("v {:?} ", vector);
         if vector.magnitude() < step {
             self.view_eye = self.target_eye;
             return;
         }
 
         self.view_eye = self.view_eye + vector.normalize() * step;
-        //   println!("at! {:?} -> {:?}\n", self.view_eye, self.target_eye);
+        //   println!("at! {:?} -> {:?}", self.view_eye, self.target_eye);
     }
 
     pub fn get_eye(&self) -> Point3<f32> {
@@ -104,17 +104,17 @@ mod tests {
         let mut cam = Camera::new(Point3::new(0.0, 75.0, -110.0), Point3::new(0.0, 0.0, -0.0));
         cam.move_to(Point3::new(0.0, 75.0, -105.0));
 
-        println!("{:?}\n", cam);
+        println!("{:?}", cam);
         cam.update(1.1);
-        println!("{:?}\n", cam);
+        println!("{:?}", cam);
         cam.update(1.1);
-        println!("{:?}\n", cam);
+        println!("{:?}", cam);
         cam.update(1.1);
-        println!("{:?}\n", cam);
+        println!("{:?}", cam);
         cam.update(1.1);
-        println!("{:?}\n", cam);
+        println!("{:?}", cam);
         cam.update(1.1);
-        println!("{:?}\n", cam);
+        println!("{:?}", cam);
 
         assert!(cam.is_still());
     }
@@ -122,17 +122,17 @@ mod tests {
     fn target2() {
         let mut cam = Camera::new(Point3::new(0.0, 75.0, -110.0), Point3::new(0.0, 0.0, -0.0));
         cam.change_elevation(5.0);
-        //  println!("{:?}\n", cam);
+        //  println!("{:?}", cam);
         cam.update(1.1);
-        //  println!("{:?}\n", cam);
+        //  println!("{:?}", cam);
         cam.update(1.1);
-        //  println!("{:?}\n", cam);
+        //  println!("{:?}", cam);
         cam.update(1.1);
-        //  println!("{:?}\n", cam);
+        //  println!("{:?}", cam);
         cam.update(1.1);
-        //  println!("{:?}\n", cam);
+        //  println!("{:?}", cam);
         cam.update(1.1);
-        //  println!("{:?}\n", cam);
+        //  println!("{:?}", cam);
         assert!(cam.is_still());
     }
 }

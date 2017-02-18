@@ -246,7 +246,7 @@ mod tests {
     #[test]
     fn pvm_checks() {
 
-        println!("load height_map map \n");
+        println!("load height_map map ");
         // read height_map map
         let height_map = world::image_atlas::load_rgb("assets/test.png");
         let mut los = Los::new(&height_map); // translations for the instances
@@ -254,7 +254,7 @@ mod tests {
 
         let pvm = load_pvm(size_x, size_z);
 
-        println!("test \n");
+        println!("test ");
 
         let start_time = time::precise_time_s();
         los.update_view(100, &pvm);

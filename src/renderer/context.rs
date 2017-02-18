@@ -63,7 +63,7 @@ impl Context {
     }
 
     pub fn resize(&mut self, w: u32, h: u32) {
-        println!("resize {}x{}\n", w, h);
+        println!("resize {}x{}", w, h);
         self.width = w;
         self.height = h;
         //      TODO: change here the perspective matrix (which should be owned by ctx)

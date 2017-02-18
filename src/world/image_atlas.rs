@@ -22,7 +22,7 @@ use self::glob::glob;
 // to use a shader on it
 pub fn load_rgb(filename: &str) -> image::RgbImage {
     let path = fs::canonicalize(&filename).unwrap();
-    println!("load image: {:?}\n", path);
+    println!("load image: {:?}", path);
 
     // iterate over images:
     use std::fs;
@@ -35,7 +35,7 @@ pub fn load_rgb(filename: &str) -> image::RgbImage {
 
 pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
     let path = fs::canonicalize(&path).unwrap();
-    println!("load image: {:?}\n", path);
+    println!("load image: {:?}", path);
 
     let count = fs::read_dir(&path).unwrap().count();
     let mut images = Vec::with_capacity(count);
@@ -46,7 +46,7 @@ pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
         let dir = entry.unwrap();
         let image = image::open(dir.path()).unwrap();
         images.push(image.to_rgba());
-        println!("load {:?}\n", dir.file_name());
+        println!("load {:?}", dir.file_name());
     }
 
     images
@@ -176,7 +176,7 @@ impl Atlas {
         let folder = file_path.parent();
         let _ = fs::create_dir(&folder.unwrap());
 
-        println!("save->{:?}\n", file_path);
+        println!("save->{:?}", file_path);
         self.image.save(&file_path)
     }
 } // Atlas
@@ -191,14 +191,14 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     let mut path = fs::canonicalize(".").unwrap();
     path.push("assets");
     path.push(set_name);
-    println!("load textures: {:?}\n", path);
+    println!("load textures: {:?}", path);
 
     let tex_count = fs::read_dir(&path).unwrap().count();
 
     // put textures in a square:
     let side = (tex_count as f32).sqrt().ceil() as u32;
 
-    println!("textures: {} -> side:{}  \n", tex_count, side);
+    println!("textures: {} -> side:{}  ", tex_count, side);
 
     let images = load_images_rgba(&path);
 

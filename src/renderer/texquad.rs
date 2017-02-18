@@ -109,7 +109,7 @@ impl DrawItem for TexQuad {
 }
 
 impl Program for TexQuad {
-    fn get_program<'a>(&'a self) -> &'a glium::Program {
+    fn get_program(&self) -> &glium::Program {
         &self.quad_program
     }
 }

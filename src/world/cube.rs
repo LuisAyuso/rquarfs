@@ -65,7 +65,7 @@ impl DrawIndexed for Cube {
     fn get_vertices(&self) -> &glium::vertex::VertexBufferAny {
         &self.vertices
     }
-    fn get_indices<'a>(&'a self) -> &'a glium::index::IndexBufferAny {
+    fn get_indices(&self) -> &glium::index::IndexBufferAny {
         &self.indices
     }
 }

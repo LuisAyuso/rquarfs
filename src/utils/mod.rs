@@ -28,7 +28,7 @@ pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
                 samples += 1;
             }
 
-            println!("fps: {} \n", (samples as f64) / fps_accum);
+            println!("fps: {} ", (samples as f64) / fps_accum);
         }
     }
 }
@@ -144,7 +144,7 @@ impl DrawItem for Axis {
 }
 
 impl Program for Axis {
-    fn get_program<'a>(&'a self) -> &'a glium::Program {
+    fn get_program(&self) -> &glium::Program {
         &self.axis_program
     }
 }
