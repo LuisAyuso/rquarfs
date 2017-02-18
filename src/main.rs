@@ -100,7 +100,6 @@ fn main() {
 
     let shadow_maker = shadowmapper::ShadowMapper::new(&ctx);
 
-
     //  map overlay ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let quad = texquad::TexQuad::new(&ctx);
@@ -150,8 +149,8 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let mut los = los::Los::new(&height);
-    let lospreview = los::LosPreview::new(&ctx);
+    let mut los = culing::Los::new(&height);
+    let lospreview = culing::LosPreview::new(&ctx);
 
     let terrain = img_atlas::to_mesh(10, &height);
     let (vert, indx) = renderer::index_vertex_list(&terrain);
@@ -205,11 +204,11 @@ fn main() {
 
     use renderer::context::DrawSurface;
     use renderer::context::RenderType;
-    use renderer::los;
+    use renderer::culing;
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
-    let mut compute_shadows = true;
+    let mut compute_shadows = false;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
@@ -241,7 +240,7 @@ fn main() {
             let view_matrix = cam_mat * Matrix4::from_translation(Vector3::new(0.0, 0.0, 0.0));
 
             if run {
-                //   model_matrix = rot_mat * model_matrix;
+                model_matrix = rot_mat * model_matrix;
                 //  model_matrix = model_matrix;
                 sun_pos = sun_rot.rotate_point(sun_pos);
             }

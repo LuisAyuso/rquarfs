@@ -70,8 +70,6 @@ pub enum TestResult {
     Take,
 }
 
-
-
 /// the test will be applied to every partition of the space,
 /// if any of the corners passes the test, it will call recursion with the four partitions
 /// if all of the corners passes the test, it will return the shape
@@ -135,12 +133,14 @@ fn rec_v<Fun>(bc: u32, x: Patch, test_f: &Fun) -> Vec<Patch>
     }
 }
 
+#[inline]
 fn add_elem<T>(v: Vec<T>, elem: T) -> Vec<T> {
     let mut res = v;
     res.push(elem);
     res
 }
 
+#[inline]
 fn union<T>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
     let mut res = v1;
     let mut other = v2;

@@ -1,5 +1,5 @@
 
-use renderer::los::quadtree;
+use renderer::culing::quadtree;
 use image;
 use cgmath::{Matrix4, Vector4};
 
@@ -47,7 +47,7 @@ impl Los {
     }
 
     pub fn update_view(&mut self, precision: u32, pvm: &Matrix4<f32>) {
-        use renderer::los::quadtree::{test, TestResult};
+        use renderer::culing::quadtree::{test, TestResult};
 
         if self.last_matrix == *pvm && self.last_precission == precision {
             return;
@@ -68,10 +68,10 @@ impl Los {
             //println!("{:?}", p);
             let (a, b, c, d) = p.get_corners();
 
-            let res = [check_voxel(a, &pvm, &self.height_map),
-                       check_voxel(b, &pvm, &self.height_map),
-                       check_voxel(c, &pvm, &self.height_map),
-                       check_voxel(d, &pvm, &self.height_map)];
+            let res = [check_voxel(a, pvm, &self.height_map),
+                       check_voxel(b, pvm, &self.height_map),
+                       check_voxel(c, pvm, &self.height_map),
+                       check_voxel(d, pvm, &self.height_map)];
 
             // println!(" {:?}\t{:?}", p, res);
 

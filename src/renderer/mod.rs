@@ -5,10 +5,10 @@ pub mod camera;
 pub mod shader;
 pub mod texquad;
 pub mod shadowmapper;
-pub mod chunk_manager;
-pub mod textures;
+//pub mod chunk_manager;
+//pub mod textures;
 
-pub mod los;
+pub mod culing;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    convert to vertex + index

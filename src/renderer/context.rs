@@ -115,7 +115,7 @@ impl<'a> DrawSurface<'a> {
         self.target
             .draw(obj.get_vertices(),
                   glium::index::NoIndices(obj.get_primitive()),
-                  &obj.get_program(),
+                  obj.get_program(),
                   uniforms,
                   &self.render_params)
             .unwrap();
@@ -175,7 +175,7 @@ impl<'a> DrawSurface<'a> {
     }
 
     #[inline]
-    pub fn gl_end(mut self) {
+    pub fn gl_end(self) {
         self.target.finish().unwrap();
     }
 } // impl ctx
@@ -187,7 +187,7 @@ impl<'a> DrawSurface<'a> {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pub trait Program {
-    fn get_program<'a>(&'a self) -> &'a glium::program::Program;
+    fn get_program(&self) -> &glium::program::Program;
 }
 
 impl Program for glium::program::Program {
