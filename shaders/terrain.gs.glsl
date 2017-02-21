@@ -1,5 +1,11 @@
 #version 410 core
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Geometry shader 
+layout (triangles) in;
+layout (triangle_strip) out;
+
+
 uniform mat4 perspective;
 uniform mat4 view;
 uniform mat4 model;

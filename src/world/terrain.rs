@@ -1,52 +1,51 @@
 
 use glium;
-use context::Program;
-use context::DrawItem;
 
+use renderer::context::*;
+use glium::program::Program as GlProgram;
+use std::boxed::Box as Box;
+
+
+#[derive(Copy, Clone)]
+struct Vertex {
+    pos: (f32, f32, f32),
+}
+implement_vertex!(Vertex, pos);
+
+// ~~~~~~~~~~
 
 
 // the idea here is to create a tessellation terrain,
 // lets start with a grid.
 pub struct Terrain{
- //   prg: glium::program::Program
+    vertices: VerticesT
 }
 
 
 impl Terrain{
 
-    fn with_shader(program :glium::program::Program)-> Terrain{
+    pub fn new<F: glium::backend::Facade>(display: &F) -> Terrain {
+
+        let vertices_buff = glium::VertexBuffer::new(display, &[
+               Vertex { pos: (0.0, 0.0, 0.0)}, 
+               Vertex { pos: (1.0, 0.0, 0.0)}, 
+               Vertex { pos: (1.0, 1.0, 0.0)}, 
+               Vertex { pos: (0.0, 1.0, 0.0)}]);
+
+
         Terrain{
-//            prg: program,
+            vertices: vertices_buff.unwrap().into()
         }
     }
 
 }
 
 
-
-
-//impl Program for Terrain {
-//    fn get_program(&self) -> &glium::program::Program {
-//        &self.prg
-//    }
-//    fn with_tess(&self) -> bool{
-//        self.prg.has_tessellation_shaders()
-//    }
-//}
-
-
-
-#[cfg(test)]
-mod tests {
-
-    use super::Terrain;
-    use shader;
-
-    #[test]
-    fn new(){
-        
-
-
+impl DrawItem for Terrain {
+    fn get_vertices(&self) -> &VerticesT{
+        &self.vertices
     }
-
+    fn get_primitive(&self) -> PrimitiveT{
+        glium::index::PrimitiveType::Patches { vertices_per_patch: 4 }
+    }
 }

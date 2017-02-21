@@ -52,7 +52,7 @@ impl Los {
         if self.last_matrix == *pvm && self.last_precission == precision {
             return;
         }
-        self.last_matrix = pvm.clone();
+        self.last_matrix = *pvm;
         self.last_precission = precision;
         //println!(" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
         //println!("chunk_size {}", precision);

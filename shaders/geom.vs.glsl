@@ -31,8 +31,6 @@ smooth out vec4 frag_lightSpace_coords;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
 void main() {
 
 	vec3 tmp = vec3(position.x, position.y*vox_height, position.z);
