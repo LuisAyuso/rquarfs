@@ -14,16 +14,11 @@ uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-layout (location = 0) in vec3 position;
+in vec3 position;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void main() {
-
-    vec4 vertex_real_coords = vec4(position, 1.0);
-
-	vec4 vertex_modelspace = model * vertex_real_coords;
-	gl_Position =  perspective * view * vertex_modelspace;
+    gl_Position = vec4(position, 1.0);
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

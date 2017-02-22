@@ -249,6 +249,7 @@ fn main() {
 
         cam.update(delta as f32);
         program.update(ctx.display(), delta);
+        tess_prg.update(ctx.display(), delta);
 
         // keep mut separated
         {
@@ -314,6 +315,7 @@ fn main() {
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
+            surface.draw_tessellated(&new_terrain, &tess_prg, &uniforms);
            // surface.draw_instanciated_with_indices_and_program(&cube,
            //                                                    &instance_attr,
            //                                                    &program,

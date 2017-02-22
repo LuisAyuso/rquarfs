@@ -55,37 +55,27 @@ impl TexQuad {
                                         // vertex shader
                                         "
                 #version 140
-                in vec2 \
-                                         position;
+                in vec2 position;
                 in vec2 tex_coords;   
 
-                \
-                                         smooth out vec2 coords;
+                smooth out vec2 coords;
 
                 void main() {
-                    \
-                                         gl_Position = vec4(position,0.0, 1.0); 
-                    \
-                                         coords = tex_coords;
+                    gl_Position = vec4(position,0.0, 1.0); 
+                    coords = tex_coords;
                 }
             ",
                                         // fragment shader
                                         "
                 #version 140
-                uniform \
-                                         sampler2D quad_texture;
-                smooth in vec2 \
-                                         coords;
+                uniform sampler2D quad_texture;
+                smooth in vec2 coords;
                 out vec4 frag_color;
 
-                \
-                                         void main() {
-                    frag_color = \
-                                         texture(quad_texture, coords);
-                    \
-                                         //frag_color = vec4(coords, 0.0, 1.0);
-                \
-                                         }
+                void main() {
+                    frag_color = texture(quad_texture, coords);
+                    frag_color = vec4(coords, 0.0, 1.0);
+                }
             ",
                                         None)
                 .unwrap();

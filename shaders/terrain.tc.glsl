@@ -19,6 +19,12 @@ uniform vec3 cam_pos;
 uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+in vec3 vPosition[];
+out vec3 tcPosition[];
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 void main(void)
 {
     if (gl_InvocationID == 0) // to not do same stuff 4 times

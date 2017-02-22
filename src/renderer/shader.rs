@@ -187,7 +187,11 @@ impl ProgramReloader{
 
         Ok(ProgramReloader{
             program: prog.unwrap(),
-            paths: vec!(vs_name.to_string(), fs_name.to_string()),
+            paths: vec!(vs_name.to_string(),
+                        tc_name.to_string(),
+                        te_name.to_string(),
+                        gs_name.to_string(),
+                        fs_name.to_string()),
             date: time::SystemTime::now(),
             last_check: 0.0,
         })
@@ -208,11 +212,22 @@ impl ProgramReloader{
             if self.date < date{
                 self.date = date;
 
-                let prog = load_program(display,  &*self.paths[0], &*self.paths[1]);
-                if prog.is_none() { return;}
-                println!(" ~~ shader update ~~ ");
-
-                self.program = prog.unwrap();
+                if self.paths.len() == 2{
+                    if let Some(prog) = load_program(display,  &*self.paths[0], &*self.paths[1]){
+                        println!(" ~~ shader update ~~ ");
+                        self.program = prog;
+                    }
+                }
+                else{
+                    if let Some(prog) = load_program_with_tess(display, &*self.paths[0], 
+                                                                        &*self.paths[1],
+                                                                        &*self.paths[2],
+                                                                        &*self.paths[3],
+                                                                        &*self.paths[4]){
+                        println!(" ~~ shader update ~~ ");
+                        self.program = prog;
+                    }
+                }
             }
         }
     }

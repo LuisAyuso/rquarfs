@@ -147,12 +147,12 @@ impl<'a> DrawSurface<'a> {
                                    obj : &O, 
                                    prg : &P, 
                                    uniforms: &U) 
-    where O: DrawIndexed, P: Program, U: glium::uniforms::Uniforms
+    where O: DrawItem, P: Program, U: glium::uniforms::Uniforms
     {
         //println!("b");
         use glium::Surface;
         self.target.draw(obj.get_vertices(),
-                         obj.get_indices(),
+                         glium::index::NoIndices(obj.get_primitive()),
                          prg.get_program(),
                          uniforms, 
                          &self.render_params).unwrap();

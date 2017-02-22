@@ -18,15 +18,13 @@ uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+in vec3 tcPosition[];
+out vec3 tePosition;
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 void main(void)
 {
-//    // interpolate in horizontal direction between vert. 0 and 3
-//    vec3 p0 = mix(tcPosition[0], tcPosition[3], gl_TessCoord.x);
-//    // interpolate in horizontal direction between vert. 1 and 2
-//    vec3 p1 = mix(tcPosition[1], tcPosition[2], gl_TessCoord.x);
-//    // interpolate in vert direction
-//    vec3 p = mix(p0, p1, gl_TessCoord.y);
-//    tePatchDistance = gl_TessCoord.xy;
-//    tePosition = normalize(p); // project on unit sphere
-//    gl_Position = Projection * Modelview * vec4(tePosition, 1);
+    tePosition = gl_TessCoord.xyz;
+	gl_Position = perspective * view * model * vec4(tePosition, 1.0);
 }

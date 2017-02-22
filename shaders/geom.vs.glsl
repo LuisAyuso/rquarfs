@@ -14,10 +14,12 @@ uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-layout (location = 0) in vec3 position;
+            // ------- first geomtry 
+layout (location = 0) in vec3 position;     // comes from the geometry
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 tex_coord;
-layout (location = 3) in vec3 world_position;
+            // ------- from here on are instanciated
+layout (location = 3) in vec3 world_position;  // comes from the instance attributes
 layout (location = 4) in vec3 in_color;      
 layout (location = 5) in vec2 tex_offset;      
 layout (location = 6) in float vox_height;      

@@ -3,7 +3,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Geometry shader 
 layout (triangles) in;
-layout (triangle_strip) out;
+layout (triangle_strip, max_vertices = 3) out;
 
 
 uniform mat4 perspective;
@@ -20,5 +20,24 @@ uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+in vec3 tePosition[3];
+
+flat   out vec4 face_normal;
+smooth out vec2 texture_coords;
+flat out vec4 vertex_modelspace;
+smooth out vec4 frag_lightSpace_coords;
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 void main(){
+    vec3 A = tePosition[2] - tePosition[0];
+    vec3 B = tePosition[1] - tePosition[0];
+    face_normal = vec4(normalize(cross(A, B)), 1.0);
+
+    gl_Position = gl_in[0].gl_Position; EmitVertex();
+    gl_Position = gl_in[1].gl_Position; EmitVertex();
+    gl_Position = gl_in[2].gl_Position; EmitVertex();
+
+    EndPrimitive();
 }

@@ -8,9 +8,9 @@ use std::boxed::Box as Box;
 
 #[derive(Copy, Clone)]
 struct Vertex {
-    pos: (f32, f32, f32),
+    position: (f32, f32, f32),
 }
-implement_vertex!(Vertex, pos);
+implement_vertex!(Vertex, position);
 
 // ~~~~~~~~~~
 
@@ -27,10 +27,10 @@ impl Terrain{
     pub fn new<F: glium::backend::Facade>(display: &F) -> Terrain {
 
         let vertices_buff = glium::VertexBuffer::new(display, &[
-               Vertex { pos: (0.0, 0.0, 0.0)}, 
-               Vertex { pos: (1.0, 0.0, 0.0)}, 
-               Vertex { pos: (1.0, 1.0, 0.0)}, 
-               Vertex { pos: (0.0, 1.0, 0.0)}]);
+               Vertex { position: (0.0, 0.0, 0.0)}, 
+               Vertex { position: (1.0, 0.0, 0.0)}, 
+               Vertex { position: (1.0, 1.0, 0.0)}, 
+               Vertex { position: (0.0, 1.0, 0.0)}]);
 
 
         Terrain{
