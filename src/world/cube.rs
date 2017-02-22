@@ -1,5 +1,7 @@
 extern crate glium;
 
+use renderer::context::*;
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,10 +64,10 @@ impl Cube {
 use renderer::context::DrawIndexed;
 
 impl DrawIndexed for Cube {
-    fn get_vertices(&self) -> &glium::vertex::VertexBufferAny {
+    fn get_vertices(&self) -> &VerticesT {
         &self.vertices
     }
-    fn get_indices(&self) -> &glium::index::IndexBufferAny {
+    fn get_indices(&self) -> &IndicesT {
         &self.indices
     }
 }

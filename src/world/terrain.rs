@@ -1,10 +1,5 @@
-
 use glium;
-
 use renderer::context::*;
-use glium::program::Program as GlProgram;
-use std::boxed::Box as Box;
-
 
 #[derive(Copy, Clone)]
 struct Vertex {

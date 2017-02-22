@@ -198,8 +198,7 @@ impl ProgramReloader{
     }
 
     pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64){
-        use std::cmp;
-
+        
         self.last_check += delta;
         // one second?
         if self.last_check < 1.0 {
