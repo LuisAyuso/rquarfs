@@ -14,6 +14,7 @@ resources = ["assets", "shaders"]
 	regex = "*"
 	glob = "*"
 	glutin = "*"
+	lazy_static = "0.1.*"
 
 [profile.release]
     debug = true

@@ -209,7 +209,7 @@ pub trait Program{
 
 impl Program for glium::program::Program {
     fn get_program(&self) -> &glium::program::Program {
-        &self
+        self
     }
     fn with_tess(&self) -> bool{
         self.has_tessellation_shaders()

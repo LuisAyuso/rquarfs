@@ -1,35 +1,10 @@
+use regex::*;
 use glium;
-use std::io;
-use std::io::Read;
+
 use std::path;
 use std::fs;
+use std::vec::*;
 use std::time;
-
-
-
-fn get_path_to_shader(name: &str) -> Result<path::PathBuf, io::Error> {
-
-    let mut path = try!(fs::canonicalize("."));
-    path.push("shaders");
-    path.push(format!("{}{}", name, ".glsl"));
-    //println!("load shader: {:?}", path);
-    Ok(path)
-}
-
-
-/// load shader from path into a string. this is a file into buffer read
-fn read_shader(name: &str) -> Result<String, io::Error> {
-    use std::fs::File;
-
-    let path = try!(get_path_to_shader(name));
-
-    let mut f = try!(File::open(path));
-
-    let mut shader_buff = String::new();
-    let _ = f.read_to_string(&mut shader_buff);
-    Ok(shader_buff)
-}
-
 
 fn print_err(err:  glium::program::ProgramCreationError){
     match err{
@@ -39,25 +14,34 @@ fn print_err(err:  glium::program::ProgramCreationError){
     }
 }
 
+fn get_slice(a: &Option<String>) -> Option<&str>{
+    match a.as_ref(){
+        Some(x) => Some(x.as_str()),
+        None => None,
+    }
+}
+
 /// loads both shaders and compiles program
-fn load_program<F: glium::backend::Facade>(display: &F, vs_name: &str, fs_name: &str) 
+fn load_program<F: glium::backend::Facade>(display: &F, path: &path::PathBuf) 
         -> Option<glium::Program>
 {
-    // load vs
-    let vs = read_shader(vs_name);
-    if vs.is_err(){
-        println!("{:?}", vs);
-        return None;
+    let code = ShaderPack::new(path);
+    if let Err(x) = code{
+        println!("{:?}", x);
+        return None; 
     }
-    // load fs
-    let fs = read_shader(fs_name);
-    if fs.is_err(){
-        println!("{:?}", fs);
-        return None;
-    }
+    let code = code.unwrap();
+
+    let glium_code = glium::program::SourceCode {
+            vertex_shader: code.vertex.as_str(),
+            fragment_shader: code.fragment.as_str(),
+            geometry_shader: get_slice(&code.geom),
+            tessellation_control_shader: get_slice(&code.tess_control),
+            tessellation_evaluation_shader: get_slice(&code.tess_eval),
+    };
 
     // compile
-    let prog = glium::Program::from_source(display, &vs.unwrap(), &fs.unwrap(), None);
+    let prog = glium::Program::new(display, glium_code);
         //compile_program(display, &vs.unwrap(), &fs.unwrap());
     if let Err(x) = prog{
         print_err(x); 
@@ -66,72 +50,8 @@ fn load_program<F: glium::backend::Facade>(display: &F, vs_name: &str, fs_name: 
     Some(prog.unwrap())
 }
 
-/// loads both shaders and compiles program
-fn load_program_with_tess<F: glium::backend::Facade>(display: &F, 
-                                                     vs_name: &str, 
-                                                     tc_name: &str,
-                                                     te_name: &str,
-                                                     gs_name: &str,
-                                                     fs_name: &str) -> Option<glium::Program>
-{
-    // load vs
-    let vs = read_shader(vs_name);
-    if vs.is_err(){
-        println!("could not read {}", vs_name);
-        return None;
-    }
-    // load tc
-    let tc = read_shader(tc_name);
-    if tc.is_err(){
-        println!("could not read {}", tc_name);
-        return None;
-    }
-
-    // load te
-    let te = read_shader(te_name);
-    if te.is_err(){
-        println!("could not read {}", te_name);
-        return None;
-    }
-    // load gs
-    let gs = read_shader(gs_name);
-    if gs.is_err(){
-        println!("could not read {}", gs_name);
-        return None;
-    }
-
-    // load fs
-    let fs = read_shader(fs_name);
-    if fs.is_err(){
-        println!("could not read {}", fs_name);
-        return None;
-    }
-
-	let gs_str = gs.unwrap();
-	let te_str = te.unwrap();
-	let tc_str = tc.unwrap();
-
-    let code = glium::program::SourceCode {
-            vertex_shader: &vs.unwrap(),
-            fragment_shader: &fs.unwrap(),
-            geometry_shader: Some(&gs_str),
-            tessellation_control_shader: Some(&tc_str),
-            tessellation_evaluation_shader: Some(&te_str),
-        };
-
-    // compile
-    let prog = glium::Program::new(display, code);
-        //compile_program(display, &vs.unwrap(), &fs.unwrap());
-    if let Err(x) = prog{
-        print_err(x); 
-        return None; 
-    }
-    Some(prog.unwrap())
-}
-
-fn get_date(name: &str) -> time::SystemTime{
-    let file = get_path_to_shader(name).unwrap();
-    let metadata = fs::metadata(file).unwrap();
+fn get_date(name: &path::PathBuf) -> time::SystemTime{
+    let metadata = fs::metadata(name).unwrap();
     metadata.modified().unwrap()
 }
 
@@ -139,59 +59,31 @@ fn get_date(name: &str) -> time::SystemTime{
 // Program wrapper:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#[derive(Debug)]
-pub enum ShaderError{
-    CompileError,
-}
-
 /// listens to filesystem to reload if file was changed
 pub struct ProgramReloader{
     program: glium::program::Program,
-    paths: Vec<String>,
+    path: path::PathBuf,
     date: time::SystemTime,
     last_check: f64,
 }
 
 impl ProgramReloader{
 
-    //type Self = ProgramReloader;
-
-    pub fn new<F: glium::backend::Facade>(display: &F, vs_name: &str, fs_name: &str) 
-        -> Result<ProgramReloader, ShaderError>
+    pub fn new<F: glium::backend::Facade>(display: &F, name: &str) 
+        -> Result<ProgramReloader, ShaderParseError>
     {
-        println!("load shader from: {}.glsl {}.glsl", vs_name, fs_name);
+        println!("load shader from: {}.glsl", name);
 
-        let prog = load_program(display, vs_name, fs_name);
-        if prog.is_none(){ return Err(ShaderError::CompileError);}
+        let mut path = fs::canonicalize(".").unwrap();
+        path.push("shaders");
+        path.push(format!("{}.glsl", name));
+
+        let prog = load_program(display, &path);
+        if prog.is_none(){ return Err(ShaderParseError::CompileError);}
 
         Ok(ProgramReloader{
             program: prog.unwrap(),
-            paths: vec!(vs_name.to_string(), fs_name.to_string()),
-            date: time::SystemTime::now(),
-            last_check: 0.0,
-        })
-    }
-
-    pub fn new_tes<F: glium::backend::Facade>(display: &F, 
-                                              vs_name: &str, 
-                                              tc_name: &str,
-                                              te_name: &str,
-                                              gs_name: &str,
-                                              fs_name: &str) 
-        -> Result<ProgramReloader, ShaderError>
-    {
-        println!("load shader from: {}.vs.glsl {}.fs.glsl", vs_name, fs_name);
-
-        let prog = load_program_with_tess(display, vs_name, tc_name, te_name, gs_name, fs_name);
-        if prog.is_none(){ return Err(ShaderError::CompileError);}
-
-        Ok(ProgramReloader{
-            program: prog.unwrap(),
-            paths: vec!(vs_name.to_string(),
-                        tc_name.to_string(),
-                        te_name.to_string(),
-                        gs_name.to_string(),
-                        fs_name.to_string()),
+            path: path,
             date: time::SystemTime::now(),
             last_check: 0.0,
         })
@@ -206,28 +98,14 @@ impl ProgramReloader{
         }
         self.last_check = 0.0;
 
-        for path in &self.paths{
-            let date = get_date(path);
-            if self.date < date{
-                self.date = date;
+        let date = get_date(&self.path);
+        if self.date < date{
+            self.date = date;
 
-                if self.paths.len() == 2{
-                    if let Some(prog) = load_program(display,  &*self.paths[0], &*self.paths[1]){
-                        println!(" ~~ shader update ~~ ");
-                        self.program = prog;
-                    }
+                if let Some(prog) = load_program(display, &self.path){
+                    println!(" ~~ shader updated ~~ ");
+                    self.program = prog;
                 }
-                else{
-                    if let Some(prog) = load_program_with_tess(display, &*self.paths[0], 
-                                                                        &*self.paths[1],
-                                                                        &*self.paths[2],
-                                                                        &*self.paths[3],
-                                                                        &*self.paths[4]){
-                        println!(" ~~ shader update ~~ ");
-                        self.program = prog;
-                    }
-                }
-            }
         }
     }
 }
@@ -243,44 +121,218 @@ impl context::Program for ProgramReloader{
     }
 }
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Shader Pack, 
+//  this implements One file shaders, one day this would be an stand alone library
+//  we do not compile the shaders, just do a basic parsing to extract them from a source code-like
+//  file
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#[derive(Debug)]
+pub enum ShaderParseError{
+    InvalidPath,
+    SyntaxError(String),
+    MissingShader,
+    CompileError,
+}
+
+#[derive(Debug)]
+struct ShaderPack{
+    vertex: String,
+    fragment: String,
+    tess_control: Option<String>,
+    tess_eval: Option<String>,
+    geom: Option<String>
+}
+
+impl ShaderPack{
+
+    fn new (path: &path::PathBuf) -> Result<ShaderPack,ShaderParseError> {
+
+        // parse file
+        let units = parse_file(path)?;
+        
+        let mut res = ShaderPack{
+            vertex: "".to_string(),
+            fragment: "".to_string(),
+            tess_control: None,
+            tess_eval: None,
+            geom: None,
+        };
+        
+        for (kind, code) in units{
+
+            match kind{
+                ParseState::Common => {}, // not implemented yet
+                ParseState::Vertex => res.vertex = code,
+                ParseState::Fragment => res.fragment = code,
+                ParseState::TessC =>res.tess_control = Some(code),
+                ParseState::TessE => res.tess_eval = Some(code),
+                ParseState::Geom => res.geom = Some(code),
+            }
+
+        }
+
+        // validate, fragment and vertex can not be empty
+        if res.vertex.is_empty() || res.fragment.is_empty(){
+
+            println!("{:?}", res);
+
+            return Err(ShaderParseError::MissingShader);
+        }
+
+        Ok(res)
+    }
+}
+
+// parse state machine
+// we are looking for // <- TEXT
+// very basic regex line based parsing
+#[derive(Copy, Clone, Debug)]
+enum ParseState{
+    Common,
+    Vertex,
+    Fragment,
+    TessC,
+    TessE,
+    Geom,
+}
+
+type ShaderParse = (ParseState, String);
+
+lazy_static! {
+    static ref RE: Regex = Regex::new(r"\s*//\s*<-\s*(\w+)").unwrap();
+}
+
+struct Parser{
+    accum: String,
+    state: ParseState,
+    items: Vec<ShaderParse>,
+}
+
+impl Parser{
+
+    fn new() -> Parser{
+        use self::ParseState::*;
+        Parser{
+         accum: "".to_string(),
+         state: Common, 
+         items: Vec::new(),
+        }
+    }
+
+    fn parse_line(&mut self, line: String) -> Result<(),ShaderParseError>{
+        if let Some(cap) = RE.captures(&line){
+            let name = cap.get(1).map_or("", |m| m.as_str()).to_lowercase();
+            self.items.push((self.state, self.accum.clone()));
+            self.accum = String::new();
+
+            if name == "vertex"{
+               self.state = ParseState::Vertex;
+            }
+            else if name == "fragment"{
+               self.state = ParseState::Fragment;
+            }
+            else if name == "tessellation_control"{
+               self.state = ParseState::TessC;
+            }
+            else if name == "tessellation_evaluation"{
+               self.state = ParseState::TessE;
+            }
+            else if name == "geometry"{
+               self.state = ParseState::Geom;
+            }
+            else{
+                return Err(ShaderParseError::SyntaxError(format!("Unknow section {}", name).to_string()));
+            }
+        }
+        else{
+            self.accum.push_str(line.as_str());
+            self.accum.push_str("\n");
+        }
+        Ok(())
+    }
+    fn get_items(mut self) -> Vec<ShaderParse>{
+        self.items.push((self.state, self.accum));
+        self.items
+    }
+}
+
+fn parse_file(path: &path::PathBuf) -> Result<Vec<ShaderParse>, ShaderParseError>{
+
+    use std::io::BufReader;
+    use std::io::prelude::*;
+    use std::fs::File;
+    use self::ShaderParseError::*;
+    //use self::ParseState::*;
+
+    let mut parser = Parser::new();
+
+    if let Ok(f) = File::open(path){
+         let f = BufReader::new(f);
+
+         for l in f.lines() {
+           parser.parse_line(l.unwrap())?;
+         }
+         return Ok(parser.get_items());
+    }
+
+    Err(InvalidPath)
+}
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Tests
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 
 #[cfg(test)]
 mod tests {
 
     use super::ProgramReloader;
-    use context::Program;
+    use super::ShaderPack;
 
     use glium::glutin::HeadlessRendererBuilder;
     use glium::DisplayBuild;
+
+    use std::fs;
+
+    #[test]
+    fn missing_file(){
+        let mut path = fs::canonicalize(".").unwrap();
+        path.push("shaders");
+        path.push("error.glsl");
+            
+        let x = ShaderPack::new(&path);
+        if let Ok(_) = x{
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn single_file(){
+
+        let mut path = fs::canonicalize(".").unwrap();
+        path.push("shaders");
+        path.push("geom.glsl");
+
+        let x = ShaderPack::new(&path);
+        match  x{
+            Err(_) => assert!(false),
+            Ok(x) => println!("{:?}",x),
+        }
+    }
 
     #[test]
     fn create() {
         if let Ok(ctx) = HeadlessRendererBuilder::new(100,100).build_glium(){
 
-            let bad = ProgramReloader::new(&ctx, "nonsense", "geom.fs");
+            let bad = ProgramReloader::new(&ctx, "nonsense");
             assert!(bad.is_err());
-            let good = ProgramReloader::new(&ctx, "test.vs", "test.fs");
+            let good = ProgramReloader::new(&ctx, "test");
             assert!(good.is_ok());
         }
     }
-
-// deactivate, headless render only gives me gl 1.20, no tessellation
-//    #[test]
-//    fn create_tes() {
-//        use glium::glutin::GlRequest as GLReq;
-//        let glVer = GLReq::Latest;
-//        if let Ok(ctx) = HeadlessRendererBuilder::new(100,100)
-//        .with_gl(glVer)
-//        .build_glium(){
-//            let good = ProgramReloader::new_tes(&ctx, 
-//                                                "terrain.vs",
-//                                                "terrain.tc",
-//                                                "terrain.te",
-//                                                "terrain.gs",
-//                                                "terrain.vs");
-//            assert!(good.is_ok());
-//            let prg = good.unwrap();
-//            assert!(prg.with_tess());
-//        }
-//    }
 }

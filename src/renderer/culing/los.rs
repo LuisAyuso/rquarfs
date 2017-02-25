@@ -143,6 +143,7 @@ impl Los {
 
 /// check whenever a 2,5D coordinate is inside of the view
 ///http://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
+#[cfg_attr(feature = "cargo-clippy", allow(many_single_char_names))]
 fn check_voxel(corner: (u32, u32),
                pvm: &Matrix4<f32>,
                height_map: &image::RgbImage)

@@ -6,6 +6,9 @@ extern crate cgmath;
 extern crate image;
 extern crate glutin;
 extern crate time;
+extern crate regex;
+#[macro_use]
+extern crate lazy_static;
 
 mod world;
 mod utils;
@@ -45,7 +48,7 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let prg_tmp = shader::ProgramReloader::new(ctx.display(), "geom.vs", "geom.fs");
+    let prg_tmp = shader::ProgramReloader::new(ctx.display(), "geom");
     if prg_tmp.is_err() {
         std::process::exit(-1);
     }
@@ -73,8 +76,8 @@ fn main() {
 
     println!("load height map ");
     // read height map
-    //let height = img_atlas::load_rgb("assets/height.jpg");
-    let height = img_atlas::load_rgb("assets/height_small.png");
+    let height = img_atlas::load_rgb("assets/height.jpg");
+    //let height = img_atlas::load_rgb("assets/height_small.png");
     //let height = img_atlas::load_rgb("assets/pico.png");
     //let height = img_atlas::load_rgb("assets/moon.png");
     //let height = img_atlas::load_rgb("assets/test.png");
@@ -208,7 +211,7 @@ fn main() {
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
-    let mut compute_shadows = false;
+    let mut compute_shadows = true;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
@@ -222,18 +225,18 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // test the new terrain thing
     
-    let new_terrain =  world::terrain::Terrain::new(ctx.display());
-    
-    let tess_prg = shader::ProgramReloader::new_tes(ctx.display(), 
-                                                    "terrain.vs", 
-                                                    "terrain.tc", 
-                                                    "terrain.te", 
-                                                    "terrain.gs", 
-                                                    "terrain.fs");
-    if tess_prg.is_err() {
-        std::process::exit(-1);
-    }
-    let mut tess_prg = tess_prg.unwrap();
+    //let new_terrain =  world::terrain::Terrain::new(ctx.display());
+ //   
+ //   let tess_prg = shader::ProgramReloader::new_tes(ctx.display(), 
+ //                                                   "terrain.vs", 
+ //                                                   "terrain.tc", 
+ //                                                   "terrain.te", 
+ //                                                   "terrain.gs", 
+ //                                                   "terrain.fs");
+ //   if tess_prg.is_err() {
+ //       std::process::exit(-1);
+ //   }
+ //   let mut tess_prg = tess_prg.unwrap();
    
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -249,7 +252,7 @@ fn main() {
 
         cam.update(delta as f32);
         program.update(ctx.display(), delta);
-        tess_prg.update(ctx.display(), delta);
+        //tess_prg.update(ctx.display(), delta);
 
         // keep mut separated
         {
@@ -315,11 +318,11 @@ fn main() {
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
-            surface.draw_tessellated(&new_terrain, &tess_prg, &uniforms);
-           // surface.draw_instanciated_with_indices_and_program(&cube,
-           //                                                    &instance_attr,
-           //                                                    &program,
-           //                                                    &uniforms);
+            //surface.draw_tessellated(&new_terrain, &tess_prg, &uniforms);
+            surface.draw_instanciated_with_indices_and_program(&cube,
+                                                               &instance_attr,
+                                                               &program,
+                                                               &uniforms);
             match preview {
                 Preview::Shadow => surface.draw_overlay_quad(&quad, &height_map),
                 Preview::Height => {
