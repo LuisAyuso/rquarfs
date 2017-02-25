@@ -13,7 +13,8 @@ implement_vertex!(Vertex, position);
 // the idea here is to create a tessellation terrain,
 // lets start with a grid.
 pub struct Terrain{
-    vertices: VerticesT
+    vertices: VerticesT,
+    indices: IndicesT
 }
 
 
@@ -22,25 +23,30 @@ impl Terrain{
     pub fn new<F: glium::backend::Facade>(display: &F) -> Terrain {
 
         let vertices_buff = glium::VertexBuffer::new(display, &[
-               Vertex { position: (0.0, 0.0, 0.0)}, 
-               Vertex { position: (1.0, 0.0, 0.0)}, 
-               Vertex { position: (1.0, 1.0, 0.0)}, 
-               Vertex { position: (0.0, 1.0, 0.0)}]);
+               Vertex { position: ( 0.0, 0.0, 0.0)}, 
+               Vertex { position: (10.0, 0.0, 0.0)}, 
+               Vertex { position: ( 0.0, 0.0,10.0)}, 
+               Vertex { position: (10.0, 0.0,10.0)}]);
 
+
+        let indices = glium::IndexBuffer::new(display,
+                                              glium::index::PrimitiveType::Patches{ vertices_per_patch: 4},
+                                              &[0u16, 2, 3, 1]);
 
         Terrain{
-            vertices: vertices_buff.unwrap().into()
+            vertices: vertices_buff.unwrap().into(),
+            indices: indices.unwrap().into(),
         }
     }
 
 }
 
 
-impl DrawItem for Terrain {
+impl DrawIndexed for Terrain {
     fn get_vertices(&self) -> &VerticesT{
         &self.vertices
     }
-    fn get_primitive(&self) -> PrimitiveT{
-        glium::index::PrimitiveType::Patches { vertices_per_patch: 4 }
+    fn get_indices(&self) -> &IndicesT{
+        &self.indices
     }
 }

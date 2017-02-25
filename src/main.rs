@@ -76,8 +76,8 @@ fn main() {
 
     println!("load height map ");
     // read height map
-    let height = img_atlas::load_rgb("assets/height.jpg");
-    //let height = img_atlas::load_rgb("assets/height_small.png");
+    //let height = img_atlas::load_rgb("assets/height.jpg");
+    let height = img_atlas::load_rgb("assets/height_small.png");
     //let height = img_atlas::load_rgb("assets/pico.png");
     //let height = img_atlas::load_rgb("assets/moon.png");
     //let height = img_atlas::load_rgb("assets/test.png");
@@ -178,7 +178,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-    let eye = Point3::new(10.0, 50.0, -150.0);
+    let eye = Point3::new(10.0, 50.0, 60.0);
     let looking = Point3::new(0.0, 0.0, 0.0); // Point3::new(0.0, 0.0, -10.0);
     let mut cam = camera::Camera::new(eye, looking);
 
@@ -225,18 +225,13 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // test the new terrain thing
     
-    //let new_terrain =  world::terrain::Terrain::new(ctx.display());
- //   
- //   let tess_prg = shader::ProgramReloader::new_tes(ctx.display(), 
- //                                                   "terrain.vs", 
- //                                                   "terrain.tc", 
- //                                                   "terrain.te", 
- //                                                   "terrain.gs", 
- //                                                   "terrain.fs");
- //   if tess_prg.is_err() {
- //       std::process::exit(-1);
- //   }
- //   let mut tess_prg = tess_prg.unwrap();
+    let new_terrain =  world::terrain::Terrain::new(ctx.display());
+   
+   let tess_prg = shader::ProgramReloader::new(ctx.display(), "terrain"); 
+   if tess_prg.is_err() {
+       std::process::exit(-1);
+   }
+   let mut tess_prg = tess_prg.unwrap();
    
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -252,7 +247,7 @@ fn main() {
 
         cam.update(delta as f32);
         program.update(ctx.display(), delta);
-        //tess_prg.update(ctx.display(), delta);
+        tess_prg.update(ctx.display(), delta);
 
         // keep mut separated
         {
@@ -318,11 +313,11 @@ fn main() {
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
-            //surface.draw_tessellated(&new_terrain, &tess_prg, &uniforms);
-            surface.draw_instanciated_with_indices_and_program(&cube,
-                                                               &instance_attr,
-                                                               &program,
-                                                               &uniforms);
+            surface.draw_with_indices_and_program(&new_terrain, &tess_prg, &uniforms);
+            //surface.draw_instanciated_with_indices_and_program(&cube,
+            //                                                   &instance_attr,
+            //                                                   &program,
+            //                                                   &uniforms);
             match preview {
                 Preview::Shadow => surface.draw_overlay_quad(&quad, &height_map),
                 Preview::Height => {
@@ -356,10 +351,10 @@ fn main() {
                         compute_shadows = !compute_shadows;
                         println!("toggle shadows");
                     }
-                    Event::KeyboardInput(ElementState::Released, 32, _) => {
+                    Event::KeyboardInput(ElementState::Released, 24, _) => {
                         render_kind = RenderType::Textured
                     }
-                    Event::KeyboardInput(ElementState::Released, 31, _) => {
+                    Event::KeyboardInput(ElementState::Released, 25, _) => {
                         render_kind = RenderType::WireFrame
                     }
                     Event::KeyboardInput(ElementState::Released, 30, _) => {

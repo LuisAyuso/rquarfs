@@ -85,7 +85,7 @@ impl Axis {
         let axis_program =
             glium::Program::from_source(display,
                                         // vertex shader
-                                        "
+             r#"
                  #version 140
                  in vec3 position;
                  in vec3 color;
@@ -98,16 +98,16 @@ impl Axis {
                     gl_Position = perspective * view * vec4(position, 1.0);
                     f_color = color;
                 }
-            ",
+            "#,
                                         // fragment shader
-                                        "
+            r#"
                 #version 140
                 in vec3  f_color;
                 out vec4 color; 
                 void main() {
                     color = vec4(f_color, 1.0);
                 }
-            ",
+            "#,
                                         None)
                 .unwrap();
 

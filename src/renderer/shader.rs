@@ -14,6 +14,7 @@ fn print_err(err:  glium::program::ProgramCreationError){
     }
 }
 
+/// convert Option<String> into Option<&str>
 fn get_slice(a: &Option<String>) -> Option<&str>{
     match a.as_ref(){
         Some(x) => Some(x.as_str()),
@@ -47,7 +48,26 @@ fn load_program<F: glium::backend::Facade>(display: &F, path: &path::PathBuf)
         print_err(x); 
         return None; 
     }
-    Some(prog.unwrap())
+
+    let prog = prog.unwrap();
+    println!("Shader program loaded:");
+    println!("   has tessellation: {}", prog.has_tessellation_shaders());
+    println!("   uses point size: {}", prog.uses_point_size());
+    println!("   srgb output: {}", prog.has_srgb_output());
+    println!("   uniforms: ");
+    for (name, _) in prog.uniforms(){
+        println!("     - {}", name);
+    }
+    println!("   uniform bloks: ");
+    for (name, _) in prog.get_uniform_blocks(){
+        println!("     - {}", name);
+    }
+    println!("   shader storage bloks: ");
+    for (name, _) in prog.get_shader_storage_blocks(){
+        println!("     - {}", name);
+    }
+
+    Some(prog)
 }
 
 fn get_date(name: &path::PathBuf) -> time::SystemTime{
@@ -102,10 +122,10 @@ impl ProgramReloader{
         if self.date < date{
             self.date = date;
 
-                if let Some(prog) = load_program(display, &self.path){
-                    println!(" ~~ shader updated ~~ ");
-                    self.program = prog;
-                }
+            if let Some(prog) = load_program(display, &self.path){
+                println!(" ~~ shader updated ~~ ");
+                self.program = prog;
+            }
         }
     }
 }
@@ -175,9 +195,7 @@ impl ShaderPack{
 
         // validate, fragment and vertex can not be empty
         if res.vertex.is_empty() || res.fragment.is_empty(){
-
             println!("{:?}", res);
-
             return Err(ShaderParseError::MissingShader);
         }
 

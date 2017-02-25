@@ -143,20 +143,26 @@ impl<'a> DrawSurface<'a> {
     }
 
     #[inline]
-    pub fn draw_tessellated<O,P,U>(&mut self, 
-                                   obj : &O, 
-                                   prg : &P, 
-                                   uniforms: &U) 
-    where O: DrawItem, P: Program, U: glium::uniforms::Uniforms
+    pub fn draw_with_indices_and_program<O, P, U>(&mut self,
+                                                  obj: &O,
+                                                  prg: &P,
+                                                  uniforms: &U)
+        where O: DrawIndexed,
+              P: Program,
+              U: glium::uniforms::Uniforms
     {
         //println!("b");
         use glium::Surface;
-        self.target.draw(obj.get_vertices(),
-                         glium::index::NoIndices(obj.get_primitive()),
-                         prg.get_program(),
-                         uniforms, 
-                         &self.render_params).unwrap();
-    } 
+        let x = self.target.draw(obj.get_vertices(), 
+                  obj.get_indices(),
+                  prg.get_program(),
+                  uniforms,
+                  &self.render_params);
+
+        if let Err(err) = x{
+            println!("render error: {:?}",err);
+        }
+    }
 
     pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T)  
         where O: DrawItem + Program,
