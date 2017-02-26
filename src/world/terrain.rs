@@ -20,13 +20,13 @@ pub struct Terrain{
 
 impl Terrain{
 
-    pub fn new<F: glium::backend::Facade>(display: &F) -> Terrain {
-
+    pub fn new<F: glium::backend::Facade>(display: &F, width: f32, height: f32) -> Terrain {
+ 
         let vertices_buff = glium::VertexBuffer::new(display, &[
-               Vertex { position: ( 0.0, 0.0, 0.0)}, 
-               Vertex { position: (10.0, 0.0, 0.0)}, 
-               Vertex { position: ( 0.0, 0.0,10.0)}, 
-               Vertex { position: (10.0, 0.0,10.0)}]);
+               Vertex { position: (          0.0, 0.0, 0.0)}, 
+               Vertex { position: ( width as f32, 0.0, 0.0)}, 
+               Vertex { position: (          0.0, 0.0, height as f32)}, 
+               Vertex { position: ( width as f32, 0.0, height as f32)}]);
 
 
         let indices = glium::IndexBuffer::new(display,

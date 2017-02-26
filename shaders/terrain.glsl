@@ -55,13 +55,13 @@ void main()
 
     if (gl_InvocationID == 0) {
 
-        gl_TessLevelInner[0] = 4;
-        gl_TessLevelInner[1] = 4;
+        gl_TessLevelInner[0] = 32;
+        gl_TessLevelInner[1] = 32;
 
-        gl_TessLevelOuter[0] = 4;
-        gl_TessLevelOuter[1] = 4;
-        gl_TessLevelOuter[2] = 4;
-        gl_TessLevelOuter[3] = 4;
+        gl_TessLevelOuter[0] = 32;
+        gl_TessLevelOuter[1] = 32;
+        gl_TessLevelOuter[2] = 32;
+        gl_TessLevelOuter[3] = 32;
     }
 }
 
@@ -86,6 +86,7 @@ uniform uint atlas_side;
 uniform vec3 sun_pos;
 uniform vec3 cam_pos;
 uniform bool shadows_enabled;
+uniform sampler2D height_map;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -104,11 +105,13 @@ void main() {
     vec4 a = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, u);
     vec4 b = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, u);
     vec4 position = mix(a, b, v);
-    gl_Position = perspective * view * vec4(position.xyz,1.0);
+    vec2 texcoord = position.xz;
+    position.y = texture(height_map, texcoord).r * 15;
+    gl_Position = perspective * view * model * vec4(position.xyz,1.0);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// <- GEOMETRY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// <- GEOMETRY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #version 410 core
 

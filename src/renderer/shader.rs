@@ -59,11 +59,11 @@ fn load_program<F: glium::backend::Facade>(display: &F, path: &path::PathBuf)
         println!("     - {}", name);
     }
     println!("   uniform bloks: ");
-    for (name, _) in prog.get_uniform_blocks(){
+    for name in prog.get_uniform_blocks().keys(){
         println!("     - {}", name);
     }
     println!("   shader storage bloks: ");
-    for (name, _) in prog.get_shader_storage_blocks(){
+    for name in prog.get_shader_storage_blocks().keys(){
         println!("     - {}", name);
     }
 

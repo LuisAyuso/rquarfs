@@ -1,6 +1,7 @@
 extern crate glium;
 
 use renderer::context;
+use renderer::shader::ProgramReloader;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Quad with texture drawing
@@ -14,7 +15,7 @@ struct QuadVert {
 
 pub struct TexQuad {
     quad_buffer: glium::vertex::VertexBufferAny,
-    quad_program: glium::Program,
+    quad_program: ProgramReloader,
 }
 
 
@@ -50,41 +51,45 @@ impl TexQuad {
                                                          tex_coords: (0.0, 1.0),
                                                      }]);
 
-        let quad_program =
-            glium::Program::from_source(ctx.display(),
-                                        // vertex shader
-                                        "
-                #version 140
-                in vec2 position;
-                in vec2 tex_coords;   
+        let program = ProgramReloader::new(ctx.display(),"tex_quad").unwrap();
 
-                smooth out vec2 coords;
+    //    let quad_program =
+    //        glium::Program::from_source(ctx.display(),
+    //        // vertex shader
+    //        r#"
+    //            #version 140
+    //            in vec2 position;
+    //            in vec2 tex_coords;   
 
-                void main() {
-                    gl_Position = vec4(position,0.0, 1.0); 
-                    coords = tex_coords;
-                }
-            ",
-                                        // fragment shader
-                                        "
-                #version 140
-                uniform sampler2D quad_texture;
-                smooth in vec2 coords;
-                out vec4 frag_color;
+    //            smooth out vec2 coords;
 
-                void main() {
-                    frag_color = texture(quad_texture, coords);
-                    frag_color = vec4(coords, 0.0, 1.0);
-                }
-            ",
-                                        None)
-                .unwrap();
+    //            void main() {
+    //                gl_Position = vec4(position,0.0, 1.0); 
+    //                coords = tex_coords;
+    //            }
+    //        "#, 
+    //        //fragment shader
+    //        r#"
+    //            #version 140
+    //            uniform sampler2D quad_texture;
+    //            smooth in vec2 coords;
+    //            out vec4 frag_color;
+
+    //            void main() {
+    //                frag_color = texture(quad_texture, coords);
+    //                frag_color = vec4(coords, 0.0, 1.0);
+    //            }
+    //        "#, None).unwrap();
 
         TexQuad {
-            quad_program: quad_program,
+            quad_program: program,
             quad_buffer: quad_buffer.unwrap().into(),
         }
     } // new
+
+    pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64){
+        self.quad_program.update(display, delta);
+    }
 }
 
 use renderer::context::{DrawItem, Program};
@@ -100,9 +105,9 @@ impl DrawItem for TexQuad {
 
 impl Program for TexQuad {
     fn get_program(&self) -> &glium::Program {
-        &self.quad_program
+        self.quad_program.get_program()
     }
     fn with_tess(&self) -> bool{
-        self.quad_program.has_tessellation_shaders()
+        self.quad_program.get_program().has_tessellation_shaders()
     }
 }

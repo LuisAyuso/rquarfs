@@ -105,7 +105,7 @@ fn main() {
 
     //  map overlay ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let quad = texquad::TexQuad::new(&ctx);
+    let mut quad = texquad::TexQuad::new(&ctx);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -168,8 +168,7 @@ fn main() {
 
     let terrain_i = glium::IndexBuffer::new(ctx.display(),
                                             glium::index::PrimitiveType::TrianglesList,
-                                            &indx)
-        .unwrap();
+                                            &indx).unwrap();
     let terrain_i: glium::index::IndexBufferAny = terrain_i.into();
 
     let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
@@ -225,7 +224,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // test the new terrain thing
     
-    let new_terrain =  world::terrain::Terrain::new(ctx.display());
+    let new_terrain =  world::terrain::Terrain::new(ctx.display(), size_x, size_z);
    
    let tess_prg = shader::ProgramReloader::new(ctx.display(), "terrain"); 
    if tess_prg.is_err() {
@@ -241,13 +240,14 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let mut preview = Preview::Shadow;
+    let mut preview = Preview::Height;
     let mut chunk_size: u32 = 20;
     utils::loop_with_report(&mut |delta: f64| {
 
         cam.update(delta as f32);
         program.update(ctx.display(), delta);
         tess_prg.update(ctx.display(), delta);
+        quad.update(ctx.display(), delta);
 
         // keep mut separated
         {
@@ -307,9 +307,9 @@ fn main() {
                 sun_pos:    Into::<[f32; 3]>::into(sun_pos),
                 cam_pos:    Into::<[f32; 3]>::into(cam.get_eye()),
                 shadows_enabled:   compute_shadows, 
+                height_map: &height_map,
             };
 
-            let losquad = lospreview.get_drawable(&ctx, &los);
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
@@ -319,11 +319,14 @@ fn main() {
             //                                                   &program,
             //                                                   &uniforms);
             match preview {
-                Preview::Shadow => surface.draw_overlay_quad(&quad, &height_map),
+                Preview::Shadow => surface.draw_overlay_quad(&quad, shadow_maker.depth_as_texture()),
                 Preview::Height => {
-                    surface.draw_overlay_quad(&quad, shadow_maker.depth_as_texture())
-                }
-                Preview::Los => surface.draw_overlay_quad(&losquad, &height_map),
+                    surface.draw_overlay_quad(&quad,&height_map)
+                },
+                Preview::Los => {
+                    let losquad = lospreview.get_drawable(&ctx, &los);
+                    surface.draw_overlay_quad(&losquad, &height_map);
+                },
             };
             surface.gl_end();
         }
