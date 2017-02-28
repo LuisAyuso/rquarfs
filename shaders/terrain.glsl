@@ -18,12 +18,12 @@ uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-layout (location = 0) in vec3 position;     
+layout (location = 0) in uvec2 position;     
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void main() {
-    gl_Position = vec4(position, 1.0);
+    gl_Position = vec4(position.x, 0.0, position.y, 1.0);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,13 +55,13 @@ void main()
 
     if (gl_InvocationID == 0) {
 
-        gl_TessLevelInner[0] = 32;
-        gl_TessLevelInner[1] = 32;
+        gl_TessLevelInner[0] = 64;
+        gl_TessLevelInner[1] = 64;
 
-        gl_TessLevelOuter[0] = 32;
-        gl_TessLevelOuter[1] = 32;
-        gl_TessLevelOuter[2] = 32;
-        gl_TessLevelOuter[3] = 32;
+        gl_TessLevelOuter[0] = 64;
+        gl_TessLevelOuter[1] = 64;
+        gl_TessLevelOuter[2] = 64;
+        gl_TessLevelOuter[3] = 64;
     }
 }
 
@@ -87,6 +87,7 @@ uniform vec3 sun_pos;
 uniform vec3 cam_pos;
 uniform bool shadows_enabled;
 uniform sampler2D height_map;
+uniform uvec2 height_size;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -105,8 +106,8 @@ void main() {
     vec4 a = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, u);
     vec4 b = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, u);
     vec4 position = mix(a, b, v);
-    vec2 texcoord = position.xz;
-    position.y = texture(height_map, texcoord).r * 15;
+    vec2 texcoord = vec2( position.x / height_size.x, position.z / height_size.y);
+    position.y = texture(height_map, texcoord).r *100;
     gl_Position = perspective * view * model * vec4(position.xyz,1.0);
 }
 

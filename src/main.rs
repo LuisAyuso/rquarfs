@@ -224,7 +224,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // test the new terrain thing
     
-    let new_terrain =  world::terrain::Terrain::new(ctx.display(), size_x, size_z);
+    let new_terrain =  world::terrain::Terrain::new(ctx.display(), size_x as u32, size_z as u32);
    
    let tess_prg = shader::ProgramReloader::new(ctx.display(), "terrain"); 
    if tess_prg.is_err() {
@@ -308,6 +308,7 @@ fn main() {
                 cam_pos:    Into::<[f32; 3]>::into(cam.get_eye()),
                 shadows_enabled:   compute_shadows, 
                 height_map: &height_map,
+                height_size:    (size_x as u32, size_z as u32),
             };
 
 

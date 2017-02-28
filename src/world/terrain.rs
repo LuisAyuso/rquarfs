@@ -3,7 +3,7 @@ use renderer::context::*;
 
 #[derive(Copy, Clone)]
 struct Vertex {
-    position: (f32, f32, f32),
+    position: (u32, u32),
 }
 implement_vertex!(Vertex, position);
 
@@ -14,19 +14,19 @@ implement_vertex!(Vertex, position);
 // lets start with a grid.
 pub struct Terrain{
     vertices: VerticesT,
-    indices: IndicesT
+    indices: IndicesT,
 }
 
 
 impl Terrain{
 
-    pub fn new<F: glium::backend::Facade>(display: &F, width: f32, height: f32) -> Terrain {
+    pub fn new<F: glium::backend::Facade>(display: &F, width: u32, height: u32) -> Terrain {
  
         let vertices_buff = glium::VertexBuffer::new(display, &[
-               Vertex { position: (          0.0, 0.0, 0.0)}, 
-               Vertex { position: ( width as f32, 0.0, 0.0)}, 
-               Vertex { position: (          0.0, 0.0, height as f32)}, 
-               Vertex { position: ( width as f32, 0.0, height as f32)}]);
+               Vertex { position: (   0, 0)}, 
+               Vertex { position: ( width,   0)}, 
+               Vertex { position: (   0, height)}, 
+               Vertex { position: ( width, height)}]);
 
 
         let indices = glium::IndexBuffer::new(display,
