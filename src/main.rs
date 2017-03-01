@@ -76,8 +76,8 @@ fn main() {
 
     println!("load height map ");
     // read height map
-    //let height = img_atlas::load_rgb("assets/height.jpg");
-    let height = img_atlas::load_rgb("assets/height_small.png");
+    let height = img_atlas::load_rgb("assets/height.jpg");
+    //let height = img_atlas::load_rgb("assets/height_small.png");
     //let height = img_atlas::load_rgb("assets/pico.png");
     //let height = img_atlas::load_rgb("assets/moon.png");
     //let height = img_atlas::load_rgb("assets/test.png");
@@ -109,51 +109,51 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    // building the vertex buffer with the attributes per instance
-    let instance_attr: context::VerticesT = {
+    //// building the vertex buffer with the attributes per instance
+    //let instance_attr: context::VerticesT = {
 
-        #[derive(Copy, Clone, Debug)]
-        struct Attr {
-            world_position: (f32, f32, f32),
-            in_color: (f32, f32, f32),
-            tex_offset: (f32, f32),
-            vox_height: f32,
-        }
-        implement_vertex!(Attr, world_position, in_color, tex_offset, vox_height);
+    //    #[derive(Copy, Clone, Debug)]
+    //    struct Attr {
+    //        world_position: (f32, f32, f32),
+    //        in_color: (f32, f32, f32),
+    //        tex_offset: (f32, f32),
+    //        vox_height: f32,
+    //    }
+    //    implement_vertex!(Attr, world_position, in_color, tex_offset, vox_height);
 
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let mut count = 0;
-        let data = translations.iter()
-            .map(|pos| {
+    //    use rand::Rng;
+    //    let mut rng = rand::thread_rng();
+    //    let mut count = 0;
+    //    let data = translations.iter()
+    //        .map(|pos| {
 
-                let tex_id = rng.gen_range(0, atlas_count);
-                count += 1;
-                let i_off = ((tex_id / atlas_side) as f32) / atlas_side as f32;
-                let j_off = ((tex_id % atlas_side) as f32) / atlas_side as f32;
+    //            let tex_id = rng.gen_range(0, atlas_count);
+    //            count += 1;
+    //            let i_off = ((tex_id / atlas_side) as f32) / atlas_side as f32;
+    //            let j_off = ((tex_id % atlas_side) as f32) / atlas_side as f32;
 
-                //   println!("{}  {},{} @ {},{}", tex_id,
-                //                                 (tex_id % atlas_side), (tex_id / atlas_side),
-                //                                 i_off, j_off);
+    //            //   println!("{}  {},{} @ {},{}", tex_id,
+    //            //                                 (tex_id % atlas_side), (tex_id / atlas_side),
+    //            //                                 i_off, j_off);
 
-                let h = img_atlas::get_max_neighbour(&height, pos.0 as u32, pos.1 as u32);
+    //            let h = img_atlas::get_max_neighbour(&height, pos.0 as u32, pos.1 as u32);
 
-                Attr {
-                    world_position: (pos.0, pos.2, pos.1),
-                    in_color: (rand::random(), rand::random(), rand::random()),
-                    tex_offset: (i_off as f32, j_off as f32),
-                    vox_height: h,
-                }
-            })
-            .collect::<Vec<_>>();
+    //            Attr {
+    //                world_position: (pos.0, pos.2, pos.1),
+    //                in_color: (rand::random(), rand::random(), rand::random()),
+    //                tex_offset: (i_off as f32, j_off as f32),
+    //                vox_height: h,
+    //            }
+    //        })
+    //        .collect::<Vec<_>>();
 
-        glium::vertex::VertexBuffer::dynamic(ctx.display(), &data).unwrap().into()
-    };
+    //    glium::vertex::VertexBuffer::dynamic(ctx.display(), &data).unwrap().into()
+    //};
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let mut los = culing::Los::new(&height);
-    let lospreview = culing::LosPreview::new(&ctx);
+    //let mut los = culing::Los::new(&height);
+    //let lospreview = culing::LosPreview::new(&ctx);
 
     let terrain = img_atlas::to_mesh(10, &height);
     let (vert, indx) = renderer::index_vertex_list(&terrain);
@@ -177,7 +177,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-    let eye = Point3::new(10.0, 50.0, 60.0);
+    let eye = Point3::new(10.0, 90.0, 150.0);
     let looking = Point3::new(0.0, 0.0, 0.0); // Point3::new(0.0, 0.0, -10.0);
     let mut cam = camera::Camera::new(eye, looking);
 
@@ -210,7 +210,7 @@ fn main() {
     use cgmath::Rotation;
     use cgmath::Quaternion;
     let mut run = true;
-    let mut compute_shadows = true;
+    let mut compute_shadows = false;
     let mut render_kind = RenderType::Textured;
 
     // sun pos
@@ -289,7 +289,7 @@ fn main() {
             //    line of sight
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             let pvm = perspective_matrix * view_matrix * model_matrix;
-            los.update_view(chunk_size, &pvm);
+            //los.update_view(chunk_size, &pvm);
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene
@@ -299,6 +299,7 @@ fn main() {
                 perspective: Into::<[[f32; 4]; 4]>::into(perspective_matrix),
                 view:        Into::<[[f32; 4]; 4]>::into(view_matrix),
                 model:       Into::<[[f32; 4]; 4]>::into(model_matrix),
+                pvm:         Into::<[[f32; 4]; 4]>::into(pvm),
                 light_space_matrix: Into::<[[f32; 4]; 4]>::into(light_space_matrix),
 
                 atlas_texture: &atlas_texture,
@@ -307,6 +308,7 @@ fn main() {
                 sun_pos:    Into::<[f32; 3]>::into(sun_pos),
                 cam_pos:    Into::<[f32; 3]>::into(cam.get_eye()),
                 shadows_enabled:   compute_shadows, 
+
                 height_map: &height_map,
                 height_size:    (size_x as u32, size_z as u32),
             };
@@ -314,7 +316,9 @@ fn main() {
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
-            surface.draw_with_indices_and_program(&new_terrain, &tess_prg, &uniforms);
+            //surface.draw_with_indices_and_program(&new_terrain, &tess_prg, &uniforms);
+            surface.draw_instanciated_with_indices_and_program(&new_terrain, new_terrain.get_tiles(), 
+                                                               &tess_prg, &uniforms);
             //surface.draw_instanciated_with_indices_and_program(&cube,
             //                                                   &instance_attr,
             //                                                   &program,
@@ -324,10 +328,11 @@ fn main() {
                 Preview::Height => {
                     surface.draw_overlay_quad(&quad,&height_map)
                 },
-                Preview::Los => {
-                    let losquad = lospreview.get_drawable(&ctx, &los);
-                    surface.draw_overlay_quad(&losquad, &height_map);
-                },
+                _ => {},
+                //Preview::Los => {
+                //    let losquad = lospreview.get_drawable(&ctx, &los);
+                //    surface.draw_overlay_quad(&losquad, &height_map);
+                //},
             };
             surface.gl_end();
         }

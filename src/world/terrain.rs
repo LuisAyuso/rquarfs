@@ -14,19 +14,40 @@ implement_vertex!(Vertex, position);
 // lets start with a grid.
 pub struct Terrain{
     vertices: VerticesT,
+    tiles: VerticesT,
     indices: IndicesT,
 }
 
 
 impl Terrain{
 
+    /// crate a terrain object of a certain dimmensions.
+    /// it will be tiled in 64x64 sized tiles (which is the maximun tessellation we can get with
+    /// resolution 1 to 1)
     pub fn new<F: glium::backend::Facade>(display: &F, width: u32, height: u32) -> Terrain {
  
         let vertices_buff = glium::VertexBuffer::new(display, &[
                Vertex { position: (   0, 0)}, 
-               Vertex { position: ( width,   0)}, 
-               Vertex { position: (   0, height)}, 
-               Vertex { position: ( width, height)}]);
+               Vertex { position: ( 64,   0)}, 
+               Vertex { position: (   0, 64)}, 
+               Vertex { position: ( 64, 64)}]);
+
+
+        #[derive(Copy, Clone, Debug)]
+        struct Tile {
+            tile_offset: (u32, u32),
+        }
+        implement_vertex!(Tile, tile_offset);
+
+
+        let mut data: Vec<Tile> = Vec::new();
+        for i in 0..width/64{
+            for j in 0..width/64{
+                data.push(Tile{ tile_offset: (i,j)});
+            }
+        }
+
+        let tiles = glium::vertex::VertexBuffer::dynamic(display, &data);
 
 
         let indices = glium::IndexBuffer::new(display,
@@ -35,10 +56,14 @@ impl Terrain{
 
         Terrain{
             vertices: vertices_buff.unwrap().into(),
+            tiles: tiles.unwrap().into(),
             indices: indices.unwrap().into(),
         }
     }
 
+    pub fn get_tiles(&self) -> &VerticesT{
+        &self.tiles
+    }
 }
 
 
