@@ -11,6 +11,8 @@ Do not expect fancy techniques, I am happy with having some cubes on screen.
     - [ ] improve error reporting
     - [ ] add common text (uniforms and shading version)
 - [x] tessellated terrain. 
-    - [ ] fix issue with the two triangles, one up, one down. (is there a way to identify triangles from the same primitive quad?)
+    - [x] fix issue with the two triangles, one up, one down. (is there a way to identify triangles from the same primitive quad?) dot product to the rescue!
+    - [ ] create side quads. end the cubes.
+- [ ] feedback buffer. we dont want to tessellate all the time, some oclusion would be nice
 
 

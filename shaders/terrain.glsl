@@ -53,6 +53,8 @@ uniform uvec2 screen_size;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 vec4 project(vec4 vertex){
+    vec2 texcoord = vec2(vertex.x / height_size.x, vertex.z / height_size.y);
+    vertex.y = int(texture(height_map, texcoord).r *256);
     vec4 result = pvm * vertex;
     result /= result.w;
     return result;
@@ -68,13 +70,8 @@ bool offscreen(vec4 vertex){
     );  
 }
 
-float distance_to_camera(vec4 position){
-	// elevate
-    // interpolated 
-    vec2 texcoord = vec2(position.x / height_size.x, position.z / height_size.y);
-    position.y = int(texture(height_map, texcoord).r *256);
-
-	return clamp(distance(position.xyz, cam_pos) / 1000.0, 0.0, 1.0);
+float distance_to_camera(vec4 vertex){
+	return clamp(distance(vertex.xyz, cam_pos) / 1000.0, 0.0, 1.0);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -154,7 +151,7 @@ uniform uvec2 height_size;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-out float height; 
+out float te_height; 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -178,7 +175,7 @@ void main() {
     vec2 texcoord = vec2(position.x / height_size.x, position.z / height_size.y);
     int tmp = int(texture(height_map, texcoord).r *256);
 
-    position.y = height = float(tmp);
+    position.y = float(tmp);
     gl_Position = vec4(position.xyz,1.0);
 }
 
@@ -188,7 +185,7 @@ void main() {
 #version 410 core
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=3) out;
+layout(triangle_strip, max_vertices=15) out;
 
 uniform mat4 perspective;
 uniform mat4 view;
@@ -201,28 +198,115 @@ uniform sampler2D shadow_texture;
 uniform vec3 cam_pos;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-in float height[];
+out vec4 gs_color;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const float PI = 3.1415926535897932384626433832795;
 
 void main() {
     vec4 pos0 =  gl_in[0].gl_Position;
     vec4 pos1 =  gl_in[1].gl_Position;
     vec4 pos2 =  gl_in[2].gl_Position;
 
-    float a = pos0.y;
-    float b = pos1.y;
-    float c = pos2.y;
+    float h0 = pos0.y;
+    float h1 = pos1.y;
+    float h2 = pos2.y;
 
-    float h = height[0];
+	// we identify the common corner, and take the height from there
+	// angle must not be 90, we look for the 45 ones
+	//      a --- b
+	//      |   /
+	//      |  /
+	//      | /
+	//      c
+	// geting height value from a may not match the complementary triangle height.
+	// by getting the max between b and c, we can make sure that the complementary 
+	// triangle will be at the same level
+	float angle0 = dot( normalize(pos2.xz-pos0.xz), normalize(pos1.xz-pos0.xz) );
+	float angle1 = dot( normalize(pos2.xz-pos1.xz), normalize(pos0.xz-pos1.xz) );
+	float angle2 = dot( normalize(pos0.xz-pos2.xz), normalize(pos1.xz-pos2.xz) );
+
+	float ha = angle0 > 0? h0: max(h1,h2);
+	float hb = angle1 > 0? h1: max(h0,h2);
+
+	float h = max(ha, hb);
+
+	// this will be cap triangle.
     pos0.y = pos1.y = pos2.y = h;
 
     gl_Position = pvm * pos0;
+	gs_color = vec4(1.0, 0.0, 0.0, 1.0);
     EmitVertex();
     gl_Position = pvm * pos1;
+	gs_color = vec4(0.0, 1.0, 0.0, 1.0);
     EmitVertex();
     gl_Position = pvm * pos2;
+	gs_color = vec4(0.0, 0.0, 1.0, 1.0);
     EmitVertex();
+
+
+	// we emit four extra triangles to finish the caps (two faces per cap triangle)
+//	{
+//		vec4 origin = angle0 == 0? pos0: angle1 == 0? pos1: pos2;
+//		vec4 origin2 = origin;
+//		origin2.y = angle0 == 0? h0: angle1 == 0? h1: h2;
+//
+//		gl_Position = pvm * origin;
+//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * pos1;
+//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * origin2;
+//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
+//		EmitVertex();
+//
+//
+//		vec4 bottom = pos1;
+//		bottom.y = origin2.y;
+//
+//		gl_Position = pvm * origin2;
+//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * bottom;
+//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * pos1;
+//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+//		EmitVertex();
+//	}
+
+	// we emit four extra triangles to finish the caps (two faces per cap triangle)
+	{
+//		vec4 origin = angle0 == 0? pos0: angle1 == 0? pos1: pos2;
+//		vec4 origin2 = origin;
+//		origin.y = h;
+//
+//		gl_Position = pvm * origin2;
+//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * origin;
+//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * pos2;
+//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+//		EmitVertex();
+//
+//
+//		vec4 bottom = pos2;
+//		bottom.y = origin2.y;
+//
+//		gl_Position = pvm * origin2;
+//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * bottom;
+//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
+//		EmitVertex();
+//		gl_Position = pvm * pos0;
+//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+//		EmitVertex();
+	}
+
 
     EndPrimitive();
 }
@@ -243,7 +327,13 @@ uniform sampler2D shadow_texture;
 uniform vec3 cam_pos;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+in vec4 gs_color; 
 out vec4 color; 
 void main() {
-    color = vec4(0.0, 0.0, 0.0, 0.0);
+
+    //vec3 coolColorMod = u_coolColor + u_objectColor * u_alpha;
+	//vec3 warmColorMod = u_warmColor + u_objectColor * u_beta;
+
+	color = gs_color;
+    //color = vec4(0.0, 0.0, 0.0, 0.0);
 }
