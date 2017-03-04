@@ -68,6 +68,10 @@ impl Context {
         self.height = h;
         //      TODO: change here the perspective matrix (which should be owned by ctx)
     }
+
+    pub fn get_size(&self) -> (u32, u32){
+        (self.width, self.height)
+    }
 } // context
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

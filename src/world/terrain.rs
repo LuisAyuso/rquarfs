@@ -10,8 +10,7 @@ implement_vertex!(Vertex, position);
 // ~~~~~~~~~~
 
 
-// the idea here is to create a tessellation terrain,
-// lets start with a grid.
+/// The idea here is to create a tessellation terrain,
 pub struct Terrain{
     vertices: VerticesT,
     tiles: VerticesT,
@@ -27,9 +26,9 @@ impl Terrain{
     pub fn new<F: glium::backend::Facade>(display: &F, width: u32, height: u32) -> Terrain {
  
         let vertices_buff = glium::VertexBuffer::new(display, &[
-               Vertex { position: (   0, 0)}, 
-               Vertex { position: ( 64,   0)}, 
-               Vertex { position: (   0, 64)}, 
+               Vertex { position: (  0,  0)}, 
+               Vertex { position: ( 64,  0)}, 
+               Vertex { position: (  0, 64)}, 
                Vertex { position: ( 64, 64)}]);
 
 

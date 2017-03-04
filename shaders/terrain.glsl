@@ -11,10 +11,7 @@ uniform mat4 light_space_matrix;
 
 uniform sampler2D atlas_texture;
 uniform sampler2D shadow_texture;
-uniform uint atlas_side;
-uniform vec3 sun_pos;
 uniform vec3 cam_pos;
-uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -41,31 +38,97 @@ layout (vertices = 4) out;
 uniform mat4 perspective;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 pvm;
 uniform mat4 light_space_matrix;
 
 uniform sampler2D atlas_texture;
 uniform sampler2D shadow_texture;
-uniform uint atlas_side;
-uniform vec3 sun_pos;
+
+uniform sampler2D height_map;
+uniform uvec2 height_size;
+
 uniform vec3 cam_pos;
-uniform bool shadows_enabled;
+uniform uvec2 screen_size;
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+vec4 project(vec4 vertex){
+    vec4 result = pvm * vertex;
+    result /= result.w;
+    return result;
+}
+
+bool offscreen(vec4 vertex){
+    if(vertex.z < -0.5){
+        return true;
+    }   
+    return any(
+        lessThan(vertex.xy, vec2(-1.7)) ||
+        greaterThan(vertex.xy, vec2(1.7))
+    );  
+}
+
+float distance_to_camera(vec4 position){
+	// elevate
+    // interpolated 
+    vec2 texcoord = vec2(position.x / height_size.x, position.z / height_size.y);
+    position.y = int(texture(height_map, texcoord).r *256);
+
+	return clamp(distance(position.xyz, cam_pos) / 1000.0, 0.0, 1.0);
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void main()
 {
-	 gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+     #define ID gl_InvocationID
+	 gl_out[ID].gl_Position = gl_in[ID].gl_Position;
 
-    if (gl_InvocationID == 0) {
+    if (ID == 0) {
+         vec4 v0 = project(gl_in[0].gl_Position);
+         vec4 v1 = project(gl_in[1].gl_Position);
+         vec4 v2 = project(gl_in[2].gl_Position);
+         vec4 v3 = project(gl_in[3].gl_Position);
 
-        gl_TessLevelInner[0] = 64;
-        gl_TessLevelInner[1] = 64;
+       // gl_TessLevelInner[0] = 64;
+       // gl_TessLevelInner[1] = 64;
 
-        gl_TessLevelOuter[0] = 64;
-        gl_TessLevelOuter[1] = 64;
-        gl_TessLevelOuter[2] = 64;
-        gl_TessLevelOuter[3] = 64;
-    }
+       // gl_TessLevelOuter[0] = 64;
+       // gl_TessLevelOuter[1] = 64;
+       // gl_TessLevelOuter[2] = 64;
+       // gl_TessLevelOuter[3] = 64;
+
+		if(all(bvec4(offscreen(v0), offscreen(v1), 
+		offscreen(v2), offscreen(v3))))
+		{
+			gl_TessLevelInner[0] = 0;
+			gl_TessLevelInner[1] = 0;
+			gl_TessLevelOuter[0] = 0;
+			gl_TessLevelOuter[1] = 0;
+			gl_TessLevelOuter[2] = 0;
+			gl_TessLevelOuter[3] = 0;
+		}
+		else
+		{
+			float d0 = distance_to_camera(v0);
+			float d1 = distance_to_camera(v0);
+			float d2 = distance_to_camera(v0);
+			float d3 = distance_to_camera(v0);
+
+			float dist = min(d0, min(d1, min(d2, d3)));
+
+
+			float level = mix(8, 0, dist);
+
+
+			gl_TessLevelInner[0] = 1<<int(level);
+			gl_TessLevelInner[1] = 1<<int(level);
+			gl_TessLevelOuter[0] = 1<<int(level);
+			gl_TessLevelOuter[1] = 1<<int(level);
+			gl_TessLevelOuter[2] = 1<<int(level);
+			gl_TessLevelOuter[3] = 1<<int(level);
+		}
+	}
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,10 +148,7 @@ uniform mat4 light_space_matrix;
 
 uniform sampler2D atlas_texture;
 uniform sampler2D shadow_texture;
-uniform uint atlas_side;
-uniform vec3 sun_pos;
 uniform vec3 cam_pos;
-uniform bool shadows_enabled;
 uniform sampler2D height_map;
 uniform uvec2 height_size;
 
@@ -116,11 +176,7 @@ void main() {
 
     // interpolated 
     vec2 texcoord = vec2(position.x / height_size.x, position.z / height_size.y);
-    int tmp = int(texture(height_map, texcoord).r *128);
-
-    // fetch one texel... this is more like it but is not working
-    //ivec2 texcoord = ivec2(position.x / height_size.x, position.z / height_size.y);
-    //int tmp = int(texelFetch(height_map, texcoord,1).r *128);
+    int tmp = int(texture(height_map, texcoord).r *256);
 
     position.y = height = float(tmp);
     gl_Position = vec4(position.xyz,1.0);
@@ -137,14 +193,13 @@ layout(triangle_strip, max_vertices=3) out;
 uniform mat4 perspective;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 pvm;
 uniform mat4 light_space_matrix;
 
 uniform sampler2D atlas_texture;
 uniform sampler2D shadow_texture;
-uniform uint atlas_side;
-uniform vec3 sun_pos;
 uniform vec3 cam_pos;
-uniform bool shadows_enabled;
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 in float height[];
 
@@ -159,14 +214,14 @@ void main() {
     float b = pos1.y;
     float c = pos2.y;
 
-    float h = max(height[0], max(height[1], height[2]));
+    float h = height[0];
     pos0.y = pos1.y = pos2.y = h;
 
-    gl_Position = perspective * view * model * pos0;
+    gl_Position = pvm * pos0;
     EmitVertex();
-    gl_Position = perspective * view * model * pos1;
+    gl_Position = pvm * pos1;
     EmitVertex();
-    gl_Position = perspective * view * model * pos2;
+    gl_Position = pvm * pos2;
     EmitVertex();
 
     EndPrimitive();
@@ -185,10 +240,7 @@ uniform mat4 light_space_matrix;
 
 uniform sampler2D atlas_texture;
 uniform sampler2D shadow_texture;
-uniform uint atlas_side;
-uniform vec3 sun_pos;
 uniform vec3 cam_pos;
-uniform bool shadows_enabled;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 out vec4 color; 

@@ -63,7 +63,6 @@ fn main() {
     println!("load atlas:");
     let atlas = img_atlas::load_atlas("tex_pack").unwrap();
     //let atlas = img_atlas::load_atlas("test/atlas2").unwrap();
-    let atlas_count = atlas.count;
     let atlas_side = atlas.side;
     let image_dimensions = atlas.image.dimensions();
     let image = glium::texture::RawImage2d::from_raw_rgba(atlas.image.into_raw(), image_dimensions);
@@ -127,7 +126,7 @@ fn main() {
     //    let data = translations.iter()
     //        .map(|pos| {
 
-    //            let tex_id = rng.gen_range(0, atlas_count);
+    //            let tex_id = rng.gen_range(0, atlas.count);
     //            count += 1;
     //            let i_off = ((tex_id / atlas_side) as f32) / atlas_side as f32;
     //            let j_off = ((tex_id % atlas_side) as f32) / atlas_side as f32;
@@ -177,7 +176,7 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // generate camera...
-    let eye = Point3::new(10.0, 90.0, 150.0);
+    let eye = Point3::new(10.0, 90.0, 250.0);
     let looking = Point3::new(0.0, 0.0, 0.0); // Point3::new(0.0, 0.0, -10.0);
     let mut cam = camera::Camera::new(eye, looking);
 
@@ -311,6 +310,8 @@ fn main() {
 
                 height_map: &height_map,
                 height_size:    (size_x as u32, size_z as u32),
+
+                screen_size: ctx.get_size(),
             };
 
 
