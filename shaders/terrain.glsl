@@ -185,7 +185,7 @@ void main() {
 #version 410 core
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=15) out;
+layout(triangle_strip, max_vertices=18) out;
 
 uniform mat4 perspective;
 uniform mat4 view;
@@ -204,13 +204,16 @@ out vec4 gs_color;
 const float PI = 3.1415926535897932384626433832795;
 
 void main() {
-    vec4 pos0 =  gl_in[0].gl_Position;
-    vec4 pos1 =  gl_in[1].gl_Position;
-    vec4 pos2 =  gl_in[2].gl_Position;
 
-    float h0 = pos0.y;
-    float h1 = pos1.y;
-    float h2 = pos2.y;
+	vec4 pos[3] = vec4[](
+                 gl_in[0].gl_Position,
+                 gl_in[1].gl_Position,
+                 gl_in[2].gl_Position
+				 );
+
+    float h0 = pos[0].y;
+    float h1 = pos[1].y;
+    float h2 = pos[2].y;
 
 	// we identify the common corner, and take the height from there
 	// angle must not be 90, we look for the 45 ones
@@ -222,93 +225,93 @@ void main() {
 	// geting height value from a may not match the complementary triangle height.
 	// by getting the max between b and c, we can make sure that the complementary 
 	// triangle will be at the same level
-	float angle0 = dot( normalize(pos2.xz-pos0.xz), normalize(pos1.xz-pos0.xz) );
-	float angle1 = dot( normalize(pos2.xz-pos1.xz), normalize(pos0.xz-pos1.xz) );
-	float angle2 = dot( normalize(pos0.xz-pos2.xz), normalize(pos1.xz-pos2.xz) );
+	float angle0 = dot( normalize(pos[2].xz-pos[0].xz), normalize(pos[1].xz-pos[0].xz) );
+	float angle1 = dot( normalize(pos[2].xz-pos[1].xz), normalize(pos[0].xz-pos[1].xz) );
+	float angle2 = dot( normalize(pos[0].xz-pos[2].xz), normalize(pos[1].xz-pos[2].xz) );
 
+	// compute the heght of the lowest corner
 	float ha = angle0 > 0? h0: max(h1,h2);
 	float hb = angle1 > 0? h1: max(h0,h2);
-
 	float h = max(ha, hb);
+	float depth  = min(h0, min(h1, h2));
 
 	// this will be cap triangle.
-    pos0.y = pos1.y = pos2.y = h;
+    pos[0].y = pos[1].y = pos[2].y = h;
 
-    gl_Position = pvm * pos0;
-	gs_color = vec4(1.0, 0.0, 0.0, 1.0);
-    EmitVertex();
-    gl_Position = pvm * pos1;
-	gs_color = vec4(0.0, 1.0, 0.0, 1.0);
-    EmitVertex();
-    gl_Position = pvm * pos2;
-	gs_color = vec4(0.0, 0.0, 1.0, 1.0);
-    EmitVertex();
+	// whatever we do, we do not want to draw a trinagle starting by the 90 degrees corner
+	// we want the second vertex to be the right angle. This makes easyier to render the 
+	// side faces
+	uint begin = angle0 == 0? 2: angle1 == 0? 0: 1;
 
-
-	// we emit four extra triangles to finish the caps (two faces per cap triangle)
-//	{
-//		vec4 origin = angle0 == 0? pos0: angle1 == 0? pos1: pos2;
-//		vec4 origin2 = origin;
-//		origin2.y = angle0 == 0? h0: angle1 == 0? h1: h2;
-//
-//		gl_Position = pvm * origin;
-//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * pos1;
-//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * origin2;
-//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
-//		EmitVertex();
-//
-//
-//		vec4 bottom = pos1;
-//		bottom.y = origin2.y;
-//
-//		gl_Position = pvm * origin2;
-//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * bottom;
-//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * pos1;
-//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
-//		EmitVertex();
-//	}
-
-	// we emit four extra triangles to finish the caps (two faces per cap triangle)
 	{
-//		vec4 origin = angle0 == 0? pos0: angle1 == 0? pos1: pos2;
-//		vec4 origin2 = origin;
-//		origin.y = h;
-//
-//		gl_Position = pvm * origin2;
-//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * origin;
-//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * pos2;
-//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
-//		EmitVertex();
-//
-//
-//		vec4 bottom = pos2;
-//		bottom.y = origin2.y;
-//
-//		gl_Position = pvm * origin2;
-//		gs_color = vec4(0.5, 0.0, 0.0, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * bottom;
-//		gs_color = vec4(0.0, 0.0, 0.5, 1.0);
-//		EmitVertex();
-//		gl_Position = pvm * pos0;
-//		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
-//		EmitVertex();
-	}
-
-
+		gl_Position = pvm * pos[begin];
+		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
+		EmitVertex();
+		gl_Position = pvm * pos[(begin +1) %3];  // this must be the right angle
+		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
+		EmitVertex();
+		gl_Position = pvm * pos[(begin +2) %3];
+		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
+		EmitVertex();
     EndPrimitive();
+	}
+	{
+		vec4 origin_u = pos[(begin +1) %3];;
+		vec4 origin_d = origin_u;
+		origin_d.y = depth; 
+
+		vec4 first_u = pos[begin];;
+		vec4 first_d = first_u;
+		first_d.y = depth; 
+
+		vec4 last_u = pos[(begin+2)%3];;
+		vec4 last_d = last_u;
+		last_d.y = depth; 
+
+		gl_Position = pvm * first_u;
+		gs_color = vec4(0.1, 0.4, 0.0, 1.0);
+		EmitVertex();
+		gl_Position = pvm * first_d;
+		gs_color = vec4(0.1, 0.4, 0.0, 1.0);
+		EmitVertex();
+		gl_Position = pvm * origin_d;
+		gs_color = vec4(0.1, 0.4, 0.0, 1.0);
+		EmitVertex();
+    EmitVertex();
+
+		gl_Position = pvm * first_u;
+		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+		EmitVertex();
+		gl_Position = pvm * origin_d;
+		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+		EmitVertex();
+		gl_Position = pvm * origin_u;
+		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+		EmitVertex();
+    EmitVertex();
+
+		gl_Position = pvm * last_u;
+		gs_color = vec4(0.1, 0.1, 0.6, 1.0);
+		EmitVertex();
+		gl_Position = pvm * origin_u;
+		gs_color = vec4(0.1, 0.1, 0.6, 1.0);
+		EmitVertex();
+		gl_Position = pvm * origin_d;
+		gs_color = vec4(0.1, 0.1, 0.6, 1.0);
+		EmitVertex();
+    EmitVertex();
+
+		gl_Position = pvm * last_u;
+		gs_color = vec4(0.0, 0.0, 0.6, 1.0);
+		EmitVertex();
+		gl_Position = pvm * origin_d;
+		gs_color = vec4(0.0, 0.0, 0.6, 1.0);
+		EmitVertex();
+		gl_Position = pvm * last_d;
+		gs_color = vec4(0.0, 0.0, 0.6, 1.0);
+		EmitVertex();
+    EmitVertex();
+	}
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
