@@ -185,7 +185,7 @@ void main() {
 #version 410 core
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=18) out;
+layout(triangle_strip, max_vertices=7) out;
 
 uniform mat4 perspective;
 uniform mat4 view;
@@ -201,7 +201,6 @@ uniform vec3 cam_pos;
 out vec4 gs_color;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-const float PI = 3.1415926535897932384626433832795;
 
 void main() {
 
@@ -244,18 +243,6 @@ void main() {
 	uint begin = angle0 == 0? 2: angle1 == 0? 0: 1;
 
 	{
-		gl_Position = pvm * pos[begin];
-		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
-		EmitVertex();
-		gl_Position = pvm * pos[(begin +1) %3];  // this must be the right angle
-		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
-		EmitVertex();
-		gl_Position = pvm * pos[(begin +2) %3];
-		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
-		EmitVertex();
-    EndPrimitive();
-	}
-	{
 		vec4 origin_u = pos[(begin +1) %3];;
 		vec4 origin_d = origin_u;
 		origin_d.y = depth; 
@@ -268,50 +255,29 @@ void main() {
 		vec4 last_d = last_u;
 		last_d.y = depth; 
 
-		gl_Position = pvm * first_u;
-		gs_color = vec4(0.1, 0.4, 0.0, 1.0);
-		EmitVertex();
 		gl_Position = pvm * first_d;
-		gs_color = vec4(0.1, 0.4, 0.0, 1.0);
+		gs_color = vec4(0.8, 0.0, 0.0, 1.0);
 		EmitVertex();
 		gl_Position = pvm * origin_d;
-		gs_color = vec4(0.1, 0.4, 0.0, 1.0);
+		gs_color = vec4(0.0, 0.8, 0.0, 1.0);
 		EmitVertex();
-    EmitVertex();
-
 		gl_Position = pvm * first_u;
-		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
-		EmitVertex();
-		gl_Position = pvm * origin_d;
-		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+		gs_color = vec4(0.0, 0.0, 0.8, 1.0);
 		EmitVertex();
 		gl_Position = pvm * origin_u;
-		gs_color = vec4(0.0, 0.5, 0.0, 1.0);
+		gs_color = vec4(0.8, 0.8, 0.0, 1.0);
 		EmitVertex();
-    EmitVertex();
-
 		gl_Position = pvm * last_u;
-		gs_color = vec4(0.1, 0.1, 0.6, 1.0);
-		EmitVertex();
-		gl_Position = pvm * origin_u;
-		gs_color = vec4(0.1, 0.1, 0.6, 1.0);
+		gs_color = vec4(0.8, 0.8, 0.8, 1.0);
 		EmitVertex();
 		gl_Position = pvm * origin_d;
-		gs_color = vec4(0.1, 0.1, 0.6, 1.0);
-		EmitVertex();
-    EmitVertex();
-
-		gl_Position = pvm * last_u;
-		gs_color = vec4(0.0, 0.0, 0.6, 1.0);
-		EmitVertex();
-		gl_Position = pvm * origin_d;
-		gs_color = vec4(0.0, 0.0, 0.6, 1.0);
+		gs_color = vec4(0.0, 0.8, 0.0, 1.0);
 		EmitVertex();
 		gl_Position = pvm * last_d;
-		gs_color = vec4(0.0, 0.0, 0.6, 1.0);
+		gs_color = vec4(0.0, 0.0, 0.0, 1.0);
 		EmitVertex();
-    EmitVertex();
 	}
+    EndPrimitive();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
