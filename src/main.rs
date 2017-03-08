@@ -183,6 +183,12 @@ fn main() {
                                                                texture::MipmapsOption::NoMipmap,
                                                                 h, w).unwrap();
 
+
+
+    let mut framebuffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
+                                                                                   &texture, 
+                                                                                   &depth).unwrap();
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -267,10 +273,6 @@ fn main() {
             use renderer::context::DrawIndexed;
             use renderer::context::Program;
             use glium::Surface;
-
-            let mut framebuffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
-                                                                                           &texture, 
-                                                                                           &depth).unwrap();
             
             let parameters =  glium::DrawParameters {
                 backface_culling: glium::BackfaceCullingMode::CullClockwise,
@@ -283,15 +285,12 @@ fn main() {
                 ..Default::default()
             };
 
-
-            framebuffer.clear_color(0.0, 0.0, 0.0, 0.0);
-            framebuffer.clear_depth(1.0);
+            framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
             framebuffer.draw((new_terrain.get_vertices(), new_terrain.get_tiles().per_instance().unwrap()), 
                       new_terrain.get_indices(),
                       tess_prg.get_program(),
                       &uniforms,
                       &parameters).unwrap();
-
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
@@ -305,18 +304,18 @@ fn main() {
             match preview {
                 //Preview::Shadow => surface.draw_overlay_quad(&quad, shadow_maker.depth_as_texture()),
                 Preview::Shadow => {
-                    surface.draw_overlay_quad(&quad,&texture)
+                    surface.draw_overlay_quad(&quad,&texture, false)
                 }
                 Preview::Height => {
-                    surface.draw_overlay_quad(&quad,&height_map)
+                    surface.draw_overlay_quad(&quad,&height_map, false)
                 },
                 Preview::Depth => {
-                    surface.draw_overlay_quad(&quad, &depth);
+                    surface.draw_overlay_quad(&quad, &depth, true);
                   //  let losquad = lospreview.get_drawable(&ctx, &los);
                   //  surface.draw_overlay_quad(&losquad, &height_map);
                 },
                 Preview::Color => {
-                    surface.draw_overlay_quad(&quad, &color_map)
+                    surface.draw_overlay_quad(&quad, &color_map, false)
                 },
                 _ => {},
             };
@@ -389,15 +388,15 @@ fn main() {
 
 
             ctx.get_size();
-            texture = texture::Texture2d::empty_with_format(ctx.display(),
-                                                            texture::UncompressedFloatFormat::F32,
-                                                            texture::MipmapsOption::NoMipmap,
-                                                            h, w).unwrap();
+     //       texture = texture::Texture2d::empty_with_format(ctx.display(),
+     //                                                       texture::UncompressedFloatFormat::F32,
+     //                                                       texture::MipmapsOption::NoMipmap,
+     //                                                       h, w).unwrap();
 
-            depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
-                                                               texture::DepthFormat::F32,
-                                                               texture::MipmapsOption::NoMipmap,
-                                                                h, w).unwrap();
+     //       depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
+     //                                                          texture::DepthFormat::F32,
+     //                                                          texture::MipmapsOption::NoMipmap,
+     //                                                           h, w).unwrap();
         }
 
     }, 10); // refresh every 10 secs

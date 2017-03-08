@@ -168,7 +168,7 @@ impl<'a> DrawSurface<'a> {
         }
     }
 
-    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T)  
+    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T, is_depth: bool)  
         where O: DrawItem + Program,
               T: glium::uniforms::AsUniformValue
     {
@@ -179,6 +179,7 @@ impl<'a> DrawSurface<'a> {
         // generate uniforms because i doint know how to return the uniforms type
         let quad_uniforms = uniform! {
             quad_texture: texture,
+            is_depth: is_depth,
         };
 
         self.target
