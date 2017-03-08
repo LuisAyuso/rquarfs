@@ -159,8 +159,9 @@ layout(triangle_strip, max_vertices=7) out;
 uniform mat4 pvm;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//
+
 out vec4 gs_color;
+out vec2 gs_coordinates;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -233,30 +234,37 @@ void main() {
 
             gl_Position = pvm * first_d;
             gs_color = vec4(0.8, 0.0, 0.0, 1.0);
-//            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_coordinates = first_d.xz;
+            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
             gl_Position = pvm * origin_d;
             gs_color = vec4(0.0, 0.8, 0.0, 1.0);
+            gs_coordinates = origin_d.xz;
  //           gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
             gl_Position = pvm * first_u;
             gs_color = vec4(0.0, 0.0, 0.8, 1.0);
+            gs_coordinates = first_u.xz;
 //            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
             gl_Position = pvm * origin_u;
             gs_color = vec4(0.8, 0.8, 0.0, 1.0);
+            gs_coordinates = origin_u.xz;
 //            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
             gl_Position = pvm * last_u;
             gs_color = vec4(0.8, 0.8, 0.8, 1.0);
+            gs_coordinates = last_u.xz;
 //            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
             gl_Position = pvm * origin_d;
             gs_color = vec4(0.0, 0.8, 0.0, 1.0);
+            gs_coordinates = origin_d.xz;
 //            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
             gl_Position = pvm * last_d;
             gs_color = vec4(0.0, 0.0, 0.0, 1.0);
+            gs_coordinates = last_d.xz;
 //            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
             EmitVertex();
         }
@@ -265,12 +273,15 @@ void main() {
     else
     {
             gl_Position = pvm * pos[0];
+            gs_coordinates = pos[0].xz;
             gs_color = vec4(0.8, 0.0, 0.0, 1.0);
             EmitVertex();
             gl_Position = pvm * pos[1];
+            gs_coordinates = pos[1].xz;
             gs_color = vec4(0.0, 0.8, 0.0, 1.0);
             EmitVertex();
             gl_Position = pvm * pos[2];
+            gs_coordinates = pos[2].xz;
             gs_color = vec4(0.0, 0.0, 0.8, 1.0);
             EmitVertex();
     }
@@ -282,14 +293,21 @@ void main() {
 
 #version 410 core
 
+uniform sampler2D color_map;
+uniform uvec2 height_size;
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 in vec4 gs_color; 
+in vec2 gs_coordinates; 
+
 out vec4 color; 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void main() {
+    vec2 texcoord = vec2(gs_coordinates.x / height_size.x, gs_coordinates.y / height_size.y);
+    color = texture(color_map, texcoord);
 
-	color = gs_color;
+	//color = gs_color;
 }

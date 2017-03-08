@@ -53,34 +53,6 @@ impl TexQuad {
 
         let program = ProgramReloader::new(ctx.display(),"tex_quad").unwrap();
 
-    //    let quad_program =
-    //        glium::Program::from_source(ctx.display(),
-    //        // vertex shader
-    //        r#"
-    //            #version 140
-    //            in vec2 position;
-    //            in vec2 tex_coords;   
-
-    //            smooth out vec2 coords;
-
-    //            void main() {
-    //                gl_Position = vec4(position,0.0, 1.0); 
-    //                coords = tex_coords;
-    //            }
-    //        "#, 
-    //        //fragment shader
-    //        r#"
-    //            #version 140
-    //            uniform sampler2D quad_texture;
-    //            smooth in vec2 coords;
-    //            out vec4 frag_color;
-
-    //            void main() {
-    //                frag_color = texture(quad_texture, coords);
-    //                frag_color = vec4(coords, 0.0, 1.0);
-    //            }
-    //        "#, None).unwrap();
-
         TexQuad {
             quad_program: program,
             quad_buffer: quad_buffer.unwrap().into(),

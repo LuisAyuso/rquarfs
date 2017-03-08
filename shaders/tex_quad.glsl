@@ -19,6 +19,7 @@ void main() {
 
 #version 140
 uniform sampler2D quad_texture;
+
 smooth in vec2 coords;
 out vec4 frag_color;
 
