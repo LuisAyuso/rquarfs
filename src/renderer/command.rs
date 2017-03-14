@@ -3,13 +3,28 @@ use std::marker::PhantomData;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-trait Command<Context>{
+/// the command trait, this is it.
+/// an object which can execute a routine in an given context.
+/// the context is not keept inside of the command to avoid long borrowing.
+/// instead is passed to each command invocation.
+/// The current command has a mutable reference as context, the outcome of the
+/// command should be able to change the state of the application
+pub trait Command<Context>{
     fn exec(&self, ctx : &mut Context);
+}
+
+/// a command which is payload aware is the one which can be queried for it.
+/// the payload can be used to sort the commands
+pub trait PayloadAware<Payload>{
+    fn get_payload(&self) -> &Payload;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-struct CommandPayload<F, Context, Payload>
+/// one flavour of the command interface is a Command which captures a closure.
+/// yes, it is like a lambda, but we do not want to use a lambda to have later
+/// access to the payload object. This payload can be used to sort the commands
+pub struct CommandPayload<F, Context, Payload>
 where F : Fn(&mut Context, &Payload)  -> ()
 {
    func : F,
@@ -17,10 +32,8 @@ where F : Fn(&mut Context, &Payload)  -> ()
    ghost: PhantomData<Context>,
 }
 
-
 impl<F, Context, Payload> CommandPayload<F, Context, Payload>
-where F : Fn(&mut Context, &Payload)  -> (),
-{
+where F : Fn(&mut Context, &Payload)  -> () {
     fn new (func : F, payload: Payload) -> CommandPayload<F, Context, Payload> {
         CommandPayload{
             func: func,
@@ -31,25 +44,31 @@ where F : Fn(&mut Context, &Payload)  -> (),
 }
 
 impl<F, Context, Payload> Command<Context> for CommandPayload<F, Context, Payload>
-where F : Fn(&mut Context, &Payload)  -> (),
-{
+where F : Fn(&mut Context, &Payload)  -> () {
     fn exec (&self, x : &mut Context){
         (self.func)(x, &self.payload);
     }
 }
+
+impl<F, Context, Payload> PayloadAware<Payload> for CommandPayload<F, Context, Payload> 
+where F : Fn(&mut Context, &Payload)  -> () {
+    fn get_payload(&self) -> &Payload {
+        &self.payload
+    }
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+/// another flavour of command is one with no payload. This one keeps a closure
+/// and we have no introspection on the state it capures.
 struct CommandNoPayload<F, Context>
-where F : Fn(&mut Context)  -> ()
-{
+where F : Fn(&mut Context)  -> () {
    func : F,
    ghost: PhantomData<Context>,
 }
 
-
 impl<F, Context> CommandNoPayload<F, Context>
-where F : Fn(&mut Context)  -> (),
-{
+where F : Fn(&mut Context)  -> () {
     fn new (func : F) -> CommandNoPayload<F, Context> {
         CommandNoPayload{
             func: func,
@@ -59,8 +78,7 @@ where F : Fn(&mut Context)  -> (),
 }
 
 impl<F, Context> Command<Context> for CommandNoPayload<F, Context>
-where F : Fn(&mut Context)  -> (),
-{
+where F : Fn(&mut Context)  -> () {
     fn exec (&self, x : &mut Context){
         (self.func)(x);
     }
@@ -68,13 +86,14 @@ where F : Fn(&mut Context)  -> (),
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/// helper macro, 
 /// it assist us to generate the right syntax for the commands.
 macro_rules! command{
     (ctx_type : $ctx:ty => $id1:ident, execute : $body:stmt) => {CommandNoPayload::new(move |$id1: &mut $ctx|{$body})};
     (ctx_type : $ctx:ty => $id1:ident, payload:$payload:expr => $id2:ident, execute : $body:stmt) => 
                 {CommandPayload::new(move |$id1: &mut $ctx, ref $id2|{$body}, $payload)};
 }
+
+/// another helper to generate Boxes for the commands
 macro_rules! command_box{
     (ctx_type : $ctx:ty => $id1:ident, execute : $body:stmt) => {Box::new(command!(ctx_type:$ctx => $id1, execute: $body))};
     (ctx_type : $ctx:ty => $id1:ident, payload:$payload:expr => $id2:ident, execute : $body:stmt) => 
@@ -228,5 +247,18 @@ mod tests {
         let b = 1.1;
         let cmd3 = command_box!(ctx_type:u32 => ctx, payload:(a,b) => pay, execute:{println!("hello {:?}", pay);});
         cmd3.exec(&mut u);
+    }
+    #[test]
+    fn payload() {
+        let mut u = 1 as u32;
+        let a = 1;
+        let b = 1.1;
+        let cmd = command!(ctx_type:u32 => ctx, 
+                           payload:(a,b) => pay, 
+                           execute: println!("hello {:?}", pay) );
+        cmd.exec(&mut u);
+        let &(x,y) = cmd.get_payload();
+        assert_eq!(x, 1);
+        assert_eq!(y, 1.1);
     }
 }
