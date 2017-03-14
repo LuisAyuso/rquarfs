@@ -30,8 +30,8 @@ impl Context {
             display_ptr: glium::glutin::WindowBuilder::new()
                         .with_title("Quarfs!")
                         .with_dimensions(width, height)
-                        .with_depth_buffer(24)
-                        .with_srgb(Some(false))
+//                        .with_depth_buffer(24)
+ //                       .with_srgb(Some(false))
                         //.build_glium_debug(DebugCallbackBehavior::PrintAll)
                         .build_glium()
                     .unwrap(),

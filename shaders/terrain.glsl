@@ -52,13 +52,17 @@ vec4 project(vec4 vertex){
     return result;
 }
 
+bvec2 or(bvec2 a, bvec2 b){
+    return bvec2(a.x || b.x, a.y || b.y);
+}
+
 bool offscreen(vec4 vertex){
     if(vertex.z < -0.5){
         return true;
     }   
-    return any(
-        lessThan(vertex.xy, vec2(-1.7)) ||
-        greaterThan(vertex.xy, vec2(1.7))
+    return any(or(
+        lessThan(vertex.xy, vec2(-1.7)),
+        greaterThan(vertex.xy, vec2(1.7)))
     );  
 }
 

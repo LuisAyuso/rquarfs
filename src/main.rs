@@ -28,8 +28,8 @@ use world::image_atlas as img_atlas;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const WINDOW_WIDTH: u32 = 1920;
-const WINDOW_HEIGHT: u32 = 1080;
+const WINDOW_WIDTH: u32 = 640;
+const WINDOW_HEIGHT: u32 = 480;
 
 enum Preview {
     Shadow,
@@ -274,23 +274,23 @@ fn main() {
             use renderer::context::Program;
             use glium::Surface;
             
-            let parameters =  glium::DrawParameters {
-                backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                depth: glium::Depth {
-                    test: glium::DepthTest::IfLess,
-                    write: true,
-                    ..Default::default()
-                },
-                polygon_mode: glium::PolygonMode::Fill,
-                ..Default::default()
-            };
-
-            framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
-            framebuffer.draw((new_terrain.get_vertices(), new_terrain.get_tiles().per_instance().unwrap()), 
-                      new_terrain.get_indices(),
-                      tess_prg.get_program(),
-                      &uniforms,
-                      &parameters).unwrap();
+//            let parameters =  glium::DrawParameters {
+//                backface_culling: glium::BackfaceCullingMode::CullClockwise,
+//                depth: glium::Depth {
+//                    test: glium::DepthTest::IfLess,
+//                    write: true,
+//                    ..Default::default()
+//                },
+//                polygon_mode: glium::PolygonMode::Fill,
+//                ..Default::default()
+//            };
+//
+//            framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
+//            framebuffer.draw((new_terrain.get_vertices(), new_terrain.get_tiles().per_instance().unwrap()), 
+//                      new_terrain.get_indices(),
+//                      tess_prg.get_program(),
+//                      &uniforms,
+//                      &parameters).unwrap();
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             surface.draw(&axis_plot, &uniforms);
