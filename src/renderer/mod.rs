@@ -5,11 +5,9 @@ pub mod camera;
 pub mod shader;
 pub mod texquad;
 pub mod shadowmapper;
-pub mod command;
-//pub mod chunk_manager;
-//pub mod textures;
+mod ss_pass;
 
-pub mod culing;
+pub type ScreenSpacePass<'a> = ss_pass::ScreenSpacePass<'a>;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    convert to vertex + index

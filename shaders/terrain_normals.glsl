@@ -159,8 +159,8 @@ uniform mat4 pvm;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-out vec4 gs_color;
-out vec2 gs_coordinates;
+flat out vec3 gs_Normal;
+out vec2 gs_TextureCoordinates;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -175,7 +175,6 @@ void main() {
     float d1 = distance(pos[1].xz, pos[2].xz);
     float d2 = distance(pos[0].xz, pos[2].xz);
     float shortest_side = min(d0,min(d1, d2));
-
 
     if (shortest_side == 1.0){
 
@@ -224,6 +223,15 @@ void main() {
             vec4 last_d = last_u;
             last_d.y = depth; 
 
+            // compute the normals
+            vec3 left = begin == 0? 
+                            cross(origin_d.xyz-first_d.xyz, first_u.xyz-first_d.xyz):
+                            -1*cross(first_u.xyz-first_d.xyz, origin_d.xyz-first_d.xyz);
+            vec3 right = begin == 0? 
+                            cross(last_u.xyz-last_d.xyz, origin_d.xyz-last_d.xyz):
+                            -1*cross(origin_d.xyz-last_d.xyz, last_u.xyz-last_d.xyz);
+            vec3 up = vec3(0.0, 1.0, 0.0);
+
             vec4 color1 = vec4(0.8,0.0,0.0,1.0);
             vec4 color2 = vec4(0.0,0.8,0.0,1.0);
             vec4 color3 = vec4(0.0,0.0,0.8,1.0);
@@ -232,39 +240,38 @@ void main() {
             vec4 color6 = vec4(0.8,0.8,0.0,1.0);
 
             gl_Position = pvm * first_d;
-            gs_color = vec4(0.8, 0.0, 0.0, 1.0);
-            gs_coordinates = first_d.xz;
-            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = first_d.xz;
+            gs_Normal = vec3(0.0, 0.0, 0.0);
             EmitVertex();
+
             gl_Position = pvm * origin_d;
-            gs_color = vec4(0.0, 0.8, 0.0, 1.0);
-            gs_coordinates = origin_d.xz;
- //           gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = origin_d.xz;
+            gs_Normal = vec3(0.0, 0.0, 0.0);
             EmitVertex();
+
             gl_Position = pvm * first_u;
-            gs_color = vec4(0.0, 0.0, 0.8, 1.0);
-            gs_coordinates = first_u.xz;
-//            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = first_u.xz;
+            gs_Normal = left;
             EmitVertex();
+
             gl_Position = pvm * origin_u;
-            gs_color = vec4(0.8, 0.8, 0.0, 1.0);
-            gs_coordinates = origin_u.xz;
-//            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = origin_u.xz;
+            gs_Normal = left;
             EmitVertex();
+
             gl_Position = pvm * last_u;
-            gs_color = vec4(0.8, 0.8, 0.8, 1.0);
-            gs_coordinates = last_u.xz;
-//            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = last_u.xz;
+            gs_Normal = up;
             EmitVertex();
+
             gl_Position = pvm * origin_d;
-            gs_color = vec4(0.0, 0.8, 0.0, 1.0);
-            gs_coordinates = origin_d.xz;
-//            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = origin_d.xz;
+            gs_Normal = right;
             EmitVertex();
+
             gl_Position = pvm * last_d;
-            gs_color = vec4(0.0, 0.0, 0.0, 1.0);
-            gs_coordinates = last_d.xz;
-//            gs_color = shortest_side <= 1.5? color1: shortest_side <= 2.5? color2: color3;
+            gs_TextureCoordinates = last_d.xz;
+            gs_Normal = right;
             EmitVertex();
         }
         EndPrimitive();
@@ -272,16 +279,13 @@ void main() {
     else
     {
             gl_Position = pvm * pos[0];
-            gs_coordinates = pos[0].xz;
-            gs_color = vec4(0.8, 0.0, 0.0, 1.0);
+            gs_TextureCoordinates = pos[0].xz;
             EmitVertex();
             gl_Position = pvm * pos[1];
-            gs_coordinates = pos[1].xz;
-            gs_color = vec4(0.0, 0.8, 0.0, 1.0);
+            gs_TextureCoordinates = pos[1].xz;
             EmitVertex();
             gl_Position = pvm * pos[2];
-            gs_coordinates = pos[2].xz;
-            gs_color = vec4(0.0, 0.0, 0.8, 1.0);
+            gs_TextureCoordinates = pos[2].xz;
             EmitVertex();
     }
 }
@@ -296,17 +300,16 @@ uniform sampler2D color_map;
 uniform uvec2 height_size;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-in vec4 gs_color; 
-in vec2 gs_coordinates; 
+in vec2 gs_TextureCoordinates; 
+flat in vec3 gs_Normal; 
 
 out vec4 color; 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void main() {
-    vec2 texcoord = vec2(gs_coordinates.x / height_size.x, gs_coordinates.y / height_size.y);
-    color = texture(color_map, texcoord);
+//    vec2 texcoord = vec2(gs_TextureCoordinates.x / height_size.x, gs_TextureCoordinates.y / height_size.y);
+//    color = texture(color_map, texcoord);
 
-	//color = gs_color;
+    color = vec4(gs_Normal/2+0.5, 1.0);
 }
