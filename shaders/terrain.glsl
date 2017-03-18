@@ -45,8 +45,7 @@ in uint vs_mintess[];
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 vec4 project(vec4 vertex){
-    vec2 texcoord = vec2(vertex.x / height_size.x, vertex.z / height_size.y);
-    vertex.y = int(texture(height_map, texcoord).r *256);
+    vertex.y = int(texelFetch(height_map, ivec2(vertex.xz), 0).r *256);
     vec4 result = pvm * vertex;
     result /= result.w;
     return result;
@@ -67,14 +66,14 @@ bool offscreen(vec4 vertex){
 }
 
 float distance_to_camera(vec4 vertex, vec3 camera){
-    vec2 texcoord = vec2(vertex.x / height_size.x, vertex.z / height_size.y);
-    vertex.y = int(texture(height_map, texcoord).r *256);
+    vertex.y = int(texelFetch(height_map, ivec2(vertex.xz), 0).r *256);
     vec4 tmp = model * vertex;
 	return clamp(distance(vertex.xyz, camera.xyz) / 1500.0, 0.0, 1.0);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// TODO: optimize away the two texelFetch operations, it could be done in one
 void main()
 {
     #define ID gl_InvocationID
@@ -144,11 +143,7 @@ void main() {
     vec4 b = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, u);
     vec4 position = mix(a, b, v);
 
-    // interpolated 
-    vec2 texcoord = vec2(position.x / height_size.x, position.z / height_size.y);
-    int tmp = int(texture(height_map, texcoord).r *256);
-
-    position.y = float(tmp);
+    position.y = int(texelFetch(height_map, ivec2(position.xz), 0).r *256);
     gl_Position = vec4(position.xyz,1.0);
 }
 
