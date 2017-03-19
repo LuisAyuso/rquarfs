@@ -5,6 +5,7 @@ use renderer::context::Program;
 use renderer::shader::ProgramReloader;
 use glium::texture;
 use glium::Surface;
+use cgmath::Matrix4;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Quad with texture drawing
@@ -20,6 +21,7 @@ pub struct ScreenSpacePass<'a> {
     quad_buffer: glium::vertex::VertexBufferAny,
     program: ProgramReloader,
     fb: glium::framebuffer::SimpleFrameBuffer<'a>,
+    size: (u32, u32)
 }
 
 
@@ -45,32 +47,25 @@ impl<'a> ScreenSpacePass<'a> {
                                                          position: (1.0, -1.0),
                                                          tex_coords: (1.0, 0.0),
                                                      },
-
-                                                     QuadVert {
-                                                         position: (1.0, -1.0),
-                                                         tex_coords: (1.0, 0.0),
-                                                     },
                                                      QuadVert {
                                                          position: (1.0, 1.0),
-                                                         tex_coords: (1.0, 1.0),
+                                                         tex_coords: (1.0, 0.0),
                                                      },
-                                                     QuadVert {
-                                                         position: (-1.0, 1.0),
-                                                         tex_coords: (0.0, 1.0),
-                                                     }]);
+                                                     ]);
 
 
-
-        let frame =  glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
+        let mut frame =  glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
                                                                          texture, 
                                                                          depth_buffer).unwrap();
-
+        frame.clear_depth(1.0);
         let program = ProgramReloader::new(ctx.display(),program).unwrap();
+        let dim = frame.get_dimensions();
 
         ScreenSpacePass {
             quad_buffer: quad_buffer.unwrap().into(),
             program: program,
             fb: frame,
+            size: dim,
         }
     } // new
 
@@ -78,15 +73,26 @@ impl<'a> ScreenSpacePass<'a> {
         self.program.update(display, delta);
     }
 
-    pub fn execute_pass(&mut self, input_texture: &'a glium::texture::Texture2d){
+    pub fn execute_pass (&mut self, 
+                         perspective:  &Matrix4<f32>,
+                         view: &Matrix4<f32>,
+                         input_texture: &'a glium::texture::Texture2d,
+                         depth_texture: &'a texture::DepthTexture2d,
+                         noise_texture: &'a glium::texture::Texture2d
+                         ){
         let uniforms = uniform! {
-                input_texture: input_texture 
+                input_texture: input_texture,
+                depth_texture: depth_texture,
+                noise_texture: noise_texture,
+                perspective: Into::<[[f32; 4]; 4]>::into(*perspective),
+                view: Into::<[[f32; 4]; 4]>::into(*view),
+                frame_size: self.size,
         };
 
         let parameters =  glium::DrawParameters {
-            backface_culling: glium::BackfaceCullingMode::CullClockwise,
+            backface_culling: glium::BackfaceCullingMode::CullCounterClockwise,
             depth: glium::Depth {
-                test: glium::DepthTest::Ignore,
+                test: glium::DepthTest::IfLessOrEqual,
                 write: false,
                 ..Default::default()
             },
@@ -97,7 +103,7 @@ impl<'a> ScreenSpacePass<'a> {
 
         self.fb
             .draw(&self.quad_buffer,
-                  glium::index::NoIndices(  glium::index::PrimitiveType::TrianglesList),
+                  glium::index::NoIndices(  glium::index::PrimitiveType::TriangleStrip),
                   self.program.get_program(),
                   &uniforms,
                   &parameters).unwrap();

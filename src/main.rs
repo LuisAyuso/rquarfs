@@ -176,12 +176,21 @@ fn main() {
                                                                                    &depth_tex).unwrap());
 
     //  ssao pass  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    let noise_img = img_atlas::load_rgb("assets/noise.png");
+    let noise_dim = noise_img.dimensions();
+    let noise_tex = glium::texture::RawImage2d::from_raw_rgb(noise_img.into_raw(), noise_dim);
+    let noise_tex = glium::texture::Texture2d::new(ctx.display(), noise_tex).unwrap();
+    
+    let drop_depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
+                                                               texture::DepthFormat::F32,
+                                                               texture::MipmapsOption::NoMipmap,
+                                                                h, w).unwrap();
     
     let ssao_texture = texture::Texture2d::empty_with_format(ctx.display(),
                                                         texture::UncompressedFloatFormat::F32F32F32F32,
                                                         texture::MipmapsOption::NoMipmap,
                                                         h,w).unwrap();
-    let mut ssao = renderer::ScreenSpacePass::new(&ctx, "ssao", &ssao_texture, &depth_tex);
+    let mut ssao = renderer::ScreenSpacePass::new(&ctx, "ssao", &ssao_texture, &drop_depth);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -262,7 +271,11 @@ fn main() {
 
             // ~~~~~~~~~  SSAO ~~~~~~~~~~~~~~~~
 
-            ssao.execute_pass(&prepass_texture);
+            ssao.execute_pass(&perspective_matrix, 
+                              &view_matrix, 
+                              &prepass_texture, 
+                              &depth_tex,
+                              &noise_tex);
 
             // ~~~~~~~~~  render color ~~~~~~~~~~~~~~~~
 
@@ -271,7 +284,6 @@ fn main() {
             //surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
             surface.draw_instanciated_with_indices_and_program(&new_terrain, new_terrain.get_tiles(), 
                                                                &terrain_prg, &uniforms);
-
 
             match preview {
                 Preview::SSAO => {

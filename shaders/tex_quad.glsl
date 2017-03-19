@@ -28,7 +28,6 @@ void main() {
     if (is_depth){
 
         // 1500 range?
-        //
         const float far = 1500;
         const float near = 50;
 

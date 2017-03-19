@@ -192,8 +192,8 @@ impl<'a> DrawSurface<'a> {
                       viewport: Some(glium::Rect {
                           left: 10,
                           bottom: 10,
-                          width: 300,
-                          height: 300,
+                          width: 1024,
+                          height: 786,
                       }),
                       ..Default::default()
                   })
@@ -238,3 +238,4 @@ pub trait DrawIndexed {
     fn get_vertices(&self) -> &VerticesT;
     fn get_indices(&self) -> &IndicesT;
 }
+
