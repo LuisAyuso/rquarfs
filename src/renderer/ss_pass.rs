@@ -74,8 +74,7 @@ impl<'a> ScreenSpacePass<'a> {
     }
 
     pub fn execute_pass (&mut self, 
-                         perspective:  &Matrix4<f32>,
-                         view: &Matrix4<f32>,
+                         inverse_matrix: &Matrix4<f32>,
                          input_texture: &'a glium::texture::Texture2d,
                          depth_texture: &'a texture::DepthTexture2d,
                          noise_texture: &'a glium::texture::Texture2d
@@ -84,8 +83,7 @@ impl<'a> ScreenSpacePass<'a> {
                 input_texture: input_texture,
                 depth_texture: depth_texture,
                 noise_texture: noise_texture,
-                perspective: Into::<[[f32; 4]; 4]>::into(*perspective),
-                view: Into::<[[f32; 4]; 4]>::into(*view),
+                inversei_matrix: Into::<[[f32; 4]; 4]>::into(*inverse_matrix),
                 frame_size: self.size,
         };
 

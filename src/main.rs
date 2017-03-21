@@ -15,7 +15,7 @@ mod utils;
 mod renderer;
 
 #[warn(unused_imports)]
-use cgmath::{Point3, Vector3, Matrix4, Euler, deg, perspective};
+use cgmath::{Point3, Vector3, Matrix4, Euler, deg, perspective, Transform};
 //use world::cube;
 use renderer::context;
 use renderer::camera;
@@ -41,6 +41,7 @@ enum Preview {
     Depth,
     Color,
     SSAO,
+    Blur,
 }
 
 fn main() {
@@ -192,11 +193,20 @@ fn main() {
                                                         h,w).unwrap();
     let mut ssao = renderer::ScreenSpacePass::new(&ctx, "ssao", &ssao_texture, &drop_depth);
 
+    //  blur  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    let blur_texture = texture::Texture2d::empty_with_format(ctx.display(),
+                                                        texture::UncompressedFloatFormat::F32F32F32F32,
+                                                        texture::MipmapsOption::NoMipmap,
+                                                        h,w).unwrap();
+    let mut blur = renderer::ScreenSpacePass::new(&ctx, "blur", &blur_texture, &drop_depth);
+
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let mut preview = Preview::SSAO;
+    let mut preview = Preview::Blur;
     let mut chunk_size: u32 = 20;
     utils::loop_with_report(&mut |delta: f64| {
 
@@ -205,6 +215,7 @@ fn main() {
         terrain_normals_prg.update(ctx.display(), delta);
         quad.update(ctx.display(), delta);
         ssao.update(ctx.display(), delta);
+        blur.update(ctx.display(), delta);
 
         // keep mut separated
         {
@@ -246,6 +257,8 @@ fn main() {
 
                 screen_size: ctx.get_size(),
                 color_map: &color_map,
+
+                ssao_texture: &blur_texture,
             };
 
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
@@ -270,10 +283,18 @@ fn main() {
                       &parameters).unwrap();
 
             // ~~~~~~~~~  SSAO ~~~~~~~~~~~~~~~~
+            
+            let inverse_matrix = pvm.inverse_transform().unwrap();
 
-            ssao.execute_pass(&perspective_matrix, 
-                              &view_matrix, 
+            ssao.execute_pass(&inverse_matrix, 
                               &prepass_texture, 
+                              &depth_tex,
+                              &noise_tex);
+
+            // ~~~~~~~~~  blur SSAO ~~~~~~~~~~~~~~~~
+
+            blur.execute_pass(&inverse_matrix, 
+                              &ssao_texture, 
                               &depth_tex,
                               &noise_tex);
 
@@ -288,6 +309,9 @@ fn main() {
             match preview {
                 Preview::SSAO => {
                     surface.draw_overlay_quad(&quad,&ssao_texture, false)
+                }
+                Preview::Blur => {
+                    surface.draw_overlay_quad(&quad,&blur_texture, false)
                 }
                 Preview::Prepass => {
                     surface.draw_overlay_quad(&quad,&prepass_texture, false)
@@ -340,6 +364,11 @@ fn main() {
                     }
                     Event::KeyboardInput(ElementState::Released, 86, _) => chunk_size += 10,
                     Event::KeyboardInput(ElementState::Released, 82, _) => chunk_size -= 10,
+
+                    Event::KeyboardInput(ElementState::Released, 15, _) => {
+                        println!("preview Blur");
+                        preview = Preview::Blur;
+                    }
                     Event::KeyboardInput(ElementState::Released, 16, _) => {
                         println!("preview SSAO");
                         preview = Preview::SSAO;

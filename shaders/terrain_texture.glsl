@@ -297,6 +297,7 @@ void main() {
 #version 410 core
 
 uniform sampler2D color_map;
+uniform sampler2D ssao_texture;
 uniform uvec2 height_size;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,4 +311,6 @@ out vec4 color;
 void main() {
     vec2 texcoord = vec2(gs_TextureCoordinates.x / height_size.x, gs_TextureCoordinates.y / height_size.y);
     color = texture(color_map, texcoord);
+	float occlusion = texelFetch(ssao_texture, ivec2(gl_FragCoord.xy-0.5), 0).r;
+	color *= occlusion;
 }
