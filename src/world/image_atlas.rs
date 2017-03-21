@@ -12,6 +12,10 @@ use std::io::{Error, ErrorKind};
 use self::regex::Regex;
 use self::glob::glob;
 
+use rand;
+use rand::distributions::Range;
+use rand::distributions::IndependentSample;
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -29,6 +33,23 @@ pub fn load_rgb(filename: &str) -> image::RgbImage {
     let image = image::open(path).unwrap();
     image.to_rgb()
 }
+
+pub fn generate_noise(size: (u32, u32)) -> image::RgbImage{
+
+    let (w,h) = size;
+    let mut image = image::RgbImage::new(w,h);
+
+    let mut rng = rand::thread_rng();
+    let between = Range::new(0u8, 255);
+    for pix in image.iter_mut(){
+        let r =  between.ind_sample(&mut rng);
+        *pix = r;
+    }
+
+    image
+}
+
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

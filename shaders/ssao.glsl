@@ -54,16 +54,17 @@ void main(void)
 
 	float z = (2.0 * near) / (far + near - depth * (far - near)); // convert to linear values 
 
-    float radius = mix(64, 500, z);
+    float radius = mix(2, 80, z);
 
     for(int i=0; i < samples; i++)
     {
          //sp = radius * (reflect(sample_sphere[i], f_norm).xy) + gl_FragCoord.xy;
-         vec2 ss_offset = vec2(sample_sphere[i].x * noise.x, sample_sphere[i].y * noise.x);
+         vec2 ss_offset = vec2(sample_sphere[i].x * noise.x, sample_sphere[i].y * noise.y);
          sp = radius * ss_offset + gl_FragCoord.xy;
          depth_sample = depth - texelFetch(depth_texture, ivec2(sp), 0).r;
 
-         if(depth_sample > 0)// sample < 0.005)
+        // the lower bound makes acne dissapear. 
+         if(depth_sample > 0.00001 && depth_sample < 0.005)
          {
                occlusion += 1.0;
          }

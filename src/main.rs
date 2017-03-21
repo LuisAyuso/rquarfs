@@ -42,6 +42,7 @@ enum Preview {
     Color,
     SSAO,
     Blur,
+    Noise,
 }
 
 fn main() {
@@ -177,7 +178,7 @@ fn main() {
                                                                                    &depth_tex).unwrap());
 
     //  ssao pass  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    let noise_img = img_atlas::load_rgb("assets/noise.png");
+    let noise_img = img_atlas::generate_noise((w,h));
     let noise_dim = noise_img.dimensions();
     let noise_tex = glium::texture::RawImage2d::from_raw_rgb(noise_img.into_raw(), noise_dim);
     let noise_tex = glium::texture::Texture2d::new(ctx.display(), noise_tex).unwrap();
@@ -306,6 +307,9 @@ fn main() {
                                                                &terrain_prg, &uniforms);
 
             match preview {
+                Preview::Noise => {
+                    surface.draw_overlay_quad(&quad,&noise_tex, false)
+                }
                 Preview::SSAO => {
                     surface.draw_overlay_quad(&quad,&ssao_texture, false)
                 }
@@ -364,6 +368,10 @@ fn main() {
                     Event::KeyboardInput(ElementState::Released, 86, _) => chunk_size += 10,
                     Event::KeyboardInput(ElementState::Released, 82, _) => chunk_size -= 10,
 
+                    Event::KeyboardInput(ElementState::Released, 14, _) => {
+                        println!("preview Noise");
+                        preview = Preview::Noise;
+                    }
                     Event::KeyboardInput(ElementState::Released, 15, _) => {
                         println!("preview Blur");
                         preview = Preview::Blur;
