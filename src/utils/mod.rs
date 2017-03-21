@@ -3,19 +3,45 @@ use time;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+pub struct PerformaceCounters{
+    samples: usize,
+    acum_time:  f64,
+}
+
+impl PerformaceCounters{
+    fn new() -> PerformaceCounters{
+        PerformaceCounters{
+            samples: 0,
+            acum_time: 0.0
+        }
+    }
+
+    fn append(&mut self, delta: f64){
+        self.samples+=1;
+        self.acum_time+=delta;
+    }
+    fn get_fps(&self) -> f64{
+         self.samples as f64 / self.acum_time
+    }
+    fn reset(&mut self){
+        self.samples = 0;
+        self.acum_time = 0 as f64;
+    }
+}
+
 /// infinite loop with iterations/second reporting every x seconds
 /// it will pass delta time to function body
 pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
+    let mut p = PerformaceCounters::new();
     if x == 0 {
         loop {
             body(0.0);
         }
     } else {
         loop {
-            let mut fps_accum: f64 = 0.0;
-            let mut samples: u32 = 0;
             let mut delta: f64 = 0.0;
-
+            p.reset();
+            
             let start = time::PreciseTime::now();
             while start.to(time::PreciseTime::now()) < time::Duration::seconds(x as i64) {
                 let start_t = time::precise_time_s();
@@ -24,11 +50,10 @@ pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
 
                 let end_t = time::precise_time_s();
                 delta = end_t - start_t;
-                fps_accum += delta;
-                samples += 1;
+                p.append(delta);
             }
 
-            println!("fps: {} ", (samples as f64) / fps_accum);
+            println!("fps: {} ", p.get_fps());
         }
     }
 }
@@ -116,20 +141,6 @@ impl Axis {
             axis_buffer: axis_buffer,
         }
     } // new
-
-
-    //    pub fn draw<T, U>(&self, target: &mut T, uniforms: &U)
-    //        where T: glium::Surface,
-    //              U: glium::uniforms::Uniforms
-    //    {
-    //        let axis_indices = glium::index::NoIndices(glium::index::PrimitiveType::LinesList);
-    //        target.draw(&self.axis_buffer,
-    //                  &axis_indices,
-    //                  &self.axis_program,
-    //                  uniforms,
-    //                  &Default::default())
-    //            .unwrap();
-    //    }
 }
 
 use renderer::context::{DrawItem, Program};

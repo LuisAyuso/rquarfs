@@ -13,7 +13,7 @@ pub type ScreenSpacePass<'a> = ss_pass::ScreenSpacePass<'a>;
 //    convert to vertex + index
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+#[allow(dead_code)]
 pub fn index_vertex_list<T>(vertices_org: &[T]) -> (Vec<T>, Vec<u32>)
     where T: PartialEq + Clone
 {

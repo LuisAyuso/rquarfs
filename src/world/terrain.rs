@@ -47,7 +47,7 @@ impl Terrain{
 
         let mut data: Vec<Tile> = Vec::new();
         for i in 0..(width/64)-1{
-            for j in 0..(width/64)-1{
+            for j in 0..(height/64)-1{
                 let detail = rng.gen_range(0, 7);
                 data.push(Tile{ tile_offset: (i,j, detail)});
             }

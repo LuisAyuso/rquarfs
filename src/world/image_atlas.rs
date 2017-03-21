@@ -33,6 +33,7 @@ pub fn load_rgb(filename: &str) -> image::RgbImage {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#[allow(dead_code)]
 pub fn load_images_rgba(path: &PathBuf) -> Vec<image::RgbaImage> {
     let path = fs::canonicalize(&path).unwrap();
     println!("load image: {:?}", path);
@@ -60,6 +61,7 @@ pub fn get_coords_height(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
     (pixel.channels()[0] as f32 / 5.0).trunc()
 }
 
+#[allow(dead_code)]
 pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
     //use std::cmp;
     let (max_i, max_j) = height_map.dimensions();
@@ -96,8 +98,9 @@ pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#[allow(dead_code)]
 pub struct Atlas {
     pub count: usize,
     pub tex_w: usize,
@@ -108,6 +111,7 @@ pub struct Atlas {
 }
 
 impl Atlas {
+    #[allow(dead_code)]
     pub fn new(count: usize,
                tex_w: usize,
                tex_h: usize,
@@ -123,11 +127,7 @@ impl Atlas {
         }
     }
 
-    //    pub fn get_image(self) -> image::RgbaImage
-    //    {
-    //        self.image
-    //    }
-    //
+    #[allow(dead_code)]
     pub fn from_file(path: &str) -> Result<Atlas, io::Error> {
 
         let file_path = fs::canonicalize(path).unwrap();
@@ -157,6 +157,7 @@ impl Atlas {
         }
     }
 
+    #[allow(dead_code)]
     pub fn save(&self, path: &PathBuf, name: &str) -> Result<(), io::Error> {
         assert!(self.image.dimensions().0 as usize == self.tex_w * self.side);
         assert!(self.image.dimensions().1 as usize == self.tex_h * self.side);
@@ -184,9 +185,10 @@ impl Atlas {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// this function will create an atlas with the pictures found in folder
-// the folder will be fetch from the assets folder
-// ideally will be cached in assets/cache
+/// this function will create an atlas with the pictures found in folder
+/// the folder will be fetch from the assets folder
+/// ideally will be cached in assets/cache
+#[allow(dead_code)]
 pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     let mut path = fs::canonicalize(".").unwrap();
     path.push("assets");
@@ -254,6 +256,7 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#[allow(dead_code)]
 pub fn load_atlas(set_name: &str) -> Result<Atlas, io::Error> {
     match glob(format!("./assets/cache/{}*", set_name).as_str()) {
         Ok(mut m) => {
@@ -284,6 +287,7 @@ impl PartialEq for MeshPoint {
 
 // TODO: - mesh is not complete, what if step does not divide the side?
 //       - use indices, this can turn to be a pretty damm big mesh
+#[allow(dead_code)]
 pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<MeshPoint> {
     let mut list = Vec::new();
 

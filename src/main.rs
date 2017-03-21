@@ -16,13 +16,13 @@ mod renderer;
 
 #[warn(unused_imports)]
 use cgmath::{Point3, Vector3, Matrix4, Euler, deg, perspective, Transform};
-//use world::cube;
 use renderer::context;
 use renderer::camera;
 use renderer::shader;
 use renderer::texquad;
-use renderer::shadowmapper;
 use world::image_atlas as img_atlas;
+//use world::cube;
+//use renderer::shadowmapper;
 
 use renderer::context::DrawIndexed;
 use renderer::context::Program;
@@ -194,7 +194,6 @@ fn main() {
     let mut ssao = renderer::ScreenSpacePass::new(&ctx, "ssao", &ssao_texture, &drop_depth);
 
     //  blur  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
     let blur_texture = texture::Texture2d::empty_with_format(ctx.display(),
                                                         texture::UncompressedFloatFormat::F32F32F32F32,
                                                         texture::MipmapsOption::NoMipmap,

@@ -30,6 +30,7 @@ impl Context {
             display_ptr: glium::glutin::WindowBuilder::new()
                         .with_title("Quarfs!")
                         .with_dimensions(width, height)
+                        .with_vsync()
 //                        .with_depth_buffer(24)
  //                       .with_srgb(Some(false))
                         //.build_glium_debug(DebugCallbackBehavior::PrintAll)
@@ -147,6 +148,7 @@ impl<'a> DrawSurface<'a> {
     }
 
     #[inline]
+    #[allow(dead_code)]
     pub fn draw_with_indices_and_program<O, P, U>(&mut self,
                                                   obj: &O,
                                                   prg: &P,

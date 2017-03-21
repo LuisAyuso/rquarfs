@@ -14,6 +14,7 @@ pub struct ShadowMapper {
 }
 
 impl ShadowMapper {
+    #[allow(dead_code)]
     pub fn new(ctx: &context::Context) -> ShadowMapper {
         use glium::texture;
 
@@ -127,7 +128,8 @@ impl ShadowMapper {
                   &parameters)
             .unwrap();
     }
-
+    
+    #[allow(dead_code)]
     pub fn compute_depth_with_indices<U>(&self,
                                          ctx: &context::Context,
                                          vertices: &glium::vertex::VertexBufferAny,
@@ -164,6 +166,7 @@ impl ShadowMapper {
             .unwrap();
     }
 
+    #[allow(dead_code)]
     pub fn depth_as_texture(&self) -> &glium::texture::DepthTexture2d {
         &self.depth_tex
     }

@@ -40,14 +40,13 @@ vec3 sample_sphere[samples] = vec3[](
 const float far = 1500;
 const float near = 50;
 
-
 // https://www.cs.rpi.edu/~cutler/classes/advancedgraphics/S08/final_projects/lajzer_nottingham.pdf
 void main(void)
 {
      //get the depth
     float depth = texelFetch(depth_texture, ivec2(gl_FragCoord.xy-0.5),0).x;    // in depth buffer values
     vec3 normal = texelFetch(input_texture, ivec2(gl_FragCoord.xy-0.5),0).xyz;    // in depth buffer values
-    vec3 noise = texelFetch(noise_texture, ivec2(gl_FragCoord.xy-0.5),0).xyz;    // in depth buffer values
+    vec3 noise = texture(noise_texture, (gl_FragCoord.xy-0.5) / frame_size).xyz;    // in depth buffer values
 
     float occlusion = 0.0;
     float depth_sample;
@@ -55,15 +54,16 @@ void main(void)
 
 	float z = (2.0 * near) / (far + near - depth * (far - near)); // convert to linear values 
 
-    float radius = mix(2, 64, z);
+    float radius = mix(64, 500, z);
 
     for(int i=0; i < samples; i++)
     {
          //sp = radius * (reflect(sample_sphere[i], f_norm).xy) + gl_FragCoord.xy;
-         sp = radius * sample_sphere[i].xy + gl_FragCoord.xy;
+         vec2 ss_offset = vec2(sample_sphere[i].x * noise.x, sample_sphere[i].y * noise.x);
+         sp = radius * ss_offset + gl_FragCoord.xy;
          depth_sample = depth - texelFetch(depth_texture, ivec2(sp), 0).r;
 
-         if(depth_sample > 0 && depth_sample < 0.005)
+         if(depth_sample > 0)// sample < 0.005)
          {
                occlusion += 1.0;
          }
