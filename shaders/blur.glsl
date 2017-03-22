@@ -21,26 +21,47 @@ uniform uvec2 frame_size;
 
 out vec4 frag_color;
 
-const int samples = 16;
-vec2 sample_sphere[samples] = vec2[](
-    vec2( 0.5381, 0.1856), vec2( 0.1379, 0.2486),
-    vec2( 0.3371, 0.5679), vec2(-0.6999,-0.0451),
-    vec2( 0.0689,-0.1598), vec2( 0.0560, 0.0069),
-    vec2(-0.0146, 0.1402), vec2( 0.0100,-0.1924),
-    vec2(-0.3577,-0.5301), vec2(-0.3169, 0.1063),
-    vec2( 0.0103,-0.5869), vec2(-0.0897,-0.4940),
-    vec2( 0.7119,-0.0154), vec2(-0.0533, 0.0596),
-    vec2( 0.0352,-0.0631), vec2(-0.4776, 0.2847)
-);
+float normpdf(in float x, in float sigma)
+{
+	return 0.39894*exp(-0.5*x*x/(sigma*sigma))/sigma;
+}
+
 
 void main(void)
 {
-
-    for(int i=0; i < samples; i++)
-    {
-        vec2 coords = gl_FragCoord.xy - 0.5 + sample_sphere[i] *2;
-        frag_color += texelFetch(input_texture,  ivec2(coords), 0 );
-    }
-
-    frag_color = frag_color/samples;
+	vec3 c = texture(input_texture, gl_FragCoord.xy / frame_size.xy).rgb;
+	
+	//declare stuff
+	const int mSize = 5;
+	const int kSize = (mSize-1)/2;
+	float kernel[mSize];
+	vec3 final_colour = vec3(0.0);
+	
+	//create the 1-D kernel
+	float sigma = 10.0;
+	float Z = 0.0;
+	for (int j = 0; j <= kSize; ++j)
+	{
+		kernel[kSize+j] = kernel[kSize-j] = normpdf(float(j), sigma);
+	}
+	
+	//get the normalization factor (as the gaussian has been clamped)
+	for (int j = 0; j < mSize; ++j)
+	{
+		Z += kernel[j];
+	}
+	
+	//read out the texels
+	for (int i=-kSize; i <= kSize; ++i)
+	{
+		for (int j=-kSize; j <= kSize; ++j)
+		{
+			final_colour += clamp(kernel[kSize+j]*kernel[kSize+i]*
+						texture(input_texture, 
+							(gl_FragCoord.xy+vec2(i,j)) / frame_size.xy).rgb,
+							vec3(0.0), vec3(1.0));
+		}
+	}
+	
+	frag_color = vec4(final_colour/(Z*Z), 1.0);
 }

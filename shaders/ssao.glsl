@@ -55,6 +55,7 @@ void main(void)
 	float z = (2.0 * near) / (far + near - depth * (far - near)); // convert to linear values 
 
     float radius = mix(2, 80, z);
+    float samples_count = 0.0;
 
     for(int i=0; i < samples; i++)
     {
@@ -64,13 +65,14 @@ void main(void)
          depth_sample = depth - texelFetch(depth_texture, ivec2(sp), 0).r;
 
         // the lower bound makes acne dissapear. 
-         if(depth_sample > 0.00001 && depth_sample < 0.005)
+         if(depth_sample > 0.00001)
          {
-               occlusion += 1.0;
+               occlusion += step(depth_sample,0.005);
+               samples_count += step(0.005, depth_sample);
          }
     }
 
-	occlusion = 1.0 -(occlusion / samples);
+	occlusion = 1.0 -(occlusion / (samples-samples_count));
     frag_color = vec4(occlusion, occlusion, occlusion, 1.0);
 
    // frag_color = vec4(

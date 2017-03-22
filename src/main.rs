@@ -109,7 +109,7 @@ fn main() {
     // per increment rotation
     let rotation = Quaternion::from(Euler {
         x: deg(0.0),
-        y: deg(0.1),
+        y: deg(0.05),
         z: deg(0.0),
     });
 
@@ -208,6 +208,7 @@ fn main() {
 
     let mut preview = Preview::Blur;
     let mut chunk_size: u32 = 20;
+    let mut pc = utils::PerformaceCounters::new();
     utils::loop_with_report(&mut |delta: f64| {
 
         cam.update(delta as f32);
@@ -216,6 +217,11 @@ fn main() {
         quad.update(ctx.display(), delta);
         ssao.update(ctx.display(), delta);
         blur.update(ctx.display(), delta);
+
+        let prepass_t = &prepass_texture;
+        let depth_t = &depth_tex;
+        let noise_t = &noise_tex;
+        let ssao_t = &ssao_texture;
 
         // keep mut separated
         {
@@ -232,6 +238,7 @@ fn main() {
             //   matrix
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             let pvm = perspective_matrix * view_matrix * model_matrix;
+            let inverse_matrix = pvm.inverse_transform().unwrap();
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //    render scene
@@ -262,76 +269,90 @@ fn main() {
             };
 
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
-            
-            let parameters =  glium::DrawParameters {
-                backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                depth: glium::Depth {
-                    test: glium::DepthTest::IfLess,
-                    write: true,
-                    ..Default::default()
-                },
-                polygon_mode: glium::PolygonMode::Fill, 
-                provoking_vertex: glium::draw_parameters::ProvokingVertex::LastVertex,
-                ..Default::default()
-            };
 
-            prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
-            prepas_frame.draw((new_terrain.get_vertices(), new_terrain.get_tiles().per_instance().unwrap()), 
-                      new_terrain.get_indices(),
-                      terrain_normals_prg.get_program(),
-                      &uniforms,
-                      &parameters).unwrap();
+            pc.measure("prepass", &mut || {
+                
+                let parameters =  glium::DrawParameters {
+                    backface_culling: glium::BackfaceCullingMode::CullClockwise,
+                    depth: glium::Depth {
+                        test: glium::DepthTest::IfLess,
+                        write: true,
+                        ..Default::default()
+                    },
+                    polygon_mode: glium::PolygonMode::Fill, 
+                    provoking_vertex: glium::draw_parameters::ProvokingVertex::LastVertex,
+                    ..Default::default()
+                };
+
+                prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
+                prepas_frame.draw((new_terrain.get_vertices(), new_terrain.get_tiles()
+                                                                          .per_instance().unwrap()), 
+                          new_terrain.get_indices(),
+                          terrain_normals_prg.get_program(),
+                          &uniforms,
+                          &parameters).unwrap();
+            });
 
             // ~~~~~~~~~  SSAO ~~~~~~~~~~~~~~~~
             
-            let inverse_matrix = pvm.inverse_transform().unwrap();
-
-            ssao.execute_pass(&inverse_matrix, 
-                              &prepass_texture, 
-                              &depth_tex,
-                              &noise_tex);
+            pc.measure("ssao", &mut || {
+                ssao.execute_pass(&inverse_matrix, 
+                                  &prepass_t, 
+                                  &depth_t,
+                                  &noise_t);
+            });
 
             // ~~~~~~~~~  blur SSAO ~~~~~~~~~~~~~~~~
 
-            blur.execute_pass(&inverse_matrix, 
-                              &ssao_texture, 
-                              &depth_tex,
-                              &noise_tex);
+            pc.measure("blur", &mut || {
+                blur.execute_pass(&inverse_matrix, 
+                                  &ssao_t, 
+                                  &depth_t,
+                                  &noise_t);
+            });
 
             // ~~~~~~~~~  render color ~~~~~~~~~~~~~~~~
 
-            let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
-            surface.draw(&axis_plot, &uniforms);
-            //surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
-            surface.draw_instanciated_with_indices_and_program(&new_terrain, new_terrain.get_tiles(), 
-                                                               &terrain_prg, &uniforms);
+            pc.measure("color", &mut || {
+                let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
+                surface.draw(&axis_plot, &uniforms);
+                //surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
+                surface.draw_instanciated_with_indices_and_program(&new_terrain, new_terrain.get_tiles(), 
+                                                                   &terrain_prg, &uniforms);
 
-            match preview {
-                Preview::Noise => {
-                    surface.draw_overlay_quad(&quad,&noise_tex, false)
-                }
-                Preview::SSAO => {
-                    surface.draw_overlay_quad(&quad,&ssao_texture, false)
-                }
-                Preview::Blur => {
-                    surface.draw_overlay_quad(&quad,&blur_texture, false)
-                }
-                Preview::Prepass => {
-                    surface.draw_overlay_quad(&quad,&prepass_texture, false)
-                }
-                Preview::Height => {
-                    surface.draw_overlay_quad(&quad,&height_map, false)
-                },
-                Preview::Depth => {
-                    surface.draw_overlay_quad(&quad, &depth_tex, true);
-                  //  surface.draw_overlay_quad(&losquad, &height_map);
-                },
-                Preview::Color => {
-                    surface.draw_overlay_quad(&quad, &color_map, false)
-                },
-            };
-            surface.gl_end();
+                match preview {
+                    Preview::Noise => {
+                        surface.draw_overlay_quad(&quad,&noise_tex, false)
+                    }
+                    Preview::SSAO => {
+                        surface.draw_overlay_quad(&quad,&ssao_texture, false)
+                    }
+                    Preview::Blur => {
+                        surface.draw_overlay_quad(&quad,&blur_texture, false)
+                    }
+                    Preview::Prepass => {
+                        surface.draw_overlay_quad(&quad,&prepass_texture, false)
+                    }
+                    Preview::Height => {
+                        surface.draw_overlay_quad(&quad,&height_map, false)
+                    },
+                    Preview::Depth => {
+                        surface.draw_overlay_quad(&quad, &depth_tex, true);
+                      //  surface.draw_overlay_quad(&losquad, &height_map);
+                    },
+                    Preview::Color => {
+                        surface.draw_overlay_quad(&quad, &color_map, false)
+                    },
+                };
+                surface.gl_end();
+            });
         }
+
+
+        println!("prepass {} ssao {} blur {} color {}", pc.get_measure("prepass").unwrap(),
+                                            pc.get_measure("ssao").unwrap(),
+                                            pc.get_measure("blur").unwrap(),
+                                             pc.get_measure("color").unwrap());
 
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

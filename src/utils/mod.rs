@@ -1,18 +1,24 @@
 use glium;
 use time;
 
+use std::collections::BTreeMap;
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+type TimeSample = (f64, usize);
 
 pub struct PerformaceCounters{
     samples: usize,
     acum_time:  f64,
+    times: BTreeMap<String, TimeSample>,
 }
 
 impl PerformaceCounters{
-    fn new() -> PerformaceCounters{
+    pub fn new() -> PerformaceCounters{
         PerformaceCounters{
             samples: 0,
-            acum_time: 0.0
+            acum_time: 0.0,
+            times: BTreeMap::new(),
         }
     }
 
@@ -27,12 +33,39 @@ impl PerformaceCounters{
         self.samples = 0;
         self.acum_time = 0 as f64;
     }
+
+    pub fn measure<F> (&mut self, name: &str, body: &mut F)
+    where F : FnMut() {
+
+        let start_t = time::precise_time_s();
+
+        body();
+
+        let end_t = time::precise_time_s();
+
+        if let Some (x) = self.times.get_mut(name.into()){
+            x.0 += end_t - start_t;
+            x.1 +=1;
+            return;
+        }
+
+        self.times.insert(name.into(), (end_t - start_t, 1));
+    }
+
+    pub fn get_measure(&self, name:&str) -> Option<f64>{
+        if let Some (x) = self.times.get(name.into()){
+            Some(x.0 / x.1 as f64)
+        }
+        else{
+            None
+        }
+    }
 }
 
 /// infinite loop with iterations/second reporting every x seconds
 /// it will pass delta time to function body
-pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
-    let mut p = PerformaceCounters::new();
+pub fn loop_with_report<'a, F: FnMut(f64)>(mut body: F, x: u32){
+    let mut pc = PerformaceCounters::new();
     if x == 0 {
         loop {
             body(0.0);
@@ -40,7 +73,7 @@ pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
     } else {
         loop {
             let mut delta: f64 = 0.0;
-            p.reset();
+            pc.reset();
             
             let start = time::PreciseTime::now();
             while start.to(time::PreciseTime::now()) < time::Duration::seconds(x as i64) {
@@ -50,10 +83,10 @@ pub fn loop_with_report<F: FnMut(f64)>(mut body: F, x: u32) {
 
                 let end_t = time::precise_time_s();
                 delta = end_t - start_t;
-                p.append(delta);
+                pc.append(delta);
             }
 
-            println!("fps: {} ", p.get_fps());
+            println!("fps: {} ", pc.get_fps());
         }
     }
 }
