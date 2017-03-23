@@ -138,67 +138,82 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // test the new terrain thing
-    
-    let new_terrain =  world::terrain::Terrain::new(ctx.display(), size_x as u32, size_z as u32);
-   
-   let terrain_prg = shader::ProgramReloader::new(ctx.display(), "terrain_texture"); 
-   if terrain_prg.is_err() {
-       std::process::exit(-1);
-   }
-   let mut terrain_prg = terrain_prg.unwrap();
 
-   let terrain_normals_prg = shader::ProgramReloader::new(ctx.display(), "terrain_normals"); 
-   if terrain_normals_prg.is_err() {
-       std::process::exit(-1);
-   }
-   let mut terrain_normals_prg = terrain_normals_prg.unwrap();
-   
+    let new_terrain = world::terrain::Terrain::new(ctx.display(), size_x as u32, size_z as u32);
+
+    let terrain_prg = shader::ProgramReloader::new(ctx.display(), "terrain_texture");
+    if terrain_prg.is_err() {
+        std::process::exit(-1);
+    }
+    let mut terrain_prg = terrain_prg.unwrap();
+
+    let terrain_normals_prg = shader::ProgramReloader::new(ctx.display(), "terrain_normals");
+    if terrain_normals_prg.is_err() {
+        std::process::exit(-1);
+    }
+    let mut terrain_normals_prg = terrain_normals_prg.unwrap();
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let axis_plot = utils::Axis::new(ctx.display());
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     use glium::texture;
-    let (h,w) = ctx.get_size();
-    let prepass_texture = texture::Texture2d::empty_with_format(ctx.display(),
-                                                            texture::UncompressedFloatFormat::F32F32F32F32,
-                                                            texture::MipmapsOption::NoMipmap,
-                                                            h, w).unwrap();
+    let (h, w) = ctx.get_size();
+    let prepass_texture =
+        texture::Texture2d::empty_with_format(ctx.display(),
+                                              texture::UncompressedFloatFormat::F32F32F32F32,
+                                              texture::MipmapsOption::NoMipmap,
+                                              h,
+                                              w)
+            .unwrap();
 
     let depth_tex = texture::DepthTexture2d::empty_with_format(ctx.display(),
                                                                texture::DepthFormat::F32,
                                                                texture::MipmapsOption::NoMipmap,
-                                                                h, w).unwrap();
+                                                               h,
+                                                               w)
+        .unwrap();
 
 
 
-    let mut prepas_frame = Box::new(glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(), 
-                                                                                   &prepass_texture, 
-                                                                                   &depth_tex).unwrap());
+    let mut prepas_frame =
+        Box::new(glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(ctx.display(),
+                                                                          &prepass_texture,
+                                                                          &depth_tex)
+            .unwrap());
 
     //  ssao pass  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    let noise_img = img_atlas::generate_noise((w,h));
+    let noise_img = img_atlas::generate_noise((w, h));
     let noise_dim = noise_img.dimensions();
     let noise_tex = glium::texture::RawImage2d::from_raw_rgb(noise_img.into_raw(), noise_dim);
     let noise_tex = glium::texture::Texture2d::new(ctx.display(), noise_tex).unwrap();
-    
+
     let drop_depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
-                                                               texture::DepthFormat::F32,
-                                                               texture::MipmapsOption::NoMipmap,
-                                                                h, w).unwrap();
-    
-    let ssao_texture = texture::Texture2d::empty_with_format(ctx.display(),
-                                                        texture::UncompressedFloatFormat::F32F32F32F32,
-                                                        texture::MipmapsOption::NoMipmap,
-                                                        h,w).unwrap();
+                                                                texture::DepthFormat::F32,
+                                                                texture::MipmapsOption::NoMipmap,
+                                                                h,
+                                                                w)
+        .unwrap();
+
+    let ssao_texture =
+        texture::Texture2d::empty_with_format(ctx.display(),
+                                              texture::UncompressedFloatFormat::F32F32F32F32,
+                                              texture::MipmapsOption::NoMipmap,
+                                              h,
+                                              w)
+            .unwrap();
     let mut ssao = renderer::ScreenSpacePass::new(&ctx, "ssao", &ssao_texture, &drop_depth);
 
     //  blur  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    let blur_texture = texture::Texture2d::empty_with_format(ctx.display(),
-                                                        texture::UncompressedFloatFormat::F32F32F32F32,
-                                                        texture::MipmapsOption::NoMipmap,
-                                                        h,w).unwrap();
+    let blur_texture =
+        texture::Texture2d::empty_with_format(ctx.display(),
+                                              texture::UncompressedFloatFormat::F32F32F32F32,
+                                              texture::MipmapsOption::NoMipmap,
+                                              h,
+                                              w)
+            .unwrap();
     let mut blur = renderer::ScreenSpacePass::new(&ctx, "blur", &blur_texture, &drop_depth);
 
 
@@ -208,8 +223,7 @@ fn main() {
 
     let mut preview = Preview::Blur;
     let mut chunk_size: u32 = 20;
-    let mut pc = utils::PerformaceCounters::new();
-    utils::loop_with_report(&mut |delta: f64| {
+    utils::loop_with_report(&mut |delta: f64, pc: &mut utils::PerformaceCounters| {
 
         cam.update(delta as f32);
         terrain_prg.update(ctx.display(), delta);
@@ -217,11 +231,6 @@ fn main() {
         quad.update(ctx.display(), delta);
         ssao.update(ctx.display(), delta);
         blur.update(ctx.display(), delta);
-
-        let prepass_t = &prepass_texture;
-        let depth_t = &depth_tex;
-        let noise_t = &noise_tex;
-        let ssao_t = &ssao_texture;
 
         // keep mut separated
         {
@@ -270,90 +279,79 @@ fn main() {
 
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
 
-            pc.measure("prepass", &mut || {
-                
-                let parameters =  glium::DrawParameters {
+            pc.measure("prepass",
+                       &mut || {
+
+                let parameters = glium::DrawParameters {
                     backface_culling: glium::BackfaceCullingMode::CullClockwise,
                     depth: glium::Depth {
                         test: glium::DepthTest::IfLess,
                         write: true,
                         ..Default::default()
                     },
-                    polygon_mode: glium::PolygonMode::Fill, 
+                    polygon_mode: glium::PolygonMode::Fill,
                     provoking_vertex: glium::draw_parameters::ProvokingVertex::LastVertex,
                     ..Default::default()
                 };
 
                 prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
-                prepas_frame.draw((new_terrain.get_vertices(), new_terrain.get_tiles()
-                                                                          .per_instance().unwrap()), 
+                prepas_frame.draw((new_terrain.get_vertices(),
+                           new_terrain.get_tiles()
+                               .per_instance()
+                               .unwrap()),
                           new_terrain.get_indices(),
                           terrain_normals_prg.get_program(),
                           &uniforms,
-                          &parameters).unwrap();
+                          &parameters)
+                    .unwrap();
             });
 
             // ~~~~~~~~~  SSAO ~~~~~~~~~~~~~~~~
-            
-            pc.measure("ssao", &mut || {
-                ssao.execute_pass(&inverse_matrix, 
-                                  &prepass_t, 
-                                  &depth_t,
-                                  &noise_t);
-            });
+
+            pc.measure("ssao",
+                       &mut || {
+                           ssao.execute_pass(&inverse_matrix,
+                                             &prepass_texture,
+                                             &depth_tex,
+                                             &noise_tex);
+                       });
 
             // ~~~~~~~~~  blur SSAO ~~~~~~~~~~~~~~~~
 
-            pc.measure("blur", &mut || {
-                blur.execute_pass(&inverse_matrix, 
-                                  &ssao_t, 
-                                  &depth_t,
-                                  &noise_t);
-            });
+            pc.measure("blur",
+                       &mut || {
+                           blur.execute_pass(&inverse_matrix,
+                                             &ssao_texture,
+                                             &depth_tex,
+                                             &noise_tex);
+                       });
 
             // ~~~~~~~~~  render color ~~~~~~~~~~~~~~~~
 
-            pc.measure("color", &mut || {
+            pc.measure("color",
+                       &mut || {
                 let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
                 surface.draw(&axis_plot, &uniforms);
                 //surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
-                surface.draw_instanciated_with_indices_and_program(&new_terrain, new_terrain.get_tiles(), 
-                                                                   &terrain_prg, &uniforms);
+                surface.draw_instanciated_with_indices_and_program(&new_terrain,
+                                                                   new_terrain.get_tiles(),
+                                                                   &terrain_prg,
+                                                                   &uniforms);
 
                 match preview {
-                    Preview::Noise => {
-                        surface.draw_overlay_quad(&quad,&noise_tex, false)
-                    }
-                    Preview::SSAO => {
-                        surface.draw_overlay_quad(&quad,&ssao_texture, false)
-                    }
-                    Preview::Blur => {
-                        surface.draw_overlay_quad(&quad,&blur_texture, false)
-                    }
-                    Preview::Prepass => {
-                        surface.draw_overlay_quad(&quad,&prepass_texture, false)
-                    }
-                    Preview::Height => {
-                        surface.draw_overlay_quad(&quad,&height_map, false)
-                    },
+                    Preview::Noise => surface.draw_overlay_quad(&quad, &noise_tex, false),
+                    Preview::SSAO => surface.draw_overlay_quad(&quad, &ssao_texture, false),
+                    Preview::Blur => surface.draw_overlay_quad(&quad, &blur_texture, false),
+                    Preview::Prepass => surface.draw_overlay_quad(&quad, &prepass_texture, false),
+                    Preview::Height => surface.draw_overlay_quad(&quad, &height_map, false),
                     Preview::Depth => {
                         surface.draw_overlay_quad(&quad, &depth_tex, true);
-                      //  surface.draw_overlay_quad(&losquad, &height_map);
-                    },
-                    Preview::Color => {
-                        surface.draw_overlay_quad(&quad, &color_map, false)
-                    },
+                    }
+                    Preview::Color => surface.draw_overlay_quad(&quad, &color_map, false),
                 };
                 surface.gl_end();
             });
         }
-
-
-        println!("prepass {} ssao {} blur {} color {}", pc.get_measure("prepass").unwrap(),
-                                            pc.get_measure("ssao").unwrap(),
-                                            pc.get_measure("blur").unwrap(),
-                                             pc.get_measure("color").unwrap());
-
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         //    event handling
@@ -437,17 +435,18 @@ fn main() {
 
 
             ctx.get_size();
-     //       texture = texture::Texture2d::empty_with_format(ctx.display(),
-     //                                                       texture::UncompressedFloatFormat::F32,
-     //                                                       texture::MipmapsOption::NoMipmap,
-     //                                                       h, w).unwrap();
+            //       texture = texture::Texture2d::empty_with_format(ctx.display(),
+            //                                                       texture::UncompressedFloatFormat::F32,
+            //                                                       texture::MipmapsOption::NoMipmap,
+            //                                                       h, w).unwrap();
 
-     //       depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
-     //                                                          texture::DepthFormat::F32,
-     //                                                          texture::MipmapsOption::NoMipmap,
-     //                                                           h, w).unwrap();
+            //       depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
+            //                                                          texture::DepthFormat::F32,
+            //                                                          texture::MipmapsOption::NoMipmap,
+            //                                                           h, w).unwrap();
         }
 
-    }, 10); // refresh every 10 secs
+    },
+                            10); // refresh every 10 secs
 
 }

@@ -70,7 +70,7 @@ impl Context {
         //      TODO: change here the perspective matrix (which should be owned by ctx)
     }
 
-    pub fn get_size(&self) -> (u32, u32){
+    pub fn get_size(&self) -> (u32, u32) {
         (self.width, self.height)
     }
 } // context
@@ -149,28 +149,25 @@ impl<'a> DrawSurface<'a> {
 
     #[inline]
     #[allow(dead_code)]
-    pub fn draw_with_indices_and_program<O, P, U>(&mut self,
-                                                  obj: &O,
-                                                  prg: &P,
-                                                  uniforms: &U)
+    pub fn draw_with_indices_and_program<O, P, U>(&mut self, obj: &O, prg: &P, uniforms: &U)
         where O: DrawIndexed,
               P: Program,
               U: glium::uniforms::Uniforms
     {
         //println!("b");
         use glium::Surface;
-        let x = self.target.draw(obj.get_vertices(), 
-                  obj.get_indices(),
-                  prg.get_program(),
-                  uniforms,
-                  &self.render_params);
+        let x = self.target.draw(obj.get_vertices(),
+                                 obj.get_indices(),
+                                 prg.get_program(),
+                                 uniforms,
+                                 &self.render_params);
 
-        if let Err(err) = x{
-            println!("render error: {:?}",err);
+        if let Err(err) = x {
+            println!("render error: {:?}", err);
         }
     }
 
-    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T, is_depth: bool)  
+    pub fn draw_overlay_quad<O, T>(&mut self, quad: &O, texture: T, is_depth: bool)
         where O: DrawItem + Program,
               T: glium::uniforms::AsUniformValue
     {
@@ -215,7 +212,7 @@ impl<'a> DrawSurface<'a> {
 // Traits:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pub trait Program{
+pub trait Program {
     fn get_program(&self) -> &glium::program::Program;
     fn with_tess(&self) -> bool;
 }
@@ -224,7 +221,7 @@ impl Program for glium::program::Program {
     fn get_program(&self) -> &glium::program::Program {
         self
     }
-    fn with_tess(&self) -> bool{
+    fn with_tess(&self) -> bool {
         self.has_tessellation_shaders()
     }
 }
@@ -240,4 +237,3 @@ pub trait DrawIndexed {
     fn get_vertices(&self) -> &VerticesT;
     fn get_indices(&self) -> &IndicesT;
 }
-

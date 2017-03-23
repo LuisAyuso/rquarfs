@@ -51,7 +51,7 @@ impl TexQuad {
                                                          tex_coords: (0.0, 1.0),
                                                      }]);
 
-        let program = ProgramReloader::new(ctx.display(),"tex_quad").unwrap();
+        let program = ProgramReloader::new(ctx.display(), "tex_quad").unwrap();
 
         TexQuad {
             quad_program: program,
@@ -59,7 +59,7 @@ impl TexQuad {
         }
     } // new
 
-    pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64){
+    pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64) {
         self.quad_program.update(display, delta);
     }
 }
@@ -79,7 +79,7 @@ impl Program for TexQuad {
     fn get_program(&self) -> &glium::Program {
         self.quad_program.get_program()
     }
-    fn with_tess(&self) -> bool{
+    fn with_tess(&self) -> bool {
         self.quad_program.get_program().has_tessellation_shaders()
     }
 }

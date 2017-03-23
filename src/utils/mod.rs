@@ -7,35 +7,36 @@ use std::collections::BTreeMap;
 
 type TimeSample = (f64, usize);
 
-pub struct PerformaceCounters{
+pub struct PerformaceCounters {
     samples: usize,
-    acum_time:  f64,
+    acum_time: f64,
     times: BTreeMap<String, TimeSample>,
 }
 
-impl PerformaceCounters{
-    pub fn new() -> PerformaceCounters{
-        PerformaceCounters{
+impl PerformaceCounters {
+    pub fn new() -> PerformaceCounters {
+        PerformaceCounters {
             samples: 0,
             acum_time: 0.0,
             times: BTreeMap::new(),
         }
     }
 
-    fn append(&mut self, delta: f64){
-        self.samples+=1;
-        self.acum_time+=delta;
+    fn append(&mut self, delta: f64) {
+        self.samples += 1;
+        self.acum_time += delta;
     }
-    fn get_fps(&self) -> f64{
-         self.samples as f64 / self.acum_time
+    fn get_fps(&self) -> f64 {
+        self.samples as f64 / self.acum_time
     }
-    fn reset(&mut self){
+    fn reset(&mut self) {
         self.samples = 0;
         self.acum_time = 0 as f64;
     }
 
-    pub fn measure<F> (&mut self, name: &str, body: &mut F)
-    where F : FnMut() {
+    pub fn measure<F>(&mut self, name: &str, body: &mut F)
+        where F: FnMut()
+    {
 
         let start_t = time::precise_time_s();
 
@@ -43,20 +44,19 @@ impl PerformaceCounters{
 
         let end_t = time::precise_time_s();
 
-        if let Some (x) = self.times.get_mut(name.into()){
+        if let Some(x) = self.times.get_mut(name.into()) {
             x.0 += end_t - start_t;
-            x.1 +=1;
+            x.1 += 1;
             return;
         }
 
         self.times.insert(name.into(), (end_t - start_t, 1));
     }
 
-    pub fn get_measure(&self, name:&str) -> Option<f64>{
-        if let Some (x) = self.times.get(name.into()){
+    pub fn get_measure(&self, name: &str) -> Option<f64> {
+        if let Some(x) = self.times.get(name.into()) {
             Some(x.0 / x.1 as f64)
-        }
-        else{
+        } else {
             None
         }
     }
@@ -64,22 +64,22 @@ impl PerformaceCounters{
 
 /// infinite loop with iterations/second reporting every x seconds
 /// it will pass delta time to function body
-pub fn loop_with_report<'a, F: FnMut(f64)>(mut body: F, x: u32){
+pub fn loop_with_report<'a, F: FnMut(f64, &mut PerformaceCounters)>(mut body: F, x: u32) {
     let mut pc = PerformaceCounters::new();
     if x == 0 {
         loop {
-            body(0.0);
+            body(0.0, &mut pc);
         }
     } else {
         loop {
             let mut delta: f64 = 0.0;
             pc.reset();
-            
+
             let start = time::PreciseTime::now();
             while start.to(time::PreciseTime::now()) < time::Duration::seconds(x as i64) {
                 let start_t = time::precise_time_s();
 
-                body(delta);
+                body(delta, &mut pc);
 
                 let end_t = time::precise_time_s();
                 delta = end_t - start_t;
@@ -87,6 +87,12 @@ pub fn loop_with_report<'a, F: FnMut(f64)>(mut body: F, x: u32){
             }
 
             println!("fps: {} ", pc.get_fps());
+
+            println!("prepass {} ssao {} blur {} color {}",
+                     pc.get_measure("prepass").unwrap(),
+                     pc.get_measure("ssao").unwrap(),
+                     pc.get_measure("blur").unwrap(),
+                     pc.get_measure("color").unwrap());
         }
     }
 }
@@ -140,10 +146,9 @@ impl Axis {
             .unwrap()
             .into();
 
-        let axis_program =
-            glium::Program::from_source(display,
-                                        // vertex shader
-             r#"
+        let axis_program = glium::Program::from_source(display,
+                                                       // vertex shader
+                                                       r#"
                  #version 140
                  in vec3 position;
                  in vec3 color;
@@ -157,8 +162,8 @@ impl Axis {
                     f_color = color;
                 }
             "#,
-                                        // fragment shader
-            r#"
+                                                       // fragment shader
+                                                       r#"
                 #version 140
                 in vec3  f_color;
                 out vec4 color; 
@@ -166,8 +171,8 @@ impl Axis {
                     color = vec4(f_color, 1.0);
                 }
             "#,
-                                        None)
-                .unwrap();
+                                                       None)
+            .unwrap();
 
         Axis {
             axis_program: axis_program,
@@ -191,7 +196,7 @@ impl Program for Axis {
     fn get_program(&self) -> &glium::Program {
         &self.axis_program
     }
-    fn with_tess(&self) -> bool{
+    fn with_tess(&self) -> bool {
         self.axis_program.has_tessellation_shaders()
     }
 }

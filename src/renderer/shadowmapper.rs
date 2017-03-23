@@ -128,7 +128,7 @@ impl ShadowMapper {
                   &parameters)
             .unwrap();
     }
-    
+
     #[allow(dead_code)]
     pub fn compute_depth_with_indices<U>(&self,
                                          ctx: &context::Context,
