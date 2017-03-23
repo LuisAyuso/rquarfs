@@ -32,6 +32,11 @@ impl PerformaceCounters {
     fn reset(&mut self) {
         self.samples = 0;
         self.acum_time = 0 as f64;
+
+        for e in self.times.iter_mut(){
+            (e.1).0 = 0.0 as f64;
+            (e.1).1 = 0 as usize;
+        }
     }
 
     pub fn measure<F>(&mut self, name: &str, body: &mut F)
@@ -60,6 +65,7 @@ impl PerformaceCounters {
             None
         }
     }
+
 }
 
 /// infinite loop with iterations/second reporting every x seconds
