@@ -351,8 +351,11 @@ fn main() {
                     Preview::Color => surface.draw_overlay_quad(&quad, &color_map, false),
                 };
 
-                perf_graph.draw_values(&ctx, surface.get_frame(), &[0.0,0.4,1.0,0.7, 0.0, 1.0]);
             });
+
+            if let Some(x) = pc.get_measurements_for("prepass"){
+                perf_graph.draw_values(&ctx, surface.get_frame(), x);
+            }
             surface.gl_end();
         }
 
@@ -450,6 +453,6 @@ fn main() {
         }
 
     },
-                            10); // refresh every 10 secs
+                            5); // refresh every 5 secs
 
 }
