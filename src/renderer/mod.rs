@@ -6,8 +6,10 @@ pub mod shader;
 pub mod texquad;
 pub mod shadowmapper;
 mod ss_pass;
+mod graphs;
 
 pub type ScreenSpacePass<'a> = ss_pass::ScreenSpacePass<'a>;
+pub type GraphPlot = graphs::GraphPlot;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    convert to vertex + index
@@ -32,8 +34,8 @@ pub fn index_vertex_list<T>(vertices_org: &[T]) -> (Vec<T>, Vec<u32>)
             Some(x) => indices.push(x as u32),
         }
     }
-    //vertices.shrink_to_fit();
-    //indices.shrink_to_fit();
+    // vertices.shrink_to_fit();
+    // indices.shrink_to_fit();
 
     (vertices, indices)
 }

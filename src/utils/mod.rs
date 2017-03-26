@@ -33,7 +33,7 @@ impl PerformaceCounters {
         self.samples = 0;
         self.acum_time = 0 as f64;
 
-        for e in self.times.iter_mut(){
+        for e in self.times.iter_mut() {
             (e.1).0 = 0.0 as f64;
             (e.1).1 = 0 as usize;
         }
@@ -65,7 +65,6 @@ impl PerformaceCounters {
             None
         }
     }
-
 }
 
 /// infinite loop with iterations/second reporting every x seconds
@@ -94,7 +93,7 @@ pub fn loop_with_report<'a, F: FnMut(f64, &mut PerformaceCounters)>(mut body: F,
 
             println!("fps: {} ", pc.get_fps());
 
-            println!("prepass {} ssao {} blur {} color {}",
+            println!("prepass {:.6} ssao {:.6} blur {:.6} color {:.6}",
                      pc.get_measure("prepass").unwrap(),
                      pc.get_measure("ssao").unwrap(),
                      pc.get_measure("blur").unwrap(),
@@ -102,6 +101,8 @@ pub fn loop_with_report<'a, F: FnMut(f64, &mut PerformaceCounters)>(mut body: F,
         }
     }
 }
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Axis drawing
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -43,7 +43,7 @@ fn load_program<F: glium::backend::Facade>(display: &F,
 
     // compile
     let prog = glium::Program::new(display, glium_code);
-    //compile_program(display, &vs.unwrap(), &fs.unwrap());
+    // compile_program(display, &vs.unwrap(), &fs.unwrap());
     if let Err(x) = prog {
         print_err(x);
         return None;
@@ -142,12 +142,12 @@ impl context::Program for ProgramReloader {
     }
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Shader Pack,
 //  this implements One file shaders, one day this would be an stand alone library
 //  we do not compile the shaders, just do a basic parsing to extract them from a source code-like
 //  file
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #[derive(Debug)]
 pub enum ShaderParseError {
@@ -276,7 +276,7 @@ fn parse_file(path: &path::PathBuf) -> Result<Vec<ShaderParse>, ShaderParseError
     use std::io::prelude::*;
     use std::fs::File;
     use self::ShaderParseError::*;
-    //use self::ParseState::*;
+    // use self::ParseState::*;
 
     let mut parser = Parser::new();
 
@@ -294,9 +294,9 @@ fn parse_file(path: &path::PathBuf) -> Result<Vec<ShaderParse>, ShaderParseError
 
 
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Tests
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 

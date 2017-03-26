@@ -54,7 +54,7 @@ void main(void)
 
 	float z = (2.0 * near) / (far + near - depth * (far - near)); // convert to linear values 
 
-    float radius = mix(2, 80, z);
+    float radius = mix(2, 20, z);
     float samples_count = 0.0;
 
     for(int i=0; i < samples; i++)

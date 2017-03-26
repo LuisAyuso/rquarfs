@@ -21,8 +21,8 @@ use renderer::camera;
 use renderer::shader;
 use renderer::texquad;
 use world::image_atlas as img_atlas;
-//use world::cube;
-//use renderer::shadowmapper;
+// use world::cube;
+// use renderer::shadowmapper;
 
 use renderer::context::DrawIndexed;
 use renderer::context::Program;
@@ -57,7 +57,7 @@ fn main() {
 
     println!("load height map ");
     // read height map
-    //let height = img_atlas::load_rgb("assets/height.jpg");
+    // let height = img_atlas::load_rgb("assets/height.jpg");
     let height = img_atlas::load_rgb("assets/D18.png");
     let height_dimensions = height.dimensions();
 
@@ -216,6 +216,9 @@ fn main() {
             .unwrap();
     let mut blur = renderer::ScreenSpacePass::new(&ctx, "blur", &blur_texture, &drop_depth);
 
+    //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    let mut perf_graph = renderer::GraphPlot::new(&ctx);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -297,8 +300,8 @@ fn main() {
                 prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
                 prepas_frame.draw((new_terrain.get_vertices(),
                            new_terrain.get_tiles()
-                               .per_instance()
-                               .unwrap()),
+                              .per_instance()
+                              .unwrap()),
                           new_terrain.get_indices(),
                           terrain_normals_prg.get_program(),
                           &uniforms,
@@ -328,11 +331,11 @@ fn main() {
 
             // ~~~~~~~~~  render color ~~~~~~~~~~~~~~~~
 
+            let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
             pc.measure("color",
                        &mut || {
-                let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
                 surface.draw(&axis_plot, &uniforms);
-                //surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
+                // surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
                 surface.draw_instanciated_with_indices_and_program(&new_terrain,
                                                                    new_terrain.get_tiles(),
                                                                    &terrain_prg,
@@ -344,13 +347,13 @@ fn main() {
                     Preview::Blur => surface.draw_overlay_quad(&quad, &blur_texture, false),
                     Preview::Prepass => surface.draw_overlay_quad(&quad, &prepass_texture, false),
                     Preview::Height => surface.draw_overlay_quad(&quad, &height_map, false),
-                    Preview::Depth => {
-                        surface.draw_overlay_quad(&quad, &depth_tex, true);
-                    }
+                    Preview::Depth => surface.draw_overlay_quad(&quad, &depth_tex, true),
                     Preview::Color => surface.draw_overlay_quad(&quad, &color_map, false),
                 };
-                surface.gl_end();
+
+                perf_graph.draw_values(&ctx, surface.get_frame(), &[0.0,0.4,1.0,0.7, 0.0, 1.0]);
             });
+            surface.gl_end();
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

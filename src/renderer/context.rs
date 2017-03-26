@@ -24,7 +24,7 @@ pub struct Context {
 impl Context {
     pub fn new(width: u32, height: u32) -> Context {
         use glium::DisplayBuild;
-        //use glium::debug::DebugCallbackBehavior;
+        // use glium::debug::DebugCallbackBehavior;
 
         Context {
             display_ptr: glium::glutin::WindowBuilder::new()
@@ -86,6 +86,11 @@ pub struct DrawSurface<'a> {
 }
 
 impl<'a> DrawSurface<'a> {
+
+    pub fn get_frame(&mut self) -> &mut glium::Frame {
+        &mut self.target
+    }
+
     #[inline]
     pub fn gl_begin(ctx: &'a Context, render_type: RenderType) -> DrawSurface<'a> {
         use glium::Surface;
@@ -115,7 +120,7 @@ impl<'a> DrawSurface<'a> {
         where O: DrawItem + Program,
               U: glium::uniforms::Uniforms
     {
-        //println!("a");
+        // println!("a");
         use glium::Surface;
         self.target
             .draw(obj.get_vertices(),
@@ -136,7 +141,7 @@ impl<'a> DrawSurface<'a> {
               P: Program,
               U: glium::uniforms::Uniforms
     {
-        //println!("b");
+        // println!("b");
         use glium::Surface;
         self.target
             .draw((obj.get_vertices(), instances.per_instance().unwrap()),
@@ -154,7 +159,7 @@ impl<'a> DrawSurface<'a> {
               P: Program,
               U: glium::uniforms::Uniforms
     {
-        //println!("b");
+        // println!("b");
         use glium::Surface;
         let x = self.target.draw(obj.get_vertices(),
                                  obj.get_indices(),
@@ -172,7 +177,7 @@ impl<'a> DrawSurface<'a> {
               T: glium::uniforms::AsUniformValue
     {
 
-        //println!("c");
+        // println!("c");
         use glium::Surface;
 
         // generate uniforms because i doint know how to return the uniforms type
@@ -187,7 +192,7 @@ impl<'a> DrawSurface<'a> {
                   quad.get_program(),
                   &quad_uniforms,
                   &glium::DrawParameters {
-                      //backface_culling: glium::BackfaceCullingMode::CullClockwise,
+                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
                       viewport: Some(glium::Rect {
                           left: 10,
                           bottom: 10,
@@ -197,7 +202,7 @@ impl<'a> DrawSurface<'a> {
                       ..Default::default()
                   })
             .unwrap();
-        //println!(" == ");
+        // println!(" == ");
     }
 
     #[inline]
@@ -205,7 +210,6 @@ impl<'a> DrawSurface<'a> {
         self.target.finish().unwrap();
     }
 } // impl ctx
-
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -237,3 +241,5 @@ pub trait DrawIndexed {
     fn get_vertices(&self) -> &VerticesT;
     fn get_indices(&self) -> &IndicesT;
 }
+
+

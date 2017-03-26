@@ -84,7 +84,7 @@ pub fn get_coords_height(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
 
 #[allow(dead_code)]
 pub fn get_max_neighbour(height_map: &image::RgbImage, i: u32, j: u32) -> f32 {
-    //use std::cmp;
+    // use std::cmp;
     let (max_i, max_j) = height_map.dimensions();
 
     let kernel = vec![(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)];

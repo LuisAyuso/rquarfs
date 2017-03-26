@@ -18,7 +18,7 @@ impl ShadowMapper {
     pub fn new(ctx: &context::Context) -> ShadowMapper {
         use glium::texture;
 
-        //glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        // glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         let texture = texture::Texture2d::empty_with_format(ctx.display(),
                                                             texture::UncompressedFloatFormat::F32,
                                                             texture::MipmapsOption::NoMipmap,
@@ -96,7 +96,7 @@ impl ShadowMapper {
                             uniforms: &U)
         where U: glium::uniforms::Uniforms
     {
-        //println!("b");
+        // println!("b");
         use glium::Surface;
 
         let mut framebuffer =
@@ -114,12 +114,12 @@ impl ShadowMapper {
                 ..Default::default()
             },
             // nonsense, just debug
-            //polygon_mode: glium::draw_parameters::PolygonMode::Line,
+            // polygon_mode: glium::draw_parameters::PolygonMode::Line,
             ..Default::default()
         };
 
-        //float 16 buffer, only red componet is used
-        //framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        // float 16 buffer, only red componet is used
+        // framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
         framebuffer.clear_depth(1.0);
         framebuffer.draw(vertices,
                   indices,
@@ -137,7 +137,7 @@ impl ShadowMapper {
                                          uniforms: &U)
         where U: glium::uniforms::Uniforms
     {
-        //println!("b");
+        // println!("b");
         use glium::Surface;
 
         let mut framebuffer =
@@ -155,8 +155,8 @@ impl ShadowMapper {
             ..Default::default()
         };
 
-        //float 16 buffer, only red componet is used
-        //framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        // float 16 buffer, only red componet is used
+        // framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
         framebuffer.clear_depth(1.0);
         framebuffer.draw(vertices,
                   indices,
