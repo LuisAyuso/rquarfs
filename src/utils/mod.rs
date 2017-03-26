@@ -78,7 +78,7 @@ impl PerformaceCounters {
 
             let v =  t as f32 / s as f32;
             // normalize to 60fps
-            let sixtyfps = 1.0 / 60,0;
+            let sixtyfps = 1.0 / 60.0;
             let v = v / sixtyfps;
 
             new_ones.insert(name, v);

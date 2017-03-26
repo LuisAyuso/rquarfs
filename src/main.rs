@@ -216,9 +216,9 @@ fn main() {
             .unwrap();
     let mut blur = renderer::ScreenSpacePass::new(&ctx, "blur", &blur_texture, &drop_depth);
 
-    //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    let mut perf_graph = renderer::GraphPlot::new(&ctx);
+    // performance
+
+    let mut performance_program = shader::ProgramReloader::new(ctx.display(), "performance").unwrap();
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -234,6 +234,7 @@ fn main() {
         quad.update(ctx.display(), delta);
         ssao.update(ctx.display(), delta);
         blur.update(ctx.display(), delta);
+        performance_program.update(ctx.display(), delta);
 
         // keep mut separated
         {
@@ -353,9 +354,26 @@ fn main() {
 
             });
 
-            if let Some(x) = pc.get_measurements_for("prepass"){
-                perf_graph.draw_values(&ctx, surface.get_frame(), x);
+
+            {
+                //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                let mut perf_graph = renderer::graphs::GraphPlot::new(&ctx, surface.get_frame(), &performance_program);
+                if let Some(x) = pc.get_measurements_for("prepass"){
+                    perf_graph.draw_values(&ctx, x);
+                }
+                if let Some(x) = pc.get_measurements_for("ssao"){
+                    perf_graph.draw_values(&ctx, x);
+                }
+                if let Some(x) = pc.get_measurements_for("blur"){
+                    perf_graph.draw_values(&ctx, x);
+                }
+                if let Some(x) = pc.get_measurements_for("color"){
+                    perf_graph.draw_values(&ctx, x);
+                }
+
+                perf_graph.finish();
             }
+
             surface.gl_end();
         }
 
@@ -453,6 +471,6 @@ fn main() {
         }
 
     },
-                            5); // refresh every 5 secs
+                            1); // refresh every 5 secs
 
 }

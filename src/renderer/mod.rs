@@ -6,10 +6,9 @@ pub mod shader;
 pub mod texquad;
 pub mod shadowmapper;
 mod ss_pass;
-mod graphs;
+pub mod graphs;
 
 pub type ScreenSpacePass<'a> = ss_pass::ScreenSpacePass<'a>;
-pub type GraphPlot = graphs::GraphPlot;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    convert to vertex + index
