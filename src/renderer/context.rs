@@ -86,7 +86,6 @@ pub struct DrawSurface<'a> {
 }
 
 impl<'a> DrawSurface<'a> {
-
     pub fn get_frame(&mut self) -> &mut glium::Frame {
         &mut self.target
     }
@@ -241,5 +240,3 @@ pub trait DrawIndexed {
     fn get_vertices(&self) -> &VerticesT;
     fn get_indices(&self) -> &IndicesT;
 }
-
-

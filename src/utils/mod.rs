@@ -68,15 +68,15 @@ impl PerformaceCounters {
         self.times.insert(name.into(), (end_t - start_t, 1));
     }
 
-    pub fn digest_measures(&mut self){
+    pub fn digest_measures(&mut self) {
 
         let mut new_ones = BTreeMap::new();
 
-        for (name, sample) in &self.times{
+        for (name, sample) in &self.times {
             let t = sample.0;
             let s = sample.1;
 
-            let v =  t as f32 / s as f32;
+            let v = t as f32 / s as f32;
             // normalize to 60fps
             let sixtyfps = 1.0 / 60.0;
             let v = v / sixtyfps;
@@ -84,19 +84,19 @@ impl PerformaceCounters {
             new_ones.insert(name, v);
         }
 
-        for (name, new_measure) in new_ones{
+        for (name, new_measure) in new_ones {
 
             if let Some(x) = self.digest.get_mut(name.into()) {
-                if x.len() < self.digest_size as usize{
+                if x.len() < self.digest_size as usize {
                     x.resize(self.digest_size as usize, 0.0);
                 }
-                *(x.get_mut(self.digest_tick as usize).unwrap()) =  new_measure;
+                *(x.get_mut(self.digest_tick as usize).unwrap()) = new_measure;
                 continue;
             }
-            
+
             let mut x = Vec::new();
             x.resize(self.digest_size as usize, 0.0);
-            *(x.get_mut(self.digest_tick as usize).unwrap()) =  new_measure;
+            *(x.get_mut(self.digest_tick as usize).unwrap()) = new_measure;
 
             self.digest.insert(name.clone(), x);
         }
@@ -112,15 +112,15 @@ impl PerformaceCounters {
         }
     }
 
-    pub fn get_measurements_for(&self, name: &str) -> Option<&[f32]>{
+    pub fn get_measurements_for(&self, name: &str) -> Option<&[f32]> {
 
-        match self.digest.get(name.into()){
+        match self.digest.get(name.into()) {
             Some(x) => Some(x.as_slice()),
             None => None,
         }
     }
 
-    // TODO: iterator to retrieve the digested 
+    // TODO: iterator to retrieve the digested
 }
 
 /// infinite loop with iterations/second reporting every x seconds

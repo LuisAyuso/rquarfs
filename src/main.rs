@@ -218,7 +218,8 @@ fn main() {
 
     // performance
 
-    let mut performance_program = shader::ProgramReloader::new(ctx.display(), "performance").unwrap();
+    let mut performance_program = shader::ProgramReloader::new(ctx.display(), "performance")
+        .unwrap();
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -301,8 +302,8 @@ fn main() {
                 prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
                 prepas_frame.draw((new_terrain.get_vertices(),
                            new_terrain.get_tiles()
-                              .per_instance()
-                              .unwrap()),
+                               .per_instance()
+                               .unwrap()),
                           new_terrain.get_indices(),
                           terrain_normals_prg.get_program(),
                           &uniforms,
@@ -357,17 +358,19 @@ fn main() {
 
             {
                 //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                let mut perf_graph = renderer::graphs::GraphPlot::new(&ctx, surface.get_frame(), &performance_program);
-                if let Some(x) = pc.get_measurements_for("prepass"){
+                let mut perf_graph = renderer::graphs::GraphPlot::new(&ctx,
+                                                                      surface.get_frame(),
+                                                                      &performance_program);
+                if let Some(x) = pc.get_measurements_for("prepass") {
                     perf_graph.draw_values(&ctx, x);
                 }
-                if let Some(x) = pc.get_measurements_for("ssao"){
+                if let Some(x) = pc.get_measurements_for("ssao") {
                     perf_graph.draw_values(&ctx, x);
                 }
-                if let Some(x) = pc.get_measurements_for("blur"){
+                if let Some(x) = pc.get_measurements_for("blur") {
                     perf_graph.draw_values(&ctx, x);
                 }
-                if let Some(x) = pc.get_measurements_for("color"){
+                if let Some(x) = pc.get_measurements_for("color") {
                     perf_graph.draw_values(&ctx, x);
                 }
 

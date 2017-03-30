@@ -7,6 +7,7 @@ pub mod texquad;
 pub mod shadowmapper;
 mod ss_pass;
 pub mod graphs;
+pub mod pipeline;
 
 pub type ScreenSpacePass<'a> = ss_pass::ScreenSpacePass<'a>;
 

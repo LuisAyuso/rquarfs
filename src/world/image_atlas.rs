@@ -466,9 +466,9 @@ pub fn to_mesh(step: u32, height_map: &image::RgbImage) -> Vec<MeshPoint> {
 #[cfg(test)]
 mod tests {
 
-    use super::generate_atlas;
-    use super::load_atlas;
-    use super::Atlas;
+    //use super::generate_atlas;
+    //use super::load_atlas;
+    //use super::Atlas;
 
     //    #[test]
     //    fn test1() {
@@ -497,6 +497,6 @@ mod tests {
     #[test]
     fn get_mesh() {
         let map = load_rgb("assets/pico.png");
-        let x = to_mesh(10, &map);
+        let _ = to_mesh(10, &map);
     }
 }

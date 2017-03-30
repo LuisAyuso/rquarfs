@@ -18,7 +18,7 @@ struct PerfPos {
 }
 
 pub struct GraphPlot<'a, 'b, D>
-where D: glium::Surface + 'a
+    where D: glium::Surface + 'a
 {
     frame: &'a mut D,
     count: u32,
@@ -27,17 +27,18 @@ where D: glium::Surface + 'a
 
 implement_vertex!(PerfPos, position);
 
-impl<'a,'b,D> GraphPlot<'a, 'b, D> 
-where D: glium::Surface
+impl<'a, 'b, D> GraphPlot<'a, 'b, D>
+    where D: glium::Surface
 {
+    pub fn new(ctx: &context::Context,
+               frame: &'a mut D,
+               program: &'b ProgramReloader)
+               -> GraphPlot<'a, 'b, D> {
 
-    pub fn new(ctx: &context::Context, frame: &'a mut D, program: &'b ProgramReloader) -> GraphPlot<'a,'b,D> {
-
-        let buffer = glium::VertexBuffer::new(ctx.display(), &[
-                                              PerfPos{position:(-1.0,-0.9999)},
-                                              PerfPos{position:( 1.0,-0.9999)}]
-                                              ).unwrap();
-        let color = (1.0f32, 1.0f32, 1.0f32, 1.0f32);
+        let buffer = glium::VertexBuffer::new(ctx.display(),
+                                              &[PerfPos { position: (-1.0, -0.9999) },
+                                                PerfPos { position: (1.0, -0.9999) }])
+            .unwrap();
         let uniforms = uniform!{
             color: get_color(0),
         };
@@ -46,15 +47,16 @@ where D: glium::Surface
                   program.get_program(),
                   &uniforms,
                   &glium::DrawParameters {
-                                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                                      viewport: Some(glium::Rect {
-                                          left: 660,
-                                          bottom: 10,
-                                          width: 1400,
-                                          height: 480,
-                                      }),
-                                      ..Default::default()
-                  }).unwrap();
+                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
+                      viewport: Some(glium::Rect {
+                          left: 660,
+                          bottom: 10,
+                          width: 1400,
+                          height: 480,
+                      }),
+                      ..Default::default()
+                  })
+            .unwrap();
 
         GraphPlot {
             frame: frame,
@@ -65,39 +67,41 @@ where D: glium::Surface
 
     // FIXME: do a build pattern here to print several slices.
     //  first call draws the axis in black.
-    pub fn draw_values(&mut self, ctx: &context::Context, values: &[f32]) 
-    {
+    pub fn draw_values(&mut self, ctx: &context::Context, values: &[f32]) {
         let mut samples = Vec::new();
         samples.extend_from_slice(values);
-    
+
         // horizontal scale
         let step = 2.0 / values.len() as f32;
 
-        let verts : Vec<PerfPos> = values.iter().enumerate().map(|(x, y)|{ 
-                                     PerfPos{position:( -1.0 + step * x as f32, -1.0 + *y * 2.0 )} } ).collect(); 
+        let verts: Vec<PerfPos> = values.iter()
+            .enumerate()
+            .map(|(x, y)| PerfPos { position: (-1.0 + step * x as f32, -1.0 + *y * 2.0) })
+            .collect();
 
         // plot axis lines
         let buffer = glium::VertexBuffer::new(ctx.display(), verts.as_slice()).unwrap();
 
-        let color= (1.0f32, 0.0f32, 0.0f32, 1.0f32);
         let uniforms = uniform!{
             color: get_color(self.count),
         };
 
-        self.frame.draw(&buffer,
+        self.frame
+            .draw(&buffer,
                   glium::index::NoIndices(glium::index::PrimitiveType::LineStrip),
                   self.program.get_program(),
                   &uniforms,
                   &glium::DrawParameters {
-                                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                                      viewport: Some(glium::Rect {
-                                          left: 660,
-                                          bottom: 10,
-                                          width: 1400,
-                                          height: 480,
-                                      }),
-                                      ..Default::default()
-                  }).unwrap();
+                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
+                      viewport: Some(glium::Rect {
+                          left: 660,
+                          bottom: 10,
+                          width: 1400,
+                          height: 480,
+                      }),
+                      ..Default::default()
+                  })
+            .unwrap();
 
         self.count += 1;
     }
@@ -107,16 +111,16 @@ where D: glium::Surface
     }
 }
 
-fn get_color(i: u32) -> [f32;4]{
+fn get_color(i: u32) -> [f32; 4] {
 
-    match i{
-        0 =>  [0.0,0.0,0.0,1.0],
-        1 =>  [0.8,0.0,0.0,1.0],
-        2 =>  [0.0,0.8,0.0,1.0],
-        3 =>  [0.0,0.0,0.8,1.0],
-        4 =>  [0.8,0.0,0.8,1.0],
-        5 =>  [0.8,0.8,0.8,1.0],
-       _  => [1.0,1.0,1.0,1.0],
+    match i {
+        0 => [0.0, 0.0, 0.0, 1.0],
+        1 => [0.8, 0.0, 0.0, 1.0],
+        2 => [0.0, 0.8, 0.0, 1.0],
+        3 => [0.0, 0.0, 0.8, 1.0],
+        4 => [0.8, 0.0, 0.8, 1.0],
+        5 => [0.8, 0.8, 0.8, 1.0],
+        _ => [1.0, 1.0, 1.0, 1.0],
     }
 
 
