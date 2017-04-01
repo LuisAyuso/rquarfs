@@ -282,9 +282,13 @@ fn main() {
                 ssao_texture: &blur_texture,
             };
 
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            //
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
 
-            pc.measure("prepass",
+            pc.measure("0: prepass",
                        &mut || {
 
                 let parameters = glium::DrawParameters {
@@ -313,7 +317,7 @@ fn main() {
 
             // ~~~~~~~~~  SSAO ~~~~~~~~~~~~~~~~
 
-            pc.measure("ssao",
+            pc.measure("1: ssao",
                        &mut || {
                            ssao.execute_pass(&inverse_matrix,
                                              &prepass_texture,
@@ -323,7 +327,7 @@ fn main() {
 
             // ~~~~~~~~~  blur SSAO ~~~~~~~~~~~~~~~~
 
-            pc.measure("blur",
+            pc.measure("2: blur",
                        &mut || {
                            blur.execute_pass(&inverse_matrix,
                                              &ssao_texture,
@@ -334,7 +338,7 @@ fn main() {
             // ~~~~~~~~~  render color ~~~~~~~~~~~~~~~~
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
-            pc.measure("color",
+            pc.measure("3: color",
                        &mut || {
                 surface.draw(&axis_plot, &uniforms);
                 // surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
@@ -360,17 +364,18 @@ fn main() {
                 //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 let mut perf_graph = renderer::graphs::GraphPlot::new(&ctx,
                                                                       surface.get_frame(),
+                                                                      pc.get_current_tick(),
                                                                       &performance_program);
-                if let Some(x) = pc.get_measurements_for("prepass") {
+                if let Some(x) = pc.get_measurements_for("0: prepass") {
                     perf_graph.draw_values(&ctx, x);
                 }
-                if let Some(x) = pc.get_measurements_for("ssao") {
+                if let Some(x) = pc.get_measurements_for("1: ssao") {
                     perf_graph.draw_values(&ctx, x);
                 }
-                if let Some(x) = pc.get_measurements_for("blur") {
+                if let Some(x) = pc.get_measurements_for("2: blur") {
                     perf_graph.draw_values(&ctx, x);
                 }
-                if let Some(x) = pc.get_measurements_for("color") {
+                if let Some(x) = pc.get_measurements_for("3: color") {
                     perf_graph.draw_values(&ctx, x);
                 }
 

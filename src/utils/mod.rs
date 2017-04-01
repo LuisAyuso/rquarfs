@@ -72,16 +72,19 @@ impl PerformaceCounters {
 
         let mut new_ones = BTreeMap::new();
 
+        let mut accum = 0.0;
         for (name, sample) in &self.times {
             let t = sample.0;
             let s = sample.1;
 
+
             let v = t as f32 / s as f32;
             // normalize to 60fps
-            let sixtyfps = 1.0 / 60.0;
+            let sixtyfps = 1.0 / 1000.0;
             let v = v / sixtyfps;
 
-            new_ones.insert(name, v);
+            new_ones.insert(name, v + accum);
+            accum = accum + v;
         }
 
         for (name, new_measure) in new_ones {
@@ -120,6 +123,14 @@ impl PerformaceCounters {
         }
     }
 
+    pub fn get_current_tick(&self) -> f32{
+        if self.digest_tick == 0{
+            return 0.0;
+        }
+             
+        (self.digest_tick - 1) as f32 / self.digest_size as f32
+    }
+
     // TODO: iterator to retrieve the digested
 }
 
@@ -148,11 +159,11 @@ pub fn loop_with_report<'a, F: FnMut(f64, &mut PerformaceCounters)>(mut body: F,
 
 
             println!("fps: {} ", pc.get_fps());
-            println!("prepass {:.6} ssao {:.6} blur {:.6} color {:.6}",
-                     pc.get_last_measure("prepass").unwrap(),
-                     pc.get_last_measure("ssao").unwrap(),
-                     pc.get_last_measure("blur").unwrap(),
-                     pc.get_last_measure("color").unwrap());
+           // println!("prepass {:.6} ssao {:.6} blur {:.6} color {:.6}",
+           //          pc.get_last_measure("prepass").unwrap(),
+           //          pc.get_last_measure("ssao").unwrap(),
+           //          pc.get_last_measure("blur").unwrap(),
+           //          pc.get_last_measure("color").unwrap());
 
 
             pc.digest_measures();
