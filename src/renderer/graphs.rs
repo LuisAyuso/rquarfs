@@ -32,12 +32,23 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
 {
     pub fn new(ctx: &context::Context,
                frame: &'a mut D,
+               tick: f32, // the current possition between 0 and 1
                program: &'b ProgramReloader)
                -> GraphPlot<'a, 'b, D> {
 
         let buffer = glium::VertexBuffer::new(ctx.display(),
                                               &[PerfPos { position: (-1.0, -0.9999) },
-                                                PerfPos { position: (1.0, -0.9999) }])
+                                                PerfPos { position: (1.0, -0.9999) },
+
+                                                PerfPos { position: (-1.0, 0.0) },
+                                                PerfPos { position: (1.0, 0.0) },
+
+                                                PerfPos { position: (-0.9999 + tick * 2.0,-1.0) },
+                                                PerfPos { position: (-0.9999 + tick * 2.0, 1.0) },
+
+                                                PerfPos { position: (-1.0, 0.9999) },
+                                                PerfPos { position: (1.0, 0.9999) },
+                                              ])
             .unwrap();
         let uniforms = uniform!{
             color: get_color(0),
@@ -47,16 +58,14 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
                   program.get_program(),
                   &uniforms,
                   &glium::DrawParameters {
-                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                      viewport: Some(glium::Rect {
-                          left: 660,
-                          bottom: 10,
-                          width: 1400,
-                          height: 480,
-                      }),
-                      ..Default::default()
-                  })
-            .unwrap();
+                                      viewport: Some(glium::Rect {
+                                          left: 660,
+                                          bottom: 10,
+                                          width: 1200,
+                                          height: 480,
+                                      }),
+                                      ..Default::default()
+                  }).unwrap();
 
         GraphPlot {
             frame: frame,
@@ -76,7 +85,7 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
 
         let verts: Vec<PerfPos> = values.iter()
             .enumerate()
-            .map(|(x, y)| PerfPos { position: (-1.0 + step * x as f32, -1.0 + *y * 2.0) })
+            .map(|(x, y)| PerfPos { position: (-0.9999 + step * x as f32, -1.0 + *y * 2.0) })
             .collect();
 
         // plot axis lines
@@ -92,16 +101,15 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
                   self.program.get_program(),
                   &uniforms,
                   &glium::DrawParameters {
-                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                      viewport: Some(glium::Rect {
-                          left: 660,
-                          bottom: 10,
-                          width: 1400,
-                          height: 480,
-                      }),
-                      ..Default::default()
-                  })
-            .unwrap();
+                                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
+                                      viewport: Some(glium::Rect {
+                                          left: 660,
+                                          bottom: 10,
+                                          width: 1200,
+                                          height: 480,
+                                      }),
+                                      ..Default::default()
+                  }).unwrap();
 
         self.count += 1;
     }
@@ -113,15 +121,14 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
 
 fn get_color(i: u32) -> [f32; 4] {
 
-    match i {
-        0 => [0.0, 0.0, 0.0, 1.0],
-        1 => [0.8, 0.0, 0.0, 1.0],
-        2 => [0.0, 0.8, 0.0, 1.0],
-        3 => [0.0, 0.0, 0.8, 1.0],
-        4 => [0.8, 0.0, 0.8, 1.0],
-        5 => [0.8, 0.8, 0.8, 1.0],
-        _ => [1.0, 1.0, 1.0, 1.0],
+    match i {   
+            // R    G    B
+        0 => [0.0, 0.0, 0.0, 1.0], // BLACK
+        1 => [0.8, 0.0, 0.0, 1.0], // RED
+        2 => [0.0, 0.8, 0.0, 1.0], // GREEN
+        3 => [0.0, 0.0, 0.8, 1.0], // BLUE
+        4 => [0.8, 0.0, 0.8, 1.0], // PURPLE
+        5 => [0.8, 0.8, 0.8, 1.0], // GREY
+        _ => [1.0, 1.0, 1.0, 1.0], // WHITE
     }
-
-
 }
