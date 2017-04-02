@@ -1,9 +1,12 @@
 use glium;
+use std::collections::BTreeMap;
 
 pub type Backend = glium::backend::glutin_backend::GlutinFacade;
 pub type VerticesT = glium::vertex::VertexBufferAny;
 pub type IndicesT = glium::index::IndexBufferAny;
 pub type PrimitiveT = glium::index::PrimitiveType;
+pub type IdType = usize;
+
 
 #[derive(Copy, Clone)]
 pub enum RenderType {
@@ -16,6 +19,7 @@ pub enum RenderType {
 /// the idea is to simplify te calls to draw, and wrap all intialization
 pub struct Context {
     display_ptr: Backend,
+    id_cache: BTreeMap<String, IdType>,
     pub width: u32,
     pub height: u32,
 }
@@ -24,7 +28,6 @@ pub struct Context {
 impl Context {
     pub fn new(width: u32, height: u32) -> Context {
         use glium::DisplayBuild;
-        // use glium::debug::DebugCallbackBehavior;
 
         Context {
             display_ptr: glium::glutin::WindowBuilder::new()
@@ -32,14 +35,37 @@ impl Context {
                         .with_dimensions(width, height)
                         .with_vsync()
 //                        .with_depth_buffer(24)
- //                       .with_srgb(Some(false))
-                        //.build_glium_debug(DebugCallbackBehavior::PrintAll)
+//                        .with_srgb(Some(false))
                         .build_glium()
                     .unwrap(),
+            id_cache: BTreeMap::new(),
             width: width,
             height: height,
         }
     }
+
+    #[cfg(test)]
+    pub fn new_empty() -> Context {
+        use glium::DisplayBuild;
+        Context {
+            display_ptr: glium::glutin::WindowBuilder::new()
+                .build_glium()
+                .unwrap(),
+            id_cache: BTreeMap::new(),
+            width: 0,
+            height: 0,
+        }
+    }
+
+    pub fn get_id_for(&mut self, name: &str) -> IdType {
+        if let Some(x) = self.id_cache.get(&name.to_string()) {
+            return *x;
+        }
+        let id = self.id_cache.len();
+        self.id_cache.insert(name.to_string(), id);
+        id
+    }
+
 
     #[allow(dead_code)]
     pub fn new_debug(width: u32, height: u32) -> Context {
@@ -54,6 +80,7 @@ impl Context {
                 .with_srgb(Some(false))
                 .build_glium_debug(DebugCallbackBehavior::PrintAll)
                 .unwrap(),
+            id_cache: BTreeMap::new(),
             width: width,
             height: height,
         }

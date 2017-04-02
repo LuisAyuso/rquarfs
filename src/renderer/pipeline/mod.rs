@@ -6,9 +6,10 @@ use std::collections::BTreeSet;
 use std::collections::VecDeque;
 use std::marker::PhantomData;
 
-struct StageInstance<CTX, T, F>
+pub struct StageInstance<CTX, T, F>
     where F: Fn(&mut CTX, &[T])
 {
+    name: &'static str,
     inputs: Vec<T>,
     outputs: Vec<T>,
     func: F,
@@ -19,8 +20,9 @@ impl<CTX, T, F> StageInstance<CTX, T, F>
     where T: Clone,
           F: Fn(&mut CTX, &[T])
 {
-    fn new(inputs: &[T], outputs: &[T], f: F) -> StageInstance<CTX, T, F> {
+    pub fn new(name: &'static str, inputs: &[T], outputs: &[T], f: F) -> StageInstance<CTX, T, F> {
         StageInstance {
+            name: name,
             inputs: inputs.to_vec(),
             outputs: outputs.to_vec(),
             func: f,
@@ -32,9 +34,10 @@ impl<CTX, T, F> StageInstance<CTX, T, F>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-trait Stage<CTX, T> {
+pub trait Stage<CTX, T> {
     fn get_inputs(&self) -> &[T];
     fn get_outputs(&self) -> &[T];
+    fn get_name(&self) -> &'static str;
     fn execute(&self, ctx: &mut CTX);
 }
 
@@ -50,6 +53,10 @@ impl<CTX, T, F> Stage<CTX, T> for StageInstance<CTX, T, F>
         &self.outputs
     }
 
+    fn get_name(&self) -> &'static str {
+        self.name
+    }
+
     fn execute(&self, ctx: &mut CTX) {
         (self.func)(ctx, self.inputs.as_slice());
     }
@@ -60,7 +67,7 @@ type BStage<CTX, T> = Box<Stage<CTX, T>>;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-struct Pipeline<CTX, T>
+pub struct Pipeline<CTX, T>
     where T: Ord
 {
     queue: Vec<BStage<CTX, T>>,
@@ -69,11 +76,11 @@ struct Pipeline<CTX, T>
 impl<CTX, T> Pipeline<CTX, T>
     where T: Ord
 {
-    fn new(_: &CTX) -> Pipeline<CTX, T> {
+    pub fn new(_: &CTX) -> Pipeline<CTX, T> {
         Pipeline { queue: Vec::new() }
     }
 
-    fn queue(&mut self, stage: BStage<CTX, T>) {
+    pub fn queue(&mut self, stage: BStage<CTX, T>) {
         self.queue.push(stage);
     }
 
@@ -87,7 +94,7 @@ impl<CTX, T> Pipeline<CTX, T>
 
 struct Runner<'a, CTX: 'a, T: Ord + 'a> {
     available: BTreeSet<T>,
-    //pipe: &'a Pipeline<T>,
+    // pipe: &'a Pipeline<T>,
     ready: VecDeque<&'a BStage<CTX, T>>,
     wait: Vec<&'a BStage<CTX, T>>,
 }
@@ -162,7 +169,7 @@ mod tests {
 
         let inputs = vec![a, b, c];
 
-        let _ = StageInstance::new(inputs.as_slice(), &[], |ctx: &mut i32, inputs| {
+        let _ = StageInstance::new("stage", inputs.as_slice(), &[], |ctx: &mut i32, inputs| {
             println!("{} {:?}", ctx, inputs);
         });
     }
@@ -174,19 +181,24 @@ mod tests {
         let mut ctx: u32 = 0;
         let mut pipe = Pipeline::new(&ctx);
 
-        pipe.queue(Box::new(StageInstance::new(&[],
+        pipe.queue(Box::new(StageInstance::new("stage",
+                                               &[],
                                                &["a"],
                                                |ctx, inputs| println!("{} {:?}", ctx, inputs))));
-        pipe.queue(Box::new(StageInstance::new(&["a"],
+        pipe.queue(Box::new(StageInstance::new("stage",
+                                               &["a"],
                                                &["b"],
                                                |ctx, inputs| println!("{} {:?}", ctx, inputs))));
-        pipe.queue(Box::new(StageInstance::new(&["a"],
+        pipe.queue(Box::new(StageInstance::new("stage",
+                                               &["a"],
                                                &["c"],
                                                |ctx, inputs| println!("{} {:?}", ctx, inputs))));
-        pipe.queue(Box::new(StageInstance::new(&["c", "b"],
+        pipe.queue(Box::new(StageInstance::new("stage",
+                                               &["c", "b"],
                                                &["d"],
                                                |ctx, inputs| println!("{} {:?}", ctx, inputs))));
-        pipe.queue(Box::new(StageInstance::new(&["a", "d"],
+        pipe.queue(Box::new(StageInstance::new("stage",
+                                               &["a", "d"],
                                                &[],
                                                |ctx, inputs| println!("{} {:?}", ctx, inputs))));
 
@@ -206,9 +218,9 @@ mod tests {
         let mut state = 0;
         let mut pipe = Pipeline::new(&state);
 
-        pipe.queue(Box::new(StageInstance::new(&[], &[1], |ctx, _| *ctx = 1)));
-        pipe.queue(Box::new(StageInstance::new(&[1], &[2], |ctx, _| *ctx = *ctx + 1)));
-        pipe.queue(Box::new(StageInstance::new(&[2], &[3], |ctx, _| *ctx = *ctx + 1)));
+        pipe.queue(Box::new(StageInstance::new("stage", &[], &[1], |ctx, _| *ctx = 1)));
+        pipe.queue(Box::new(StageInstance::new("stage", &[1], &[2], |ctx, _| *ctx = *ctx + 1)));
+        pipe.queue(Box::new(StageInstance::new("stage", &[2], &[3], |ctx, _| *ctx = *ctx + 1)));
 
         let mut runner = Runner::new(&pipe);
         while let Some(x) = runner.pop() {

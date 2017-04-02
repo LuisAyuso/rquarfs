@@ -4,9 +4,9 @@ use renderer::context::Program;
 use renderer::shader::ProgramReloader;
 
 use std::vec::*;
-//use glium::texture;
-//use glium::framebuffer::SimpleFrameBuffer;
-//use glium::Surface;
+// use glium::texture;
+// use glium::framebuffer::SimpleFrameBuffer;
+// use glium::Surface;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //    Performace drawing
@@ -36,20 +36,20 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
                program: &'b ProgramReloader)
                -> GraphPlot<'a, 'b, D> {
 
-        let buffer = glium::VertexBuffer::new(ctx.display(),
-                                              &[PerfPos { position: (-1.0, -0.9999) },
-                                                PerfPos { position: (1.0, -0.9999) },
+        let buffer =
+            glium::VertexBuffer::new(ctx.display(),
+                                     &[PerfPos { position: (-1.0, -0.9999) },
+                                       PerfPos { position: (1.0, -0.9999) },
 
-                                                PerfPos { position: (-1.0, 0.0) },
-                                                PerfPos { position: (1.0, 0.0) },
+                                       PerfPos { position: (-1.0, 0.0) },
+                                       PerfPos { position: (1.0, 0.0) },
 
-                                                PerfPos { position: (-0.9999 + tick * 2.0,-1.0) },
-                                                PerfPos { position: (-0.9999 + tick * 2.0, 1.0) },
+                                       PerfPos { position: (-0.9999 + tick * 2.0, -1.0) },
+                                       PerfPos { position: (-0.9999 + tick * 2.0, 1.0) },
 
-                                                PerfPos { position: (-1.0, 0.9999) },
-                                                PerfPos { position: (1.0, 0.9999) },
-                                              ])
-            .unwrap();
+                                       PerfPos { position: (-1.0, 0.9999) },
+                                       PerfPos { position: (1.0, 0.9999) }])
+                .unwrap();
         let uniforms = uniform!{
             color: get_color(0),
         };
@@ -58,14 +58,15 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
                   program.get_program(),
                   &uniforms,
                   &glium::DrawParameters {
-                                      viewport: Some(glium::Rect {
-                                          left: 660,
-                                          bottom: 10,
-                                          width: 1200,
-                                          height: 480,
-                                      }),
-                                      ..Default::default()
-                  }).unwrap();
+                      viewport: Some(glium::Rect {
+                          left: 660,
+                          bottom: 10,
+                          width: 1200,
+                          height: 480,
+                      }),
+                      ..Default::default()
+                  })
+            .unwrap();
 
         GraphPlot {
             frame: frame,
@@ -101,15 +102,16 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
                   self.program.get_program(),
                   &uniforms,
                   &glium::DrawParameters {
-                                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
-                                      viewport: Some(glium::Rect {
-                                          left: 660,
-                                          bottom: 10,
-                                          width: 1200,
-                                          height: 480,
-                                      }),
-                                      ..Default::default()
-                  }).unwrap();
+                      // backface_culling: glium::BackfaceCullingMode::CullClockwise,
+                      viewport: Some(glium::Rect {
+                          left: 660,
+                          bottom: 10,
+                          width: 1200,
+                          height: 480,
+                      }),
+                      ..Default::default()
+                  })
+            .unwrap();
 
         self.count += 1;
     }
@@ -122,7 +124,7 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
 fn get_color(i: u32) -> [f32; 4] {
 
     match i {   
-            // R    G    B
+        // R    G    B
         0 => [0.0, 0.0, 0.0, 1.0], // BLACK
         1 => [0.8, 0.0, 0.0, 1.0], // RED
         2 => [0.0, 0.8, 0.0, 1.0], // GREEN

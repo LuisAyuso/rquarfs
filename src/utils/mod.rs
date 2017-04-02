@@ -123,11 +123,11 @@ impl PerformaceCounters {
         }
     }
 
-    pub fn get_current_tick(&self) -> f32{
-        if self.digest_tick == 0{
+    pub fn get_current_tick(&self) -> f32 {
+        if self.digest_tick == 0 {
             return 0.0;
         }
-             
+
         (self.digest_tick - 1) as f32 / self.digest_size as f32
     }
 
@@ -159,11 +159,11 @@ pub fn loop_with_report<'a, F: FnMut(f64, &mut PerformaceCounters)>(mut body: F,
 
 
             println!("fps: {} ", pc.get_fps());
-           // println!("prepass {:.6} ssao {:.6} blur {:.6} color {:.6}",
-           //          pc.get_last_measure("prepass").unwrap(),
-           //          pc.get_last_measure("ssao").unwrap(),
-           //          pc.get_last_measure("blur").unwrap(),
-           //          pc.get_last_measure("color").unwrap());
+            // println!("prepass {:.6} ssao {:.6} blur {:.6} color {:.6}",
+            //          pc.get_last_measure("prepass").unwrap(),
+            //          pc.get_last_measure("ssao").unwrap(),
+            //          pc.get_last_measure("blur").unwrap(),
+            //          pc.get_last_measure("color").unwrap());
 
 
             pc.digest_measures();

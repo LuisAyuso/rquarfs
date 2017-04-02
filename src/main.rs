@@ -20,6 +20,7 @@ use renderer::context;
 use renderer::camera;
 use renderer::shader;
 use renderer::texquad;
+use renderer::pipeline::*;
 use world::image_atlas as img_atlas;
 // use world::cube;
 // use renderer::shadowmapper;
@@ -286,6 +287,40 @@ fn main() {
             //
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+            // TODO: migrate everithing to pipelines:
+            //      first we need a way to retrieve a mutable frame from the context.
+            //         let mut pipeline = Pipeline::new(&ctx);
+
+            //         pipeline.queue(Box::new(StageInstance::new("0: prepass", &[], &[1], |ctx, inputs|{
+
+            //             let parameters = glium::DrawParameters {
+            //                 backface_culling: glium::BackfaceCullingMode::CullClockwise,
+            //                 depth: glium::Depth {
+            //                     test: glium::DepthTest::IfLess,
+            //                     write: true,
+            //                     ..Default::default()
+            //                 },
+            //                 polygon_mode: glium::PolygonMode::Fill,
+            //                 provoking_vertex: glium::draw_parameters::ProvokingVertex::LastVertex,
+            //                 ..Default::default()
+            //             };
+
+            //             prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
+            //             prepas_frame.draw((new_terrain.get_vertices(),
+            //                        new_terrain.get_tiles()
+            //                            .per_instance()
+            //                            .unwrap()),
+            //                       new_terrain.get_indices(),
+            //                       terrain_normals_prg.get_program(),
+            //                       &uniforms,
+            //                       &parameters)
+            //                 .unwrap();
+
+
+            //          })));
+
+
+
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
 
             pc.measure("0: prepass",
@@ -306,8 +341,8 @@ fn main() {
                 prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
                 prepas_frame.draw((new_terrain.get_vertices(),
                            new_terrain.get_tiles()
-                               .per_instance()
-                               .unwrap()),
+                              .per_instance()
+                              .unwrap()),
                           new_terrain.get_indices(),
                           terrain_normals_prg.get_program(),
                           &uniforms,
