@@ -1,6 +1,7 @@
 extern crate glium;
 
-use renderer::context;
+
+use renderer::context::Context;
 use renderer::shader::ProgramReloader;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,7 +23,7 @@ pub struct TexQuad {
 implement_vertex!(QuadVert, position, tex_coords);
 
 impl TexQuad {
-    pub fn new(ctx: &context::Context) -> TexQuad {
+    pub fn new(ctx: &Context) -> TexQuad {
 
         let quad_buffer = glium::VertexBuffer::new(ctx.display(),
                                                    &[QuadVert {
@@ -51,7 +52,7 @@ impl TexQuad {
                                                          tex_coords: (0.0, 1.0),
                                                      }]);
 
-        let program = ProgramReloader::new(ctx.display(), "tex_quad").unwrap();
+        let program = ProgramReloader::new(ctx, "tex_quad").unwrap();
 
         TexQuad {
             quad_program: program,
@@ -59,8 +60,8 @@ impl TexQuad {
         }
     } // new
 
-    pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64) {
-        self.quad_program.update(display, delta);
+    pub fn update(&mut self, ctx: &Context, delta: f64) {
+        self.quad_program.update(ctx, delta);
     }
 }
 

@@ -1,5 +1,9 @@
 use glium;
 use std::collections::BTreeMap;
+use std::ops::Deref;
+use glium::glutin::WindowBuilder;
+use glium::glutin::HeadlessRendererBuilder;
+use glium::backend::glutin_backend::GlutinFacade;
 
 pub type Backend = glium::backend::glutin_backend::GlutinFacade;
 pub type VerticesT = glium::vertex::VertexBufferAny;
@@ -7,6 +11,11 @@ pub type IndicesT = glium::index::IndexBufferAny;
 pub type PrimitiveT = glium::index::PrimitiveType;
 pub type IdType = usize;
 
+#[derive(Copy, Clone, Debug)]
+pub enum ManagerError {
+    ItemRedefinition,
+    FailToCreateContext,
+}
 
 #[derive(Copy, Clone)]
 pub enum RenderType {
@@ -17,8 +26,8 @@ pub enum RenderType {
 /// this class wraps up all render stuff,
 /// glium should not be visible ouside of this... except for buffers?
 /// the idea is to simplify te calls to draw, and wrap all intialization
-pub struct Context {
-    display_ptr: Backend,
+pub struct Context{
+    display: GlutinFacade,
     id_cache: BTreeMap<String, IdType>,
     pub width: u32,
     pub height: u32,
@@ -26,18 +35,17 @@ pub struct Context {
 
 
 impl Context {
-    pub fn new(width: u32, height: u32) -> Context {
+    pub fn new(width: u32, height: u32) -> Context{
         use glium::DisplayBuild;
 
-        Context {
-            display_ptr: glium::glutin::WindowBuilder::new()
+        let display = glium::glutin::WindowBuilder::new()
                         .with_title("Quarfs!")
                         .with_dimensions(width, height)
                         .with_vsync()
-//                        .with_depth_buffer(24)
-//                        .with_srgb(Some(false))
                         .build_glium()
-                    .unwrap(),
+                        .expect("could not create context");
+        Context {
+            display: display,
             id_cache: BTreeMap::new(),
             width: width,
             height: height,
@@ -45,12 +53,14 @@ impl Context {
     }
 
     #[cfg(test)]
-    pub fn new_empty() -> Context {
+    pub fn new_headless(w: u32,  h: u32) -> Context {
         use glium::DisplayBuild;
+
+        let display = glium::glutin::HeadlessRendererBuilder::new(w,h)
+                                .build_glium()
+                                .expect("could not create context");
         Context {
-            display_ptr: glium::glutin::WindowBuilder::new()
-                .build_glium()
-                .unwrap(),
+            display: display,
             id_cache: BTreeMap::new(),
             width: 0,
             height: 0,
@@ -66,28 +76,8 @@ impl Context {
         id
     }
 
-
-    #[allow(dead_code)]
-    pub fn new_debug(width: u32, height: u32) -> Context {
-        use glium::DisplayBuild;
-        use glium::debug::DebugCallbackBehavior;
-
-        Context {
-            display_ptr: glium::glutin::WindowBuilder::new()
-                .with_title("Quarfs!")
-                .with_dimensions(width, height)
-                .with_depth_buffer(24)
-                .with_srgb(Some(false))
-                .build_glium_debug(DebugCallbackBehavior::PrintAll)
-                .unwrap(),
-            id_cache: BTreeMap::new(),
-            width: width,
-            height: height,
-        }
-    }
-
-    pub fn display(&self) -> &Backend {
-        &self.display_ptr
+    pub fn display(&self) -> &GlutinFacade {
+        &self.display
     }
 
     pub fn resize(&mut self, w: u32, h: u32) {

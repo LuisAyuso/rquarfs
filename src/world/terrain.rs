@@ -17,7 +17,7 @@ impl Terrain {
     /// crate a terrain object of a certain dimmensions.
     /// it will be tiled in 64x64 sized tiles (which is the maximun tessellation we can get with
     /// resolution 1 to 1)
-    pub fn new<F: glium::backend::Facade>(display: &F, width: u32, height: u32) -> Terrain {
+    pub fn new(ctx: &Context, width: u32, height: u32) -> Terrain {
         use rand::Rng;
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,7 +28,7 @@ impl Terrain {
         }
         implement_vertex!(Vertex, position);
 
-        let vertices_buff = glium::VertexBuffer::new(display,
+        let vertices_buff = glium::VertexBuffer::new(ctx.display(),
                                                      &[Vertex { position: (0, 0) },
                                                        Vertex { position: (64, 0) },
                                                        Vertex { position: (0, 64) },
@@ -52,12 +52,12 @@ impl Terrain {
             }
         }
 
-        let tiles = glium::vertex::VertexBuffer::dynamic(display, &data);
+        let tiles = glium::vertex::VertexBuffer::dynamic(ctx.display(), &data);
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         let indices =
-            glium::IndexBuffer::new(display,
+            glium::IndexBuffer::new(ctx.display(),
                                     glium::index::PrimitiveType::Patches { vertices_per_patch: 4 },
                                     &[0u16, 2, 3, 1]);
 

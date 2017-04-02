@@ -1,8 +1,9 @@
 use glium;
 use time;
 
-use std::vec::*;
+use renderer::context::Context;
 
+use std::vec::*;
 use std::collections::BTreeMap;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,10 +193,10 @@ pub struct Axis {
 implement_vertex!(AxisVert, position, color);
 
 impl Axis {
-    pub fn new<F: glium::backend::Facade>(display: &F) -> Axis {
+    pub fn new(ctx: &Context) -> Axis {
 
         // plot axis lines
-        let axis_buffer = glium::VertexBuffer::new(display,
+        let axis_buffer = glium::VertexBuffer::new(ctx.display(),
                                                    &[AxisVert {
                                                          position: (0.0, 0.0, 0.0),
                                                          color: (1.0, 0.0, 0.0),
@@ -223,7 +224,7 @@ impl Axis {
             .unwrap()
             .into();
 
-        let axis_program = glium::Program::from_source(display,
+        let axis_program = glium::Program::from_source(ctx.display(),
                                                        // vertex shader
                                                        r#"
                  #version 140

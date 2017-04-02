@@ -10,6 +10,7 @@ pub mod graphs;
 pub mod pipeline;
 
 mod geometry_manager;
+mod texture_manager;
 
 pub type ScreenSpacePass<'a> = ss_pass::ScreenSpacePass<'a>;
 

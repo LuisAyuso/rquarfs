@@ -2,6 +2,7 @@ extern crate glium;
 
 use renderer::context;
 use renderer::context::Program;
+use renderer::context::Context;
 use renderer::shader::ProgramReloader;
 use glium::texture;
 use glium::Surface;
@@ -58,7 +59,7 @@ impl<'a> ScreenSpacePass<'a> {
                                                                                  depth_buffer)
             .unwrap();
         frame.clear_depth(1.0);
-        let program = ProgramReloader::new(ctx.display(), program).unwrap();
+        let program = ProgramReloader::new(ctx, program).unwrap();
         let dim = frame.get_dimensions();
 
         ScreenSpacePass {
@@ -69,8 +70,8 @@ impl<'a> ScreenSpacePass<'a> {
         }
     } // new
 
-    pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64) {
-        self.program.update(display, delta);
+    pub fn update(&mut self, ctx: &Context, delta: f64) {
+        self.program.update(ctx, delta);
     }
 
     pub fn execute_pass(&mut self,

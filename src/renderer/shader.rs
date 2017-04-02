@@ -6,6 +6,8 @@ use std::fs;
 use std::vec::*;
 use std::time;
 
+use context::Context;
+
 fn print_err(err: glium::program::ProgramCreationError) {
     match err {
         glium::program::ProgramCreationError::CompilationError(x) => println!("{}", x),
@@ -23,9 +25,7 @@ fn get_slice(a: &Option<String>) -> Option<&str> {
 }
 
 /// loads both shaders and compiles program
-fn load_program<F: glium::backend::Facade>(display: &F,
-                                           path: &path::PathBuf)
-                                           -> Option<glium::Program> {
+fn load_program(ctx: &Context, path: &path::PathBuf) -> Option<glium::Program> {
     let code = ShaderPack::new(path);
     if let Err(x) = code {
         println!("{:?}", x);
@@ -42,8 +42,8 @@ fn load_program<F: glium::backend::Facade>(display: &F,
     };
 
     // compile
-    let prog = glium::Program::new(display, glium_code);
-    // compile_program(display, &vs.unwrap(), &fs.unwrap());
+    let prog = glium::Program::new(ctx.display(), glium_code);
+    // compile_program(ctx.display(), &vs.unwrap(), &fs.unwrap());
     if let Err(x) = prog {
         print_err(x);
         return None;
@@ -88,16 +88,14 @@ pub struct ProgramReloader {
 }
 
 impl ProgramReloader {
-    pub fn new<F: glium::backend::Facade>(display: &F,
-                                          name: &str)
-                                          -> Result<ProgramReloader, ShaderParseError> {
+    pub fn new(ctx: &Context, name: &str) -> Result<ProgramReloader, ShaderParseError> {
         println!("load shader from: {}.glsl", name);
 
         let mut path = fs::canonicalize(".").unwrap();
         path.push("shaders");
         path.push(format!("{}.glsl", name));
 
-        let prog = load_program(display, &path);
+        let prog = load_program(ctx, &path);
         if prog.is_none() {
             return Err(ShaderParseError::CompileError);
         }
@@ -110,7 +108,7 @@ impl ProgramReloader {
         })
     }
 
-    pub fn update<F: glium::backend::Facade>(&mut self, display: &F, delta: f64) {
+    pub fn update(&mut self, ctx: &Context, delta: f64) {
 
         self.last_check += delta;
         // one second?
@@ -123,7 +121,7 @@ impl ProgramReloader {
         if self.date < date {
             self.date = date;
 
-            if let Some(prog) = load_program(display, &self.path) {
+            if let Some(prog) = load_program(ctx, &self.path) {
                 println!(" ~~ shader updated ~~ ");
                 self.program = prog;
             }
@@ -339,12 +337,12 @@ mod tests {
 
     #[test]
     fn create() {
-        if let Ok(ctx) = HeadlessRendererBuilder::new(100, 100).build_glium() {
+        use renderer::context::Context;
+        let mut ctx = Context::new_headless(100, 100);
 
-            let bad = ProgramReloader::new(&ctx, "nonsense");
-            assert!(bad.is_err());
-            let good = ProgramReloader::new(&ctx, "test");
-            assert!(good.is_ok());
-        }
+        let bad = ProgramReloader::new(&ctx, "nonsense");
+        assert!(bad.is_err());
+        let good = ProgramReloader::new(&ctx, "test");
+        assert!(good.is_ok());
     }
 }

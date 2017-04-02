@@ -140,15 +140,15 @@ fn main() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // test the new terrain thing
 
-    let new_terrain = world::terrain::Terrain::new(ctx.display(), size_x as u32, size_z as u32);
+    let new_terrain = world::terrain::Terrain::new(&ctx, size_x as u32, size_z as u32);
 
-    let terrain_prg = shader::ProgramReloader::new(ctx.display(), "terrain_texture");
+    let terrain_prg = shader::ProgramReloader::new(&ctx, "terrain_texture");
     if terrain_prg.is_err() {
         std::process::exit(-1);
     }
     let mut terrain_prg = terrain_prg.unwrap();
 
-    let terrain_normals_prg = shader::ProgramReloader::new(ctx.display(), "terrain_normals");
+    let terrain_normals_prg = shader::ProgramReloader::new(&ctx, "terrain_normals");
     if terrain_normals_prg.is_err() {
         std::process::exit(-1);
     }
@@ -156,7 +156,7 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let axis_plot = utils::Axis::new(ctx.display());
+    let axis_plot = utils::Axis::new(&ctx);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -219,7 +219,7 @@ fn main() {
 
     // performance
 
-    let mut performance_program = shader::ProgramReloader::new(ctx.display(), "performance")
+    let mut performance_program = shader::ProgramReloader::new(&ctx, "performance")
         .unwrap();
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,12 +231,12 @@ fn main() {
     utils::loop_with_report(&mut |delta: f64, pc: &mut utils::PerformaceCounters| {
 
         cam.update(delta as f32);
-        terrain_prg.update(ctx.display(), delta);
-        terrain_normals_prg.update(ctx.display(), delta);
-        quad.update(ctx.display(), delta);
-        ssao.update(ctx.display(), delta);
-        blur.update(ctx.display(), delta);
-        performance_program.update(ctx.display(), delta);
+        terrain_prg.update(&ctx, delta);
+        terrain_normals_prg.update(&ctx, delta);
+        quad.update(&ctx, delta);
+        ssao.update(&ctx, delta);
+        blur.update(&ctx, delta);
+        performance_program.update(&ctx, delta);
 
         // keep mut separated
         {

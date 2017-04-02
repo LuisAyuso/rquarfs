@@ -4,8 +4,9 @@ use glium::index::*;
 
 use super::context::Context;
 use super::context::IdType;
-use std::marker::PhantomData;
+use super::context::ManagerError;
 
+use std::marker::PhantomData;
 use std::collections::BTreeMap;
 use std::ops::Deref;
 
@@ -53,16 +54,9 @@ impl<T> Geomerty for GeomertyInstance<T> {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// TODO: move to context
-#[derive(Copy, Clone, Debug)]
-enum ManagerError {
-    ItemRedefinition,
-}
-
 struct GeomertyManager {
     cache: BTreeMap<IdType, Box<Geomerty>>,
 }
-
 
 impl GeomertyManager {
     fn new() -> GeomertyManager {
@@ -155,7 +149,7 @@ mod tests {
 
         implement_vertex!(MyVertices, vert);
 
-        let mut ctx = Context::new_empty();
+        let mut ctx = Context::new_headless(100,100);
         let mut mgr = GeomertyManager::new();
 
         let a = mgr.create_geom_from_data(&mut ctx,
@@ -186,7 +180,7 @@ mod tests {
 
         implement_vertex!(MyVertices, vert);
 
-        let mut ctx = Context::new_empty();
+        let mut ctx = Context::new_headless(100, 100);
         let mut mgr = GeomertyManager::new();
 
         let a = mgr.create_geom_from_data_with_indices(&mut ctx,
