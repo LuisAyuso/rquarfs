@@ -180,8 +180,8 @@ impl Atlas {
 
     #[allow(dead_code)]
     pub fn save(&self, path: &PathBuf, name: &str) -> Result<(), io::Error> {
-        assert!(self.image.dimensions().0 as usize == self.tex_w * self.side);
-        assert!(self.image.dimensions().1 as usize == self.tex_h * self.side);
+        assert_eq!(self.image.dimensions().0 as usize, self.tex_w * self.side);
+        assert_eq!(self.image.dimensions().1 as usize, self.tex_h * self.side);
 
         // craft a name we can undestand
         let file_name = format!("{}.{}_{}x{}_{}x{}.atlas.png",
@@ -270,7 +270,7 @@ pub fn generate_atlas(set_name: &str) -> Result<Atlas, io::Error> {
                            texture_h as usize,
                            side as usize,
                            atlas_image);
-    assert!(atlas.save(&cache_path, &set_name).is_ok());
+    assert!(atlas.save(&cache_path, set_name).is_ok());
     Ok(atlas)
 }
 

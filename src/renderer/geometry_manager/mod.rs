@@ -40,14 +40,13 @@ struct GeomertyInstance<T> {
 }
 
 impl<T> Geomerty for GeomertyInstance<T> {
-
-    fn get_vertices(&self) -> &VerticesT{
+    fn get_vertices(&self) -> &VerticesT {
         &self.vertices
     }
-    fn get_indices(&self) -> &IndicesT{
+    fn get_indices(&self) -> &IndicesT {
         &self.indices
     }
-    fn get_primitive(&self) -> &PrimitiveT{
+    fn get_primitive(&self) -> &PrimitiveT {
         &self.primitive
     }
 }
@@ -77,7 +76,8 @@ impl GeomertyManager {
             return Err(ManagerError::ItemRedefinition);
         }
 
-        let vertices = VertexBuffer::new(ctx.display(), data).unwrap();
+        let vertices = VertexBuffer::new(ctx.display(), data)
+            .expect("TODO:could not a vertex buffer");
         let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
             name: name.to_string(),
             vertices: vertices.into(),
@@ -118,13 +118,12 @@ impl GeomertyManager {
         Ok(id)
     }
 
-    fn get_geom(&self, id: IdType) -> Option<&Geomerty>{
-        if let Some(x) = self.cache.get(&id){
+    fn get_geom(&self, id: IdType) -> Option<&Geomerty> {
+        if let Some(x) = self.cache.get(&id) {
             return Some(x.deref());
         }
         None
     }
-
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,7 +148,7 @@ mod tests {
 
         implement_vertex!(MyVertices, vert);
 
-        let mut ctx = Context::new_headless(100,100);
+        let mut ctx = Context::new_headless(100, 100);
         let mut mgr = GeomertyManager::new();
 
         let a = mgr.create_geom_from_data(&mut ctx,

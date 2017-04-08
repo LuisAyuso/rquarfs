@@ -44,7 +44,7 @@ impl PerformaceCounters {
         self.samples = 0;
         self.acum_time = 0 as f64;
 
-        for e in self.times.iter_mut() {
+        for e in &mut self.times {
             (e.1).0 = 0.0 as f64;
             (e.1).1 = 0 as usize;
         }
@@ -85,7 +85,7 @@ impl PerformaceCounters {
             let v = v / sixtyfps;
 
             new_ones.insert(name, v + accum);
-            accum = accum + v;
+            accum += v;
         }
 
         for (name, new_measure) in new_ones {
@@ -94,13 +94,13 @@ impl PerformaceCounters {
                 if x.len() < self.digest_size as usize {
                     x.resize(self.digest_size as usize, 0.0);
                 }
-                *(x.get_mut(self.digest_tick as usize).unwrap()) = new_measure;
+                x[self.digest_tick as usize] = new_measure;
                 continue;
             }
 
             let mut x = Vec::new();
             x.resize(self.digest_size as usize, 0.0);
-            *(x.get_mut(self.digest_tick as usize).unwrap()) = new_measure;
+            x[self.digest_tick as usize] = new_measure;
 
             self.digest.insert(name.clone(), x);
         }

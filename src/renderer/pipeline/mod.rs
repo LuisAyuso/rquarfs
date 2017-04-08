@@ -1,3 +1,5 @@
+extern crate test;
+
 // a stage has inputs and outputs.
 // once all inputs are satisfied, the stage itself
 // can be executed
@@ -230,4 +232,32 @@ mod tests {
         assert!(runner.is_done());
         assert!(state == 3);
     }
+
+    // Benchmarks
+
+    use self::test::Bencher;
+
+    #[bench]
+    fn schedule_line(b: &mut Bencher) {
+
+
+        let mut state = 0;
+        let mut pipe = Pipeline::new(&state);
+
+        for i in 0..1000 {
+            pipe.queue(Box::new(StageInstance::new("stage",
+                                                   &[i],
+                                                   &[i + 1],
+                                                   move |ctx, _| *ctx = i)));
+        }
+
+        b.iter(|| {
+            let mut runner = Runner::new(&pipe);
+            while let Some(x) = runner.pop() {
+                x.execute(&mut state);
+                runner.commit(x.get_outputs());
+            }
+        });
+    }
+
 }

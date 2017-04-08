@@ -26,7 +26,7 @@ pub enum RenderType {
 /// this class wraps up all render stuff,
 /// glium should not be visible ouside of this... except for buffers?
 /// the idea is to simplify te calls to draw, and wrap all intialization
-pub struct Context{
+pub struct Context {
     display: GlutinFacade,
     id_cache: BTreeMap<String, IdType>,
     pub width: u32,
@@ -35,15 +35,15 @@ pub struct Context{
 
 
 impl Context {
-    pub fn new(width: u32, height: u32) -> Context{
+    pub fn new(width: u32, height: u32) -> Context {
         use glium::DisplayBuild;
 
         let display = glium::glutin::WindowBuilder::new()
-                        .with_title("Quarfs!")
-                        .with_dimensions(width, height)
-                        .with_vsync()
-                        .build_glium()
-                        .expect("could not create context");
+            .with_title("Quarfs!")
+            .with_dimensions(width, height)
+            .with_vsync()
+            .build_glium()
+            .expect("could not create context");
         Context {
             display: display,
             id_cache: BTreeMap::new(),
@@ -53,12 +53,12 @@ impl Context {
     }
 
     #[cfg(test)]
-    pub fn new_headless(w: u32,  h: u32) -> Context {
+    pub fn new_headless(w: u32, h: u32) -> Context {
         use glium::DisplayBuild;
 
-        let display = glium::glutin::HeadlessRendererBuilder::new(w,h)
-                                .build_glium()
-                                .expect("could not create context");
+        let display = glium::glutin::HeadlessRendererBuilder::new(w, h)
+            .build_glium()
+            .expect("could not create context");
         Context {
             display: display,
             id_cache: BTreeMap::new(),
