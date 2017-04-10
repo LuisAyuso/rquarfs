@@ -1,3 +1,14 @@
+os: linux
+sudo: required
+dist: trusty
+addons:
+    apt:
+        packages:
+            - mesa-utils
+            - xvfb
+            - libgl1-mesa-dri
+            - libglapi-mesa
+            - libosmesa6
 language: rust
 rust:
   - nightly

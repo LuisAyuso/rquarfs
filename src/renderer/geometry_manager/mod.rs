@@ -148,7 +148,7 @@ mod tests {
 
         implement_vertex!(MyVertices, vert);
 
-        let mut ctx = Context::new_headless(100, 100);
+        let mut ctx = Context::new_headless(100, 100).expect("create headless context");
         let mut mgr = GeomertyManager::new();
 
         let a = mgr.create_geom_from_data(&mut ctx,
@@ -179,7 +179,7 @@ mod tests {
 
         implement_vertex!(MyVertices, vert);
 
-        let mut ctx = Context::new_headless(100, 100);
+        let mut ctx = Context::new_headless(100, 100).expect("create headless ctx");
         let mut mgr = GeomertyManager::new();
 
         let a = mgr.create_geom_from_data_with_indices(&mut ctx,

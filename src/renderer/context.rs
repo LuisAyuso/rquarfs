@@ -23,6 +23,13 @@ pub enum RenderType {
     WireFrame,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum  ContextError{
+    HeadlessNotSupported,
+    ContextNotSupported,
+}
+
+
 /// this class wraps up all render stuff,
 /// glium should not be visible ouside of this... except for buffers?
 /// the idea is to simplify te calls to draw, and wrap all intialization
@@ -35,36 +42,44 @@ pub struct Context {
 
 
 impl Context {
-    pub fn new(width: u32, height: u32) -> Context {
+    pub fn new(width: u32, height: u32) -> Result<Context, ContextError> {
         use glium::DisplayBuild;
 
         let display = glium::glutin::WindowBuilder::new()
             .with_title("Quarfs!")
             .with_dimensions(width, height)
             .with_vsync()
-            .build_glium()
-            .expect("could not create context");
-        Context {
-            display: display,
+            .build_glium();
+
+        if display.is_err(){
+            return Err(ContextError::ContextNotSupported);
+        }
+
+        Ok(Context {
+            display: display.unwrap(),
             id_cache: BTreeMap::new(),
             width: width,
             height: height,
-        }
+        })
     }
 
     #[cfg(test)]
-    pub fn new_headless(w: u32, h: u32) -> Context {
+    pub fn new_headless(w: u32, h: u32) -> Result<Context, ContextError> {
         use glium::DisplayBuild;
 
         let display = glium::glutin::HeadlessRendererBuilder::new(w, h)
-            .build_glium()
-            .expect("could not create context");
-        Context {
-            display: display,
+            .build_glium();
+
+        if display.is_err(){
+            return Err(ContextError::HeadlessNotSupported);
+        }
+
+        Ok(Context {
+            display: display.unwrap(),
             id_cache: BTreeMap::new(),
             width: 0,
             height: 0,
-        }
+        })
     }
 
     pub fn get_id_for(&mut self, name: &str) -> IdType {

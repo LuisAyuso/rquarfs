@@ -338,7 +338,7 @@ mod tests {
     #[test]
     fn create() {
         use renderer::context::Context;
-        let mut ctx = Context::new_headless(100, 100);
+        let mut ctx = Context::new_headless(100, 100).expect("create headless context");
 
         let bad = ProgramReloader::new(&ctx, "nonsense");
         assert!(bad.is_err());

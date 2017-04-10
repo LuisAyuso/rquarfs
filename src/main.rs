@@ -53,7 +53,7 @@ fn main() {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    let mut ctx = context::Context::new(WINDOW_WIDTH, WINDOW_HEIGHT);
+    let mut ctx = context::Context::new(WINDOW_WIDTH, WINDOW_HEIGHT).unwrap();
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
