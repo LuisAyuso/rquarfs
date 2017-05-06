@@ -69,21 +69,21 @@ fn main() {
 
     // round to closest power of 2
 
-    let mut translations: Vec<(f32, f32, f32)> = Vec::new();
-    for x in 0..size_x as u32 {
-        for y in 0..size_z as u32 {
-            // get height in coordinates x,y
-            let h = img_atlas::get_coords_height(&height, x, y);
-            translations.push((x as f32, y as f32, h));
-        }
-    }
+    //let mut translations: Vec<(f32, f32, f32)> = Vec::new();
+    //for x in 0..size_x as u32 {
+    //    for y in 0..size_z as u32 {
+    //        // get height in coordinates x,y
+    //        let h = img_atlas::get_coords_height(&height, x, y);
+    //        translations.push((x as f32, y as f32, h));
+    //    }
+    //}
 
     //  map overlay ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     let mut quad = texquad::TexQuad::new(&ctx);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //
+    
     let height_raw = glium::texture::RawImage2d::from_raw_rgb(height.into_raw(), height_dimensions);
     let height_map = glium::texture::Texture2d::new(ctx.display(), height_raw).unwrap();
 
@@ -139,7 +139,6 @@ fn main() {
     });
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // test the new terrain thing
 
     let new_terrain = world::terrain::Terrain::new(&ctx, size_x as u32, size_z as u32);
 
