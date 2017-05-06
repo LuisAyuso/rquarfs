@@ -128,7 +128,7 @@ impl<'a, CTX, T> Runner<'a, CTX, T>
         for o in outputs.iter() {
             self.available.insert(*o);
         }
-        // make ready all stages whit satisified requisites
+        // make ready all stages with satisified requisites
         let new_ready = self.wait
             .iter()
             .filter(|s| {
@@ -150,6 +150,16 @@ impl<'a, CTX, T> Runner<'a, CTX, T>
             })
             .map(|x| *x)
             .collect::<Vec<&BStage<CTX, T>>>();
+    }
+
+    #[cfg(test)]
+    fn get_wait(&self) -> &Vec<&'a BStage<CTX, T>> {
+        &self.wait
+    }
+
+    #[cfg(test)]
+    fn get_ready(&self) -> &VecDeque<&'a BStage<CTX, T>> {
+        &self.ready
     }
 
     fn is_done(&self) -> bool {
@@ -238,17 +248,39 @@ mod tests {
     use self::test::Bencher;
 
     #[bench]
-    fn schedule_line(b: &mut Bencher) {
+    fn commit(b: &mut Bencher) {
 
 
         let mut state = 0;
         let mut pipe = Pipeline::new(&state);
 
-        for i in 0..1000 {
-            pipe.queue(Box::new(StageInstance::new("stage",
-                                                   &[i],
-                                                   &[i + 1],
-                                                   move |ctx, _| *ctx = i)));
+        pipe.queue(Box::new(StageInstance::new("stage", &[], &[0], move |ctx, _| *ctx = 0)));
+
+        for i in 0..100 {
+            pipe.queue(Box::new(StageInstance::new("stage", &[i], &[i + 1], move |ctx, _| {
+                *ctx = i;
+            })));
+        }
+
+        b.iter(|| {
+            let mut runner = Runner::new(&pipe);
+            runner.commit(&[0, 10, 16, 60, 3, 6])
+        });
+    }
+
+    #[bench]
+    fn schedule(b: &mut Bencher) {
+
+
+        let mut state = 0;
+        let mut pipe = Pipeline::new(&state);
+
+        pipe.queue(Box::new(StageInstance::new("stage", &[], &[0], move |ctx, _| *ctx = 0)));
+
+        for i in 0..100 {
+            pipe.queue(Box::new(StageInstance::new("stage", &[i], &[i + 1], move |ctx, _| {
+                *ctx = i;
+            })));
         }
 
         b.iter(|| {

@@ -15,6 +15,7 @@ pub type IdType = usize;
 pub enum ManagerError {
     ItemRedefinition,
     FailToCreateContext,
+    BackEndErrror,
 }
 
 #[derive(Copy, Clone)]

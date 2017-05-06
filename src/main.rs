@@ -341,8 +341,8 @@ fn main() {
                 prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
                 prepas_frame.draw((new_terrain.get_vertices(),
                            new_terrain.get_tiles()
-                               .per_instance()
-                               .unwrap()),
+                              .per_instance()
+                              .unwrap()),
                           new_terrain.get_indices(),
                           terrain_normals_prg.get_program(),
                           &uniforms,

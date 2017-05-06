@@ -76,18 +76,22 @@ impl GeomertyManager {
             return Err(ManagerError::ItemRedefinition);
         }
 
-        let vertices = VertexBuffer::new(ctx.display(), data)
-            .expect("TODO:could not a vertex buffer");
-        let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
-            name: name.to_string(),
-            vertices: vertices.into(),
-            indices: IndicesT::NoIdx(kind),
-            primitive: kind,
-            vertices_type: PhantomData,
-        });
+        if let Ok(vertices) = VertexBuffer::new(ctx.display(), data){
+            let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
+                name: name.to_string(),
+                vertices: vertices.into(),
+                indices: IndicesT::NoIdx(kind),
+                primitive: kind,
+                vertices_type: PhantomData,
+            });
 
-        self.cache.insert(id, g);
-        Ok(id)
+            self.cache.insert(id, g);
+            Ok(id)
+        }
+        else{
+            Err(ManagerError::BackEndErrror)
+        }
+
     }
 
     fn create_geom_from_data_with_indices<T>(&mut self,
@@ -104,18 +108,24 @@ impl GeomertyManager {
             return Err(ManagerError::ItemRedefinition);
         }
 
-        let vertices = VertexBuffer::new(ctx.display(), data).unwrap();
-        let indices = IndexBuffer::new(ctx.display(), kind, indices).unwrap();
-        let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
-            name: name.to_string(),
-            vertices: vertices.into(),
-            indices: IndicesT::Idx(indices.into()),
-            primitive: kind,
-            vertices_type: PhantomData,
-        });
+        let vertices = VertexBuffer::new(ctx.display(), data);
+        let indices = IndexBuffer::new(ctx.display(), kind, indices);
 
-        self.cache.insert(id, g);
-        Ok(id)
+        if vertices.is_ok() && indices.is_ok(){
+            let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
+                name: name.to_string(),
+                vertices: vertices.unwrap().into(),
+                indices: IndicesT::Idx(indices.unwrap().into()),
+                primitive: kind,
+                vertices_type: PhantomData,
+            });
+
+            self.cache.insert(id, g);
+            Ok(id)
+        }
+        else{
+            Err(ManagerError::BackEndErrror)
+        }
     }
 
     fn get_geom(&self, id: IdType) -> Option<&Geomerty> {
