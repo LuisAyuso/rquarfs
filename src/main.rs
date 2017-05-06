@@ -21,8 +21,8 @@ use renderer::context;
 use renderer::camera;
 use renderer::shader;
 use renderer::texquad;
-use renderer::pipeline::*;
 use world::image_atlas as img_atlas;
+// use renderer::pipeline::*;
 // use world::cube;
 // use renderer::shadowmapper;
 
@@ -228,7 +228,7 @@ fn main() {
 
     let mut preview = Preview::Blur;
     let mut chunk_size: u32 = 20;
-    utils::loop_with_report(&mut |delta: f64, pc: &mut utils::PerformaceCounters| {
+    utils::loop_with_report(&mut |delta: f64, _: &mut utils::PerformaceCounters| {
 
         cam.update(delta as f32);
         terrain_prg.update(&ctx, delta);
@@ -283,48 +283,8 @@ fn main() {
                 ssao_texture: &blur_texture,
             };
 
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            //
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            // TODO: migrate everithing to pipelines:
-            //      first we need a way to retrieve a mutable frame from the context.
-            //         let mut pipeline = Pipeline::new(&ctx);
-
-            //         pipeline.queue(Box::new(StageInstance::new("0: prepass", &[], &[1], |ctx, inputs|{
-
-            //             let parameters = glium::DrawParameters {
-            //                 backface_culling: glium::BackfaceCullingMode::CullClockwise,
-            //                 depth: glium::Depth {
-            //                     test: glium::DepthTest::IfLess,
-            //                     write: true,
-            //                     ..Default::default()
-            //                 },
-            //                 polygon_mode: glium::PolygonMode::Fill,
-            //                 provoking_vertex: glium::draw_parameters::ProvokingVertex::LastVertex,
-            //                 ..Default::default()
-            //             };
-
-            //             prepas_frame.clear_color_and_depth((0.0, 0.0, 0.0, 0.0), 1.0);
-            //             prepas_frame.draw((new_terrain.get_vertices(),
-            //                        new_terrain.get_tiles()
-            //                            .per_instance()
-            //                            .unwrap()),
-            //                       new_terrain.get_indices(),
-            //                       terrain_normals_prg.get_program(),
-            //                       &uniforms,
-            //                       &parameters)
-            //                 .unwrap();
-
-
-            //          })));
-
-
 
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
-
-            pc.measure("0: prepass",
-                       &mut || {
 
                 let parameters = glium::DrawParameters {
                     backface_culling: glium::BackfaceCullingMode::CullClockwise,
@@ -348,33 +308,24 @@ fn main() {
                           &uniforms,
                           &parameters)
                     .unwrap();
-            });
 
             // ~~~~~~~~~  SSAO ~~~~~~~~~~~~~~~~
-
-            pc.measure("1: ssao",
-                       &mut || {
+            
                            ssao.execute_pass(&inverse_matrix,
                                              &prepass_texture,
                                              &depth_tex,
                                              &noise_tex);
-                       });
 
             // ~~~~~~~~~  blur SSAO ~~~~~~~~~~~~~~~~
 
-            pc.measure("2: blur",
-                       &mut || {
                            blur.execute_pass(&inverse_matrix,
                                              &ssao_texture,
                                              &depth_tex,
                                              &noise_tex);
-                       });
 
             // ~~~~~~~~~  render color ~~~~~~~~~~~~~~~~
 
             let mut surface = DrawSurface::gl_begin(&ctx, render_kind);
-            pc.measure("3: color",
-                       &mut || {
                 surface.draw(&axis_plot, &uniforms);
                 // surface.draw_with_indices_and_program(&new_terrain, &terrain_prg, &uniforms);
                 surface.draw_instanciated_with_indices_and_program(&new_terrain,
@@ -392,30 +343,29 @@ fn main() {
                     Preview::Color => surface.draw_overlay_quad(&quad, &color_map, false),
                 };
 
-            });
 
 
-            {
-                //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                let mut perf_graph = renderer::graphs::GraphPlot::new(&ctx,
-                                                                      surface.get_frame(),
-                                                                      pc.get_current_tick(),
-                                                                      &performance_program);
-                if let Some(x) = pc.get_measurements_for("0: prepass") {
-                    perf_graph.draw_values(&ctx, x);
-                }
-                if let Some(x) = pc.get_measurements_for("1: ssao") {
-                    perf_graph.draw_values(&ctx, x);
-                }
-                if let Some(x) = pc.get_measurements_for("2: blur") {
-                    perf_graph.draw_values(&ctx, x);
-                }
-                if let Some(x) = pc.get_measurements_for("3: color") {
-                    perf_graph.draw_values(&ctx, x);
-                }
-
-                perf_graph.finish();
-            }
+//            {
+//                //  performance  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//                let mut perf_graph = renderer::graphs::GraphPlot::new(&ctx,
+//                                                                      surface.get_frame(),
+//                                                                      pc.get_current_tick(),
+//                                                                      &performance_program);
+//                if let Some(x) = pc.get_measurements_for("0: prepass") {
+//                    perf_graph.draw_values(&ctx, x);
+//                }
+//                if let Some(x) = pc.get_measurements_for("1: ssao") {
+//                    perf_graph.draw_values(&ctx, x);
+//                }
+//                if let Some(x) = pc.get_measurements_for("2: blur") {
+//                    perf_graph.draw_values(&ctx, x);
+//                }
+//                if let Some(x) = pc.get_measurements_for("3: color") {
+//                    perf_graph.draw_values(&ctx, x);
+//                }
+//
+//                perf_graph.finish();
+//            }
 
             surface.gl_end();
         }
