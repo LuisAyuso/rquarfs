@@ -1,11 +1,11 @@
 use glium;
+use glutin;
 use std::collections::BTreeMap;
-use std::ops::Deref;
-use glium::glutin::WindowBuilder;
-use glium::glutin::HeadlessRendererBuilder;
-use glium::backend::glutin_backend::GlutinFacade;
+//use glium::glutin::HeadlessRendererBuilder;
 
-pub type Backend = glium::backend::glutin_backend::GlutinFacade;
+pub type Backend = glium::backend::glutin::GlutinBackend;
+pub type Display = glium::backend::glutin::Display;
+pub type EventsLoop = glutin::EventsLoop;
 pub type VerticesT = glium::vertex::VertexBufferAny;
 pub type IndicesT = glium::index::IndexBufferAny;
 pub type PrimitiveT = glium::index::PrimitiveType;
@@ -35,7 +35,9 @@ pub enum  ContextError{
 /// glium should not be visible ouside of this... except for buffers?
 /// the idea is to simplify te calls to draw, and wrap all intialization
 pub struct Context {
-    display: GlutinFacade,
+
+    events_loop: EventsLoop,
+    display: Display,
     id_cache: BTreeMap<String, IdType>,
     pub width: u32,
     pub height: u32,
@@ -44,20 +46,19 @@ pub struct Context {
 
 impl Context {
     pub fn new(width: u32, height: u32) -> Result<Context, ContextError> {
-        use glium::DisplayBuild;
 
-        let display = glium::glutin::WindowBuilder::new()
+        let events_loop = glutin::EventsLoop::new();
+
+        let window_builder = glutin::WindowBuilder::new()
             .with_title("Quarfs!")
-            .with_dimensions(width, height)
-            .with_vsync()
-            .build_glium();
+            .with_dimensions(width, height);
 
-        if display.is_err(){
-            return Err(ContextError::ContextNotSupported);
-        }
+        let context = glutin::ContextBuilder::new();
+        let display = glium::Display::new(window_builder, context, &events_loop).unwrap();
 
         Ok(Context {
-            display: display.unwrap(),
+            events_loop : events_loop,
+            display: display,
             id_cache: BTreeMap::new(),
             width: width,
             height: height,
@@ -92,8 +93,12 @@ impl Context {
         id
     }
 
-    pub fn display(&self) -> &GlutinFacade {
+    pub fn display(&self) -> &Display {
         &self.display
+    }
+
+    pub fn events_loop(&mut self) -> &mut EventsLoop{
+        &mut self.events_loop
     }
 
     pub fn resize(&mut self, w: u32, h: u32) {

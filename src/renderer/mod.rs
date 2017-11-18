@@ -7,7 +7,6 @@ pub mod texquad;
 pub mod shadowmapper;
 mod ss_pass;
 pub mod graphs;
-pub mod pipeline;
 
 mod geometry_manager;
 mod texture_manager;
