@@ -10,11 +10,11 @@ resources = ["assets", "shaders"]
     cgmath = "0.10"
     rand = "*"
     image = "*"
-    threadpool = "*"
 	regex = "*"
 	glob = "*"
 	glutin = "*"
 	lazy_static = "0.1.*"
+	rgraph = "0.2.1"
 
 [profile.release]
     debug = true

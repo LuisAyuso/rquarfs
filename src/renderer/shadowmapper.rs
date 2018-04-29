@@ -18,7 +18,6 @@ impl ShadowMapper {
     pub fn new(ctx: &context::Context) -> ShadowMapper {
         use glium::texture;
 
-        // glTexImage2D(GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT16, 1024, 1024, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         let texture = texture::Texture2d::empty_with_format(ctx.display(),
                                                             texture::UncompressedFloatFormat::F32,
                                                             texture::MipmapsOption::NoMipmap,
@@ -26,7 +25,6 @@ impl ShadowMapper {
                                                             1024)
             .unwrap();
 
-        //                      glium::texture::DepthFormat::I16, 1024, 1024,).unwrap();
         let depth = texture::DepthTexture2d::empty_with_format(ctx.display(),
                                                                texture::DepthFormat::F32,
                                                                texture::MipmapsOption::NoMipmap,
@@ -49,7 +47,7 @@ impl ShadowMapper {
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                 smooth out float distance;
-    
+
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 				void main(){

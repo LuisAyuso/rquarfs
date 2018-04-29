@@ -6,7 +6,7 @@ use renderer::context::Context;
 use std::vec::*;
 use std::collections::BTreeMap;
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 type TimeSample = (f64, usize);
 
@@ -244,7 +244,7 @@ impl Axis {
                                                        r#"
                 #version 140
                 in vec3  f_color;
-                out vec4 color; 
+                out vec4 color;
                 void main() {
                     color = vec4(f_color, 1.0);
                 }

@@ -25,7 +25,7 @@ pub enum RenderType {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum  ContextError{
+pub enum ContextError {
     HeadlessNotSupported,
     ContextNotSupported,
 }
@@ -52,7 +52,7 @@ impl Context {
             .with_vsync()
             .build_glium();
 
-        if display.is_err(){
+        if display.is_err() {
             return Err(ContextError::ContextNotSupported);
         }
 
@@ -68,10 +68,9 @@ impl Context {
     pub fn new_headless(w: u32, h: u32) -> Result<Context, ContextError> {
         use glium::DisplayBuild;
 
-        let display = glium::glutin::HeadlessRendererBuilder::new(w, h)
-            .build_glium();
+        let display = glium::glutin::HeadlessRendererBuilder::new(w, h).build_glium();
 
-        if display.is_err(){
+        if display.is_err() {
             return Err(ContextError::HeadlessNotSupported);
         }
 

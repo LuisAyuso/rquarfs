@@ -123,7 +123,7 @@ impl<'a, 'b, D> GraphPlot<'a, 'b, D>
 
 fn get_color(i: u32) -> [f32; 4] {
 
-    match i {   
+    match i {
         // R    G    B
         0 => [0.0, 0.0, 0.0, 1.0], // BLACK
         1 => [0.8, 0.0, 0.0, 1.0], // RED

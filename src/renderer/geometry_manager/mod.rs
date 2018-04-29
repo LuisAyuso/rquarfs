@@ -76,7 +76,7 @@ impl GeomertyManager {
             return Err(ManagerError::ItemRedefinition);
         }
 
-        if let Ok(vertices) = VertexBuffer::new(ctx.display(), data){
+        if let Ok(vertices) = VertexBuffer::new(ctx.display(), data) {
             let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
                 name: name.to_string(),
                 vertices: vertices.into(),
@@ -87,8 +87,7 @@ impl GeomertyManager {
 
             self.cache.insert(id, g);
             Ok(id)
-        }
-        else{
+        } else {
             Err(ManagerError::BackEndErrror)
         }
 
@@ -111,7 +110,7 @@ impl GeomertyManager {
         let vertices = VertexBuffer::new(ctx.display(), data);
         let indices = IndexBuffer::new(ctx.display(), kind, indices);
 
-        if vertices.is_ok() && indices.is_ok(){
+        if vertices.is_ok() && indices.is_ok() {
             let g: Box<GeomertyInstance<T>> = Box::new(GeomertyInstance {
                 name: name.to_string(),
                 vertices: vertices.unwrap().into(),
@@ -122,8 +121,7 @@ impl GeomertyManager {
 
             self.cache.insert(id, g);
             Ok(id)
-        }
-        else{
+        } else {
             Err(ManagerError::BackEndErrror)
         }
     }
