@@ -2,10 +2,10 @@
 
 #[macro_use]
 extern crate glium;
+extern crate glutin;
 extern crate rand;
 extern crate cgmath;
 extern crate image;
-extern crate glutin;
 extern crate time;
 extern crate regex;
 #[macro_use]
@@ -16,7 +16,7 @@ mod utils;
 mod renderer;
 
 #[warn(unused_imports)]
-use cgmath::{Point3, Vector3, Matrix4, Euler, deg, perspective, Transform};
+use cgmath::{Point3, Vector3, Matrix4, Euler, Deg, perspective, Transform};
 use renderer::context;
 use renderer::camera;
 use renderer::shader;
@@ -90,7 +90,7 @@ fn main() {
     const NEAR: f32 = 5.0;
     const FAR: f32 = 1500.0;
 
-    let mut perspective_matrix: Matrix4<f32> = perspective(deg(45.0), window_ratio, NEAR, FAR);
+    let mut perspective_matrix: Matrix4<f32> = perspective(Deg(45.0), window_ratio, NEAR, FAR);
     let mut model_matrix: Matrix4<f32> =
         Matrix4::from_translation(Vector3::new(-(size_x as f32 / 2.0),
                                                0.0,
@@ -98,9 +98,9 @@ fn main() {
 
     // per increment rotation
     let rotation = Quaternion::from(Euler {
-        x: deg(0.0),
-        y: deg(0.05),
-        z: deg(0.0),
+        x: Deg(0.0),
+        y: Deg(0.05),
+        z: Deg(0.0),
     });
 
     let rot_mat = Matrix4::from(rotation);
@@ -119,9 +119,9 @@ fn main() {
     // sun pos
     let mut sun_pos = Point3::new(0.0, 75.0, size_x as f32); // / 2.0 + 20.0);
     let sun_rot = Quaternion::from(Euler {
-        x: deg(0.02),
-        y: deg(0.02),
-        z: deg(0.0),
+        x: Deg(0.02),
+        y: Deg(0.02),
+        z: Deg(0.0),
     });
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -203,10 +203,6 @@ fn main() {
             .unwrap();
     let mut blur = renderer::ScreenSpacePass::new(&ctx, "blur", &blur_texture, &drop_depth);
 
-    // performance
-
-    let mut performance_program = shader::ProgramReloader::new(&ctx, "performance").unwrap();
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~ RENDER LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,7 +217,6 @@ fn main() {
         quad.update(&ctx, delta);
         ssao.update(&ctx, delta);
         blur.update(&ctx, delta);
-        performance_program.update(&ctx, delta);
 
         // keep mut separated
         {
@@ -267,7 +262,6 @@ fn main() {
 
                 ssao_texture: &blur_texture,
             };
-
 
             // ~~~~~~~~~ prepass: normals and depth  ~~~~~~~~~~~~~~~~
 
@@ -331,79 +325,26 @@ fn main() {
 
         // listing the events produced by the window and waiting to be received
         let mut resizes = Vec::new();
-        {
-            let events = ctx.display().poll_events();
-            for ev in events {
+       {
+           ctx.events_loop().poll_events(|event|{
 
-                use glium::glutin::Event;
-                use glium::glutin::ElementState;
-                match ev {
-                    Event::Closed |
-                    Event::KeyboardInput(_, 9, _) => std::process::exit(0),  // esc
-                    Event::KeyboardInput(ElementState::Released, 33, _) => {
-                        run = !run;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 0, _) => {
-                        compute_shadows = !compute_shadows;
-                        println!("toggle shadows");
-                    }
-                    Event::KeyboardInput(ElementState::Released, 24, _) => {
-                        render_kind = RenderType::Textured
-                    }
-                    Event::KeyboardInput(ElementState::Released, 25, _) => {
-                        render_kind = RenderType::WireFrame
-                    }
-                    Event::KeyboardInput(ElementState::Released, 30, _) => {
-                        cam.move_to(Point3::new(0.0, 65.0, -110.0))
-                    }
-                    Event::KeyboardInput(ElementState::Released, 86, _) => chunk_size += 10,
-                    Event::KeyboardInput(ElementState::Released, 82, _) => chunk_size -= 10,
+               use glium::glutin::Event;
+               use glium::glutin::WindowEvent;
 
-                    Event::KeyboardInput(ElementState::Released, 14, _) => {
-                        println!("preview Noise");
-                        preview = Preview::Noise;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 15, _) => {
-                        println!("preview Blur");
-                        preview = Preview::Blur;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 16, _) => {
-                        println!("preview SSAO");
-                        preview = Preview::SSAO;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 17, _) => {
-                        println!("preview Prepass");
-                        preview = Preview::Prepass;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 18, _) => {
-                        println!("preview Height");
-                        preview = Preview::Height;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 19, _) => {
-                        println!("preview Color");
-                        preview = Preview::Color;
-                    }
-                    Event::KeyboardInput(ElementState::Released, 20, _) => {
-                        println!("preview Depth");
-                        preview = Preview::Depth;
-                    }
-                    Event::KeyboardInput(_, x, _) => println!("key {}", x),
-                    Event::Resized(w, h) => resizes.push((w, h)),
-                    Event::MouseWheel(x, _) => {
-                        if let glium::glutin::MouseScrollDelta::LineDelta(_, y) = x {
-                            cam.change_elevation(y * 5.0);
-                        }
-                    }
-                    _ => (),
-                }
-            }
-        }
+               if let Event::WindowEvent{ window_id: _, event: window_event} = event{
+                   match window_event {
+                       WindowEvent::Closed => std::process::exit(0),  // esc
+                       _ => {},
+                   }
+               }
+           });
+       }
 
         // can not change window while context is borrowed
         for (w, h) in resizes {
             ctx.resize(w, h);
             // FIXME, this is a fix
-            perspective_matrix = perspective(deg(45.0), w as f32 / h as f32, NEAR, FAR);
+            perspective_matrix = perspective(Deg(45.0), w as f32 / h as f32, NEAR, FAR);
 
 
             ctx.get_size();
@@ -418,7 +359,6 @@ fn main() {
             //                                                    h, w).unwrap();
         }
 
-    },
-                            1); // refresh every 5 secs
+    }, 1); // refresh every 5 secs
 
 }

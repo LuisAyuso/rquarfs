@@ -46,7 +46,7 @@ impl Camera {
     #[inline]
     pub fn is_still(self) -> bool {
         use cgmath::ApproxEq;
-        self.target_eye.approx_eq_eps(&self.view_eye, &0.5)
+        self.target_eye.relative_eq(&self.view_eye, 0.5, 1.5)
     }
 
     #[inline]

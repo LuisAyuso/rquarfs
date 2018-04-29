@@ -5,15 +5,15 @@ authors = ["Luis Ayuso <luis.f.ayuso@gmail.com>"]
 resources = ["assets", "shaders"]
 
 [dependencies]
-    glium = "0.16.0"
-    time = "0.1"
-    cgmath = "0.10"
-    rand = "*"
-    image = "*"
-	regex = "*"
-	glob = "*"
-	glutin = "*"
-	lazy_static = "0.1.*"
+    glium = "0.18.1"
+    time = "0.1.38"
+    cgmath = "0.15"
+    rand = "0.3.18"
+    image = "0.17.0"
+	regex = "0.2.2"
+	glob = "0.2.11"
+	glutin = "0.10.1"
+	lazy_static = "0.2.10"
 	rgraph = "0.2.1"
 
 [profile.release]
